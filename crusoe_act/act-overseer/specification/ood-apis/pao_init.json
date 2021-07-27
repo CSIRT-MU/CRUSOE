@@ -1,0 +1,48 @@
+{
+	"pao_init": [{
+			"pao": "rtbh",
+			"ip": "10.0.0.6",
+			"port": "5005",
+			"maxCapacity": 0,
+			"usedCapacity": 0,
+			"freeCapacity": 0,
+			"lastContact": ""
+		},
+		{
+			"pao": "dnsfw",
+			"ip": "10.0.1.3",
+			"port": "5006",
+			"maxCapacity": 0,
+			"usedCapacity": 0,
+			"freeCapacity": 0,
+			"lastContact": ""
+		},
+		{
+			"pao": "userBlock",
+			"ip": "192.168.12.5",
+			"port": "12345",
+			"maxCapacity": 0,
+			"usedCapacity": 0,
+			"freeCapacity": 0,
+			"lastContact": ""
+		},
+		{
+			"pao": "mailFilter",
+			"ip": "192.168.78.9",
+			"port": "4871",
+			"maxCapacity": 0,
+			"usedCapacity": 0,
+			"freeCapacity": 0,
+			"lastContact": ""
+		},
+		{
+			"pao": "firewall",
+			"ip": "192.168.4.23",
+			"port": "36987",
+			"maxCapacity": 0,
+			"usedCapacity": 0,
+			"freeCapacity": 0,
+			"lastContact": ""
+		}
+	]
+}

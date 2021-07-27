@@ -1,0 +1,84 @@
+- name: Install overseer
+  pip:
+    name: "/crusoe/act/act-overseer"
+    executable: pip3
+    state: forcereinstall
+
+- name: Template a wrapper to sites-available
+  template:
+    src: act_overseer.conf
+    dest: "/etc/apache2/sites-available/act_overseer.conf"
+
+- name: copy overseer rest api to /var/www/
+  copy:
+    src: "/tmp/act-overseer/act_overseer_rest_api"
+    dest: /var/www/
+    remote_src: yes
+
+- name: change group for /var/www/act_overseer_rest_api
+  file:
+    dest: /var/www/act_overseer_rest_api
+    group: www-data
+    recurse: yes
+    
+- name: replace user name
+  replace:
+    path: /usr/local/lib/python3.7/dist-packages/act_overseer/data/act_overseer_config
+    regexp: "\"user\","
+    replace: "\"crusoe\","
+
+- name: replace password
+  replace:
+    path: /usr/local/lib/python3.7/dist-packages/act_overseer/data/act_overseer_config
+    regexp: "pass\","
+    replace: "{{ vault_act_overseer_password }}\","
+
+- name: replace server_url
+  replace:
+     path: /usr/local/lib/python3.7/dist-packages/act_overseer/data/act_overseer_config
+     regexp: "\"https://crusoe.csirt.muni.cz\""
+     replace: "\"{{ external_ip }}:{{ portnumber_neo4j_rest }}\""
+
+- name: adjust permission
+  file:
+    path: /usr/local/lib/python3.7/dist-packages/act_overseer/data/act_overseer_config
+    mode: '0666'
+    state: touch
+
+- name: ensure log dir exists
+  file:
+    path: /var/log/crusoe
+    state: directory
+
+- name: create log rest log
+  file:
+    path: /var/log/crusoe/act_overseer_rest_api.log
+    state: touch
+    mode: '0666'
+
+- name: create log decide log
+  file:
+    path: /var/log/crusoe/act_decide_to_act.log
+    state: touch
+    mode: '0666'
+
+- name: modify ports configuration
+  lineinfile:
+    path: /etc/apache2/ports.conf
+    line: "LISTEN {{portnumber}}"
+
+- name: Enable new site
+  shell: "/usr/sbin/a2ensite act_overseer.conf"
+  notify:
+    - reload apache
+
+- name: Add proxypass to default apache site
+  lineinfile:
+    dest: /etc/apache2/sites-available/000-default.conf
+    line:  "{{ item.line }}"
+    insertbefore: '</VirtualHost>'
+  with_items:
+    - { line: 'ProxyPass /act http://127.0.0.1:{{ portnumber }}/act'}
+    - { line: 'ProxyPassReverse /act http://127.0.0.1:{{ portnumber }}/act'}
+  notify:
+    - reload apache

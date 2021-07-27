@@ -1,0 +1,96 @@
+:host {
+  width: 100%;
+}
+
+.overview {
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  .mat-card {
+    min-width: 23%;
+    color: #fff;
+
+    &.active {
+      background: linear-gradient(to left, #0db2de 0%, #005bea 100%) !important;
+    }
+
+    &.failed {
+      background: linear-gradient(45deg, #f93a5a, #f7778c) !important;
+    }
+
+    &.succeeded {
+      background: linear-gradient(to left, #48d6a8 0%, #029666 100%) !important;
+    }
+
+    &.retried {
+      background: linear-gradient(to left, #efa65f, #f76a2d) !important;
+    }
+
+    .value {
+      font-size: 24px;
+      margin-bottom: 0;
+    }
+  }
+}
+
+.overview,
+.workers,
+.tasks {
+  margin-bottom: 60px;
+}
+
+.table-panel {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 30px;
+
+  .chart-panel {
+    width: 49%;
+
+    .chart-wrapper {
+      display: grid;
+    }
+
+    .mat-card {
+      padding: 38px;
+    }
+  }
+
+  .filter {
+    width: 49%;
+
+    .mat-card {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mat-form-field {
+      width: 70%;
+    }
+
+    .mat-raised-button {
+      padding: 0;
+      width: 20%;
+      height: 40px;
+    }
+  }
+
+  @media only screen and (max-width: 1200px) {
+    .chart-panel,
+    .filter {
+      width: 100%;
+    }
+
+    .filter {
+      margin-top: 25px;
+    }
+  }
+}

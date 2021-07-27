@@ -1,0 +1,4 @@
+---
+# Install/Configure Act tools
+- import_playbook: act.yml
+

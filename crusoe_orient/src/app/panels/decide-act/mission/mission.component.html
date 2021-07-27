@@ -1,0 +1,39 @@
+<ng-container *ngIf="missionLoading">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</ng-container>
+<ng-container *ngIf="!missionLoading && errorMessage">
+  <p class="error">
+    <strong>Error fetching data from REST API.</strong><br /><span>Error message: {{ errorMessage }}</span>
+  </p>
+</ng-container>
+<ng-container *ngIf="!missionLoading && !errorMessage">
+  <div class="heading-wrapper">
+    <a routerLink="/auth/panel/decide" class="back-anchor"
+      ><mat-icon mat-button class="back-button">chevron_left</mat-icon></a
+    >
+    <div>
+      <p class="worker-label">Mission:</p>
+      <h2>{{ mission.name }}</h2>
+    </div>
+  </div>
+  <div class="mat-table">
+    <div class="mat-row">
+      <div class="mat-cell"><strong>Criticality:</strong></div>
+      <div class="mat-cell">
+        {{ mission.criticality }}
+      </div>
+    </div>
+    <div class="mat-row">
+      <div class="mat-cell"><strong>Description:</strong></div>
+      <div class="mat-cell">
+        {{ mission.description }}
+      </div>
+    </div>
+    <!-- <div class="mat-row">
+      <div class="mat-cell">Port:</div>
+      <div class="mat-cell">
+        <strong>{{ pao.port }} </strong>
+      </div>
+    </div> -->
+  </div>
+</ng-container>

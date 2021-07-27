@@ -1,0 +1,76 @@
+- name: Check if redis is installed
+  ignore_errors: yes
+  command: dpkg-query -l redis-server
+  register: redis_check
+  failed_when: no
+  changed_when: no
+
+- name: Install redis if not installed
+  block:
+  - name: Create structure for redis and logs
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - /etc/redis
+      - /var/redis
+      - /var/redis/6379
+      - /var/log/celery
+      - /var/log/crusoe
+
+  # download redis-server & configuration
+  - name: install redis-server
+    apt:
+      name: redis-server
+      state: present
+      cache_valid_time: 1800
+      update_cache: yes
+
+  - name: Download redis
+    get_url:
+      url: http://download.redis.io/redis-stable.tar.gz
+      dest: "/tmp/"
+
+  - name: Unarchive Redis
+    unarchive:
+      src: "/tmp/redis-stable.tar.gz"
+      dest: /tmp/
+      remote_src: yes
+
+  - name: run make
+    make:
+      chdir: "/tmp/redis-stable"
+
+  - name: copy init script
+    copy:
+      src: "/tmp/redis-stable/utils/redis_init_script"
+      dest: /etc/init.d/redis_6379
+      remote_src: yes
+
+  - name: Make sure to REDISPORT is set to the port which is using
+    lineinfile:
+      path: /etc/init.d/redis_6379
+      regexp: '^REDISPORT='
+      line: 'REDISPORT=6379'
+
+  - name: copy redis config file
+    copy:
+      src: "/tmp/redis-stable/redis.conf"
+      dest: /etc/redis/6379.conf
+      remote_src: yes
+
+  - name: Set redis config file
+    lineinfile:
+      dest: /etc/redis/6379.conf
+      regexp: "{{ item.regexp }}"
+      line: "{{ item.line }}"
+    with_items:
+      - { regexp: '^daemonize', line: 'daemonize yes' }
+      - { regexp: '^pidfile', line: 'pidfile /var/run/redis_6379.pid' }
+      - { regexp: '^port', line: 'port 6379' }
+      - { regexp: '^logfile', line: 'logfile /var/log/redis_6379.log' }
+      - { regexp: '^dir', line: 'dir /var/redis/6379' }
+
+  - name: Add Redis init script
+    shell: "update-rc.d redis_6379 defaults"
+  when: redis_check.rc == 1

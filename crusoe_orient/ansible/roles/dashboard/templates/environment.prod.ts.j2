@@ -1,0 +1,11 @@
+import * as packageData from '../../package.json';
+
+export const environment = {
+  applicationName: 'CRUSOE Dashboard',
+  production: true,
+  version: packageData.version,
+  apiUrl: '{{ redirectApi }}',
+  tmpActApi: '{{ actApi }}',
+  graphqlApi: '{{ graphqlApi }}',
+  firewallApi: '{{ firewallApi }}',
+};

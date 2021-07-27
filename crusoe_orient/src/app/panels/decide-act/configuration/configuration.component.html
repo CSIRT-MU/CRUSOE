@@ -1,0 +1,78 @@
+<ng-container *ngIf="configLoading">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</ng-container>
+<ng-container *ngIf="!configLoading && errorMessage">
+  <p class="error">
+    <strong>Error fetching data from REST API.</strong><br /><span>Error message: {{ errorMessage }}</span>
+  </p>
+</ng-container>
+<ng-container *ngIf="!configLoading && !errorMessage">
+  <div class="heading-wrapper">
+    <a routerLink="/auth/panel/decide" class="back-anchor"
+      ><mat-icon mat-button class="back-button">chevron_left</mat-icon></a
+    >
+    <div>
+      <p class="worker-label">Configuration:</p>
+      <h2>
+        <strong>Config {{ configuration.configuration?.config_id }}</strong> of the mission
+        <strong>{{ missionName }}</strong>
+      </h2>
+    </div>
+  </div>
+  <div class="mat-table">
+    <div class="mat-row">
+      <div class="mat-cell">
+        <strong>Availability</strong>
+        <mat-icon
+          matTooltip="Expresses threat that availability of this configuration will be disturbed. Lower value is better."
+          matTooltipClass="custom-tooltip"
+          >info</mat-icon
+        >
+      </div>
+      <div class="mat-cell">
+        {{ configuration.configuration?.availability | percent: '1.0-2' }}
+      </div>
+    </div>
+    <div class="mat-row">
+      <div class="mat-cell">
+        <strong>Confidentiality</strong>
+        <mat-icon
+          matTooltip="Expresses threat that confidentiality of this configuration will be disturbed. Lower value is better."
+          matTooltipClass="custom-tooltip"
+          >info</mat-icon
+        >
+      </div>
+      <div class="mat-cell">
+        {{ configuration.configuration?.confidentiality | percent: '1.0-2' }}
+      </div>
+    </div>
+    <div class="mat-row">
+      <div class="mat-cell">
+        <strong>Integrity</strong>
+        <mat-icon
+          matTooltip="Expresses threat that integrity of this configuration will be disturbed. Lower value is better."
+          matTooltipClass="custom-tooltip"
+          >info</mat-icon
+        >
+      </div>
+      <div class="mat-cell">
+        {{ configuration.configuration?.integrity | percent: '1.0-2' }}
+      </div>
+    </div>
+    <div class="mat-row">
+      <div class="mat-cell"><strong>List of allowed hosts:</strong></div>
+      <div class="mat-cell">
+        {{ hostsString }}
+      </div>
+    </div>
+  </div>
+</ng-container>
+<h3>Availability of services after applying the config</h3>
+<div class="missions-graph">
+  <ng-container *ngIf="missionGraphLoading && !errorMessage">
+    <mat-spinner></mat-spinner>
+  </ng-container>
+  <ng-container *ngIf="!missionGraphLoading">
+    <app-missions-graph [structure]="missionsStructure" [hosts]="hostsArray"></app-missions-graph>
+  </ng-container>
+</div>

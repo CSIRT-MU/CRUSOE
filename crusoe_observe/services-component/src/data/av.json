@@ -1,0 +1,53 @@
+{
+    "windows_defender": {
+        "vendor": "microsoft",
+        "product": "windows_defender",
+        "hostname": ["wdcp.microsoft", "wdcpalt.microsoft"]
+    },
+    "symantec": {
+        "vendor": "symantec",
+        "hostname": ["symantec"]
+    },
+    "sophos": {
+        "vendor": "sophos",
+        "hostname": ["sophosudp"]
+    },
+    "mcafee": {
+        "vendor": "mcafee",
+        "hostname": ["mcafee", "nai.com"]
+    },
+    "kaspersky": {
+        "vendor": "kaspersky",
+        "hostname": ["kaspersky"]
+    },
+    "fsecure": {
+        "vendor": "f-secure",
+        "product": "anti-virus",
+        "hostname": ["fsbwserver"]
+    },
+    "eset": {
+        "vendor": "eset",
+        "hostname": ["eset", "e5.sk"]
+    },
+    "clamav": {
+        "vendor": "clamav",
+        "product": "clamav",
+        "hostname": ["clamav"]
+    },
+    "bitdefender": {
+        "vendor": "bitdefender",
+        "hostname": ["bitdefender"]
+    },
+    "avira": {
+        "vendor": "avira",
+        "hostname": ["avira-update"]
+    },
+    "avast": {
+        "vendor": "avast",
+        "hostname": ["avast"]
+    },
+    "avg": {
+        "vendor": "avg",
+        "hostname": ["avg", "grisoft"]
+    }
+}

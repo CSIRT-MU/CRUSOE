@@ -1,0 +1,75 @@
+# Install nginx web server
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+  become: yes
+
+# Start nginx web server
+- name: start nginx
+  service:
+    name: nginx
+    state: started
+
+# Copy environment file where REST API urls are defined
+- name: Copy environment file
+  template:
+    src: environment.prod.ts.j2
+    dest: '{{ dashboard_folder }}/src/environments/environment.prod.ts'
+
+# Install node.js
+- name: Install Node.js
+  apt:
+    name: nodejs
+    state: present
+    update_cache: yes
+  become: yes
+
+# Install npm
+- name: Install npm
+  apt:
+    name: npm
+    state: present
+  become: yes
+
+# Update node.js
+- name: Update npm
+  command: 'npm install npm@latest -g'
+  become: yes
+
+# Install Dashboard dependencies
+- name: Install Dashboard dependencies
+  npm:
+    path: '{{ dashboard_folder }}'
+
+# Build application using Angular-CLI
+- name: Build application
+  command: 'npm run build'
+  args:
+    chdir: '{{ dashboard_folder }}'
+    creates: '{{ dashboard_folder }}/dist'
+
+# Copy nginx config
+- name: Copy Nginx conf file
+  template:
+    src: 'dashboard.conf'
+    dest: /etc/nginx/nginx.conf
+  become: yes
+
+# Create folder for Dashboard files in /var/www/
+- name: Create dashboard folder in /var/www/
+  command: 'mkdir /var/www/dashboard'
+  become: yes
+
+# Copy Dashboard files
+- name: Copy dashboard files
+  command: 'cp -a {{ dashboard_folder }}/dist/. /var/www/dashboard/'
+  become: yes
+
+# Reload nginx
+- name: Reload nginx
+  service:
+    name: nginx
+    state: reloaded
+  become: yes

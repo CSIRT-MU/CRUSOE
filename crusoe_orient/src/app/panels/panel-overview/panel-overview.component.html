@@ -1,0 +1,8 @@
+<!-- TODO Refactor this, so buttons for panels are loaded dynamically -->
+<div class="boxes">
+  <div class="box" *ngFor="let panel of panels">
+    <mat-card routerLink="/auth/panel/{{ panel.path }}" class="green text-center">
+      <h2>{{ panel.data.name }}</h2>
+    </mat-card>
+  </div>
+</div>

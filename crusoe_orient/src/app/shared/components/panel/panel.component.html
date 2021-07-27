@@ -1,0 +1,16 @@
+<div class="row page-title">
+  <div class="col-md-8">
+    <h1>
+      Panels / {{ type ? type + ' / ' : '' }}<strong>{{ name }}</strong>
+    </h1>
+  </div>
+</div>
+<div class="container-fluid padding-45">
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="row" [@fadeAnimation]="getRouterOutletState(o)">
+        <router-outlet #o="outlet"></router-outlet>
+      </div>
+    </div>
+  </div>
+</div>

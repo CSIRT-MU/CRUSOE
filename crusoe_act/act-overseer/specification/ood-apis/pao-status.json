@@ -1,0 +1,20 @@
+/act/{pao}/status
+{
+  "status_green": "OK",
+  "status_yellow": "",
+  "status_red": ""
+}
+
+/act/{pao}/status
+{
+  "status_green": "",
+  "status_yellow": "Capacity 90 % full",
+  "status_red": "Unreachable"
+}
+
+/act/{pao}/status
+{
+  "status_green": "",
+  "status_yellow": "",
+  "status_red": "Capacity full,Unreachable"
+}

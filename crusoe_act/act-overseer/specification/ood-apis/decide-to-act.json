@@ -1,0 +1,23 @@
+{
+	"actions": [{
+		"action": "block/unblock",
+		"PAO": "dnsfw/rtbh/userBlock/mailFilter/firewall",
+		"value": "domain/IP/username/email/IP:port"
+	}, {
+		"action": "block/unblock",
+		"PAO": "dnsfw/rtbh/userBlock/mailFilter/firewall",
+		"value": "domain/IP/username/email/IP:port"
+	}, {
+		"action": "block/unblock",
+		"PAO": "dnsfw/rtbh/userBlock/mailFilter/firewall",
+		"value": "domain/IP/username/email/IP:port"
+	}, {
+		"action": "block/unblock",
+		"PAO": "dnsfw/rtbh/userBlock/mailFilter/firewall",
+		"value": "domain/IP/username/email/IP:port"
+	}, {
+		"action": "block/unblock",
+		"PAO": "dnsfw/rtbh/userBlock/mailFilter/firewall",
+		"value": "domain/IP/username/email/IP:port"
+	}]
+}

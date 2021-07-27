@@ -1,0 +1,38 @@
+- name: Create ML data directory
+  file:
+    path: "/usr/share/crusoe/"
+    state: directory
+
+- name: Create ML model directory
+  file:
+    path: "/var/tmp/crusoe/"
+    state: directory
+
+- name: Download ServiceIdentifier dataset
+  get_url:
+    url: https://nexus.csirt.muni.cz/repository/crusoe-raw/si_dataset.tar.bz2
+    dest: "/usr/share/crusoe/"
+    validate_certs: no
+
+- name: Download OS dataset
+  get_url:
+    url: https://nexus.csirt.muni.cz/repository/crusoe-raw/os_dataset.tar.bz2
+    dest: "/usr/share/crusoe/"
+    validate_certs: no
+
+- name: unarchive OS dataset
+  unarchive:
+    src: "/usr/share/crusoe/os_dataset.tar.bz2"
+    dest: "/usr/share/crusoe/"
+    remote_src: yes
+
+- name: unarchive ServiceIdentifier dataset
+  unarchive:
+    src: "/usr/share/crusoe/si_dataset.tar.bz2"
+    dest: "/usr/share/crusoe/"
+    remote_src: yes
+
+- name: Build ML models
+  script: "build-ml.py /usr/share/crusoe/ /var/tmp/crusoe/"
+  args:
+    executable: python3

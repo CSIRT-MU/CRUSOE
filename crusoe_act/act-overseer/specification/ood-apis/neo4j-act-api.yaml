@@ -1,0 +1,245 @@
+openapi: 3.0.0
+info:
+  version: v2.1
+  title: CRUSOE Act <-> Neo4J API
+  description: Neo4J API functions that are required by the ACT phase
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: 'https://virtserver.swaggerhub.com/MadGeckoo/act/v1'
+paths:
+  '/act/initialize':
+    put:
+      description: Sets the parameters of PAO present on the network. Requires JSON with PAO details. Ran once during install and then manually if IP or port of any of the PAOs change and the PAOs need to be reinitialized. Requires JSON with PAO details. Rewrites previous configuration if present.
+      responses:
+        '200':
+          description: PAOs succesfully reinitialized
+        '400':
+          description: PAO initialization failed
+  '/act/paos':
+    get:
+      description: Returns static PAO parameters (name, IP, port) of all PAOs in the network
+      responses:
+        '200':
+          description: PAO parameters returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    pao:
+                      type: string
+                    ip:
+                      type: string
+                    port:
+                      type: string
+        '400':
+          description: Error
+  '/act/{pao}/status':
+    get:
+      description: Returns all warnings (divided by space) concerning the PAO operation, grouped by traffic light severity
+      parameters:
+        - name: pao
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully returned current PAO status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status_green:
+                    type: string
+                  status_yellow:
+                    type: string
+                  status_red:
+                    type: string
+        '400':
+          description: Error
+  '/act/{pao}/liveness':
+    get:
+      description: Returns the timestamp of last successful liveness check with the PAO
+      parameters:
+        - name: pao
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully returned the timestamp
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lastContact:
+                    type: string
+        '400':
+          description: Error
+    post:
+      description: Set the timestamp of the last successful liveness check with the PAO
+      parameters:
+        - name: pao
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - lastContact
+              properties:
+                lastContact:
+                  type: string
+      responses:
+        '200':
+          description: Return ID of a given user block rule
+        '400':
+          description: Error
+  '/act/{pao}/maxCapacity':
+    get:
+      description: Returns max capacity of the PAO
+      parameters:
+        - name: pao
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully returned max capacity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  maxCapacity:
+                    type: integer
+        '400':
+          description: Error
+    post:
+      description: Allows to set and change the max capacity of the PAO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - maxCapacity
+                - usedCapacity
+                - freeCapacity
+              properties:
+                  maxCapacity:
+                    type: integer
+      parameters:
+        - name: pao
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Succesfully updated the PAO capacities
+        '400':
+          description: Error
+  '/act/{pao}/usedCapacity':
+    get:
+      description: Returns used capacity of the PAO
+      parameters:
+        - name: pao
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully returned used capacity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usedCapacity:
+                    type: integer
+        '400':
+          description: Error
+    post:
+      description: Allows to set and change the used capacity of the PAO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - usedCapacity
+              properties:
+                  usedCapacity:
+                    type: integer
+      parameters:
+        - name: pao
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Succesfully updated the PAO capacities
+        '400':
+          description: Error
+  '/act/{pao}/freeCapacity':
+    get:
+      description: Returns free capacity of the PAO
+      parameters:
+        - name: pao
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully returned free capacity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  freeCapacity:
+                    type: integer
+        '400':
+          description: Error
+    post:
+      description: Allows to set and change the free capacity of the PAO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - freeCapacity
+              properties:
+                  freeCapacity:
+                    type: integer
+      parameters:
+        - name: pao
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Succesfully updated the PAO capacities
+        '400':
+          description: Error

@@ -1,0 +1,21 @@
+wrapper:
+dst_wrapper:
+portnumber:
+ip:
+server_name:
+pao_name: 
+maxCapacity:
+usedCapacity:
+freeCapacity: 
+
+
+pao_required_variables:
+    wrapper: '{{ wrapper }}'
+    dst_wrapper: '{{ dst_wrapper }}'
+    portnumber: ' {{ portnumber }}'
+    ip: '{{ ip }}'
+    server_name: '{{ server_name }}'
+    pao_name: '{{ pao_name }}'
+    maxCapacity: '{{ maxCapacity }}'
+    usedCapacity: '{{ usedCapacity }}'
+    freeCapacity: '{{ freeCapacity }}'

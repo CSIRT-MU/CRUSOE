@@ -1,0 +1,17 @@
+.fullscreen-button {
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 32px;
+  margin-left: 300px;
+  transition: 0.2s all ease-out;
+  height: 32px;
+  width: 32px;
+
+  &:hover {
+    color: rgba(0, 0, 0, 0.8);
+  }
+
+  &.fullscreen {
+    margin-left: 0;
+  }
+}

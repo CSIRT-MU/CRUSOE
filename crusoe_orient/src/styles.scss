@@ -1,0 +1,235 @@
+/* Import Roboto font */
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,400i,700&subset=latin-ext');
+
+body,
+html {
+  height: 100%;
+  background-color: #eef5f9 !important;
+}
+
+/* You can add global styles to this file, and also import other style files */
+.bg-csirt {
+  background-color: #0d3982;
+}
+
+* {
+  font-family: Roboto, 'Helvetica Neue Light', 'Helvetica Neue', Helvetica, Arial, 'Lucida Grande', sans-serif;
+}
+
+body,
+html {
+  height: 100%;
+}
+/*
+ * Content
+ */
+
+[role='main'] {
+  padding-top: 48px; /* Space for fixed navbar */
+  /*TEMP FOR DEV */
+  margin-left: 0 !important;
+  top: 20px;
+}
+
+.hamburger {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  width: 48px;
+  height: 48px;
+  font-size: 0;
+  text-indent: -9999px;
+  cursor: pointer;
+  outline: none;
+  background: none;
+  border: 0;
+}
+
+.hamburger span {
+  display: block;
+  position: absolute;
+  top: 22px;
+  left: 9px;
+  right: 9px;
+  height: 4px;
+  background: #fff;
+}
+
+.hamburger span::before,
+.hamburger span::after {
+  display: block;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: #fff;
+  content: '';
+}
+
+.hamburger span::before {
+  top: -10px;
+}
+
+.hamburger span::after {
+  bottom: -10px;
+}
+
+.pl-300px {
+  padding-left: 300px;
+}
+
+.pl-0 {
+  padding-left: 0;
+}
+
+.transition {
+  transition: all 0.2s ease-out;
+}
+
+/* .content-center {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  } */
+
+.content-stretch {
+  width: 100%;
+  height: 100%;
+}
+
+.mat-card {
+  box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #d7dfe3 !important;
+}
+
+.container-fluid.padding-45 {
+  padding-left: 45px;
+  padding-right: 45px;
+}
+
+.text-align-right {
+  text-align: right;
+}
+
+.text-center > .mat-simple-snackbar {
+  justify-content: center;
+}
+
+.error {
+  background-color: #b00020 !important;
+  color: #fff !important;
+}
+
+.success {
+  background-color: #2e7d32 !important;
+  color: #fff !important;
+}
+
+.status-label {
+  border-radius: 10px;
+  color: #fff;
+  padding: 5px;
+
+  &.online {
+    background-color: #2e7d32;
+  }
+
+  &.offline {
+    background-color: #b00020;
+  }
+}
+
+.state-label {
+  border-radius: 10px;
+  color: #fff;
+  padding: 5px;
+
+  &.state-success {
+    background-color: #029666;
+  }
+
+  &.state-failure {
+    background-color: #f93a5a;
+  }
+
+  &.state-started {
+    background-color: #005bea;
+  }
+
+  &.state-retry {
+    background-color: #f76a2d;
+  }
+}
+
+.mat-progress-spinner {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 60px;
+  margin-bottom: 60px;
+}
+
+a {
+  color: #1a237e;
+
+  &:hover {
+    color: #3c427a;
+  }
+}
+
+.error {
+  margin-top: 20px;
+  text-align: center;
+  background-color: #f44336;
+  color: #fff;
+  border-radius: 10px;
+  padding: 15px;
+
+  .message {
+    font-size: 12px;
+  }
+}
+
+.custom-tooltip {
+  background-color: #1a237e;
+  color: #fff;
+  font-size: 12px;
+}
+
+.warn {
+  margin-top: 20px;
+  text-align: center;
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+  color: #856404;
+  border-radius: 10px;
+  padding: 15px;
+  position: relative;
+
+  .message {
+    font-size: 12px;
+  }
+
+  .mat-icon {
+    cursor: pointer;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+  }
+}
+
+.mat-spinner.white {
+  margin: 0 auto;
+}
+
+.mat-spinner.white circle {
+  stroke: #fff;
+  margin: auto;
+}

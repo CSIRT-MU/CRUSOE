@@ -1,0 +1,68 @@
+openapi: 3.0.0
+info:
+  version: v1
+  title: CRUSOE Act API for Act Overseer
+  description: API specifying the access points to the ACT phase for other phases
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: 'https://virtserver.swaggerhub.com/MadGeckoo/act/v1'
+paths:
+  '/act/protect_missions_assets':
+    post:
+      description: Act expects to receive a json with the list of the mission-configuration pairs. All missions are required, with exactly one configuration chosen per mission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - name
+                  - config_id
+                properties:
+                  name:
+                    type: string
+                  config_id:
+                    type: string
+      responses:
+        '200':
+          description: Applying configurations
+        '403':
+          description: Mission list does not match the list in neo4j, i.e. is not complete
+        '404':
+          description: Configuration ID does not exist
+        '400':
+          description: Invalid request
+  '/act/treshold':
+    get:
+      description: Returns the current security treshold, devices with lower rating will be blocked
+      responses:
+        '200':
+          description: Successfully returned treshold
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  treshold:
+                    type: integer
+        '400':
+          description: Invalid request
+    put:
+      description: Changes current security treshold to a new one
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                treshold:
+                  type: integer
+      responses:
+        '200':
+          description: New treshold set
+        '400':
+          description: Invalid request

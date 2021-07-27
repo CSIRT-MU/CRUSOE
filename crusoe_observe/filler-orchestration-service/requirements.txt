@@ -1,0 +1,5 @@
+neo4j_driver==1.7.0
+paramiko==2.4.0
+setuptools==20.7.0
+celery==4.1.0
+structlog

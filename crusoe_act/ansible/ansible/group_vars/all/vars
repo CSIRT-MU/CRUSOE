@@ -1,0 +1,25 @@
+# Configurable params
+flowmon_key_path: ~/.ssh/id_rsa
+flowmon_remote_key_path: /root/.ssh/id_rsa_crusoe 
+key_path: ~/.ssh/id_rsa # ssh key with access to CRUSOE gitlab
+remote_key_path: /home/vagrant/.ssh/id_rsa 
+remove_remote_key: true # true if ssh key will be deleted at the end of ansible, false otherwise
+warden_ca_path: ~/.ssh/id_rsa
+warden_cert_path: /~/.ssh/id_rsa
+warden_key_path: ~/.ssh/id_rsa
+# Unconfigurable params
+destination_path: /tmp/
+download_path: /tmp/
+whatweb_path: /opt/whatweb/
+apt_file: /etc/apt/sources.list
+pystemon_path: /opt/pystemon/
+celery_path: /opt/celery/
+warden_path: /opt/warden_client/
+resource_path: ../files/
+ca_path: /usr/local/share/ca-certificates/
+ml_data_path: /usr/share/crusoe/ # Where to store ML data
+ml_model_path: /var/tmp/crusoe/ # Where to store ML models
+supervisor_path: /etc/supervisor/conf.d/
+mulval_path: /opt/mulval/
+xsb_path: /opt/XSB/
+external_ip: 172.18.1.10

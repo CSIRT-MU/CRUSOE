@@ -1,0 +1,15 @@
+crusoe_components: 
+  - flowmon-rest-client
+  - cms-component
+  - criticality-estimator
+  - cve-connector
+  - flowmon-connector
+  - neo4j-client
+  - NETlist-connector
+  - nmap-topology-scanner
+  - OS-parser-component
+  - RTIR-connector
+  - sabu-connector
+  - services-component
+  - vulnerability-component
+  - webchecker-component

@@ -1,0 +1,143 @@
+<ng-container *ngIf="taskLoading">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</ng-container>
+<ng-container *ngIf="!taskLoading">
+  <div class="heading-wrapper">
+    <a routerLink="../../" class="back-anchor"><mat-icon mat-button class="back-button">chevron_left</mat-icon></a>
+    <div>
+      <p class="worker-label">Task:</p>
+      <h2>{{ currentTask.name || 'Unknown name' }}</h2>
+      <p class="description">({{ taskID }})</p>
+    </div>
+  </div>
+  <div class="options-wrap">
+    <div class="basic-options">
+      <p class="heading">Basic options:</p>
+      <div class="mat-table">
+        <div class="mat-row">
+          <div class="mat-cell">Name:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.name || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">UUID:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.uuid || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">State:</div>
+          <div class="mat-cell" [innerHTML]="showTaskState(currentTask.state)">{{ currentTask.state || '-' }}</div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Args:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.args || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Kwargs:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.kwargs || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Result:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.result || '-' }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="advanced-options">
+      <p class="heading">Advanced options:</p>
+      <div class="mat-table">
+        <div class="mat-row">
+          <div class="mat-cell">Received:</div>
+          <div class="mat-cell">
+            <strong>{{
+              currentTask.received ? (currentTask.received * 1000 | date: 'd. M. yyyy hh:mm:ss') : '-'
+            }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Started:</div>
+          <div class="mat-cell">
+            <strong>{{
+              currentTask.started ? (currentTask.started * 1000 | date: 'd. M. yyyy hh:mm:ss') : '-'
+            }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Succeeded:</div>
+          <div class="mat-cell">
+            <strong>{{
+              currentTask.succeeded ? (currentTask.succeeded * 1000 | date: 'd. M. yyyy hh:mm:ss') : '-'
+            }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Retries:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.retries || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Worker:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.worker || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Timestamp:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.timestamp || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Runtime:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.runtime || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Clock:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.clock || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Root:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.root || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Root id:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.root_id || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Parent:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.parent || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Parent id:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.parent_id || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Children:</div>
+          <div class="mat-cell">
+            <strong>{{ currentTask.children || '-' }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

@@ -1,0 +1,358 @@
+openapi: 3.0.0
+info:
+  version: v1
+  title: CRUSOE Act API Wrapper for Mail Filter
+  description: API wrapper for Active Network Defense devices of project CRUSOE
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: 'https://virtserver.swaggerhub.com/MadGeckoo/act/v1'
+paths:
+  '/mailFilter/health':
+    get:
+      description: Returns a health check for mail filter
+      responses:
+        '200':
+          description: Successfully returned health check
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  serviceStatus:
+                    type: string
+        '400':
+          description: Invalid request
+        '503':
+          description: Service unavailable
+  '/mailFilter/capacity':
+    get:
+      description: Returns mail filter capacities for mail filter
+      responses:
+        '200':
+          description: Successfully returned current capacities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  maxCapacity:
+                    type: integer
+                  usedCapacity:
+                    type: integer
+                  freeCapacity:
+                    type: integer
+        '400':
+          description: Invalid request
+        '403':
+          description: Function not supported
+  '/mailFilter/blocked':
+    get:
+      description: Returns a list of e-mail adresses blocked by mailFilter
+      responses:
+        '200':
+          description: Successfully returned list of blocked e-mails
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleAddress:
+                      type: string
+                    ruleFrom:
+                      type: boolean
+                    ruleTo:
+                      type: boolean
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+    post:
+      description: Block an e-mail address by mailFilter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ruleAddress
+                - ruleFrom
+                - ruleTo
+              properties:
+                ruleAddress:
+                  type: string
+                ruleFrom:
+                  type: boolean
+                ruleTo:
+                  type: boolean
+                ruleReason:
+                  type: string
+      responses:
+        '200':
+          description: Return ID of a given e-mail address block rule
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+        '400':
+          description: Invalid request
+  '/mailFilter/blocked/{ruleId}':
+    get:
+      description: Get details of a rule with the ruleID from mailFilter
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Here are the details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+                  ruleAddress:
+                    type: string
+                  ruleFrom:
+                    type: boolean
+                  ruleTo:
+                    type: boolean
+                  ruleReason:
+                    type: string
+        '400':
+          description: Invalid request
+    put:
+      description: Change a reason, from and to for a rule with ruleID on the mailFilter
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ruleFrom
+                - ruleTo
+                - ruleReason
+              properties:
+                ruleFrom:
+                  type: boolean
+                ruleTo:
+                  type: boolean
+                ruleReason:
+                  type: string
+      responses:
+        '200':
+          description: Changed, return the new entry
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+                  ruleAddress:
+                    type: string
+                  ruleFrom:
+                    type: boolean
+                  ruleTo:
+                    type: boolean
+                  ruleReason:
+                    type: string
+        '400':
+          description: Invalid request
+    delete:
+      description: Delete a rule with ruleId from the mailFilter
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: MailFilter rule with ruleId deleted
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleAddress:
+                      type: string
+                    ruleFrom:
+                      type: boolean
+                    ruleTo:
+                      type: boolean
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+  '/mailFilter/{ruleAddress}':
+    get:
+      description: Get all rules with specified ruleAddress
+      parameters:
+        - name: ruleAddress
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully returned list of rules for given e-mail address
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleAddress:
+                      type: string
+                    ruleFrom:
+                      type: boolean
+                    ruleTo:
+                      type: boolean
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+        '404':
+          description: E-mail address not found
+    put:
+      description: Change a reason and direction for all rules with the specified e-mail address
+      parameters:
+        - name: ruleAddress
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ruleFrom
+                - ruleTo
+                - ruleReason
+              properties:
+                ruleFrom:
+                  type: boolean
+                ruleTo:
+                  type: boolean
+                ruleReason:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleAddress:
+                      type: string
+                    ruleFrom:
+                      type: boolean
+                    ruleTo:
+                      type: boolean
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+        '404':
+          description: e-mail address not found
+    delete:
+      description: Delete all rules for specified e-mail address and direction (from or to)
+      parameters:
+        - name: ruleAddress
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All rules for given e-mail address and direction deleted
+        '400':
+          description: Invalid request
+        '404':
+          description: No rules for the given address found
+  /mailFilter/from:
+    get:
+      description: Get all rules with specified ruleAddress in 'from' direction
+      responses:
+        '200':
+          description: Successfully returned list of rules for 'from' direction
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleAddress:
+                      type: string
+                    ruleFrom:
+                      type: boolean
+                    ruleTo:
+                      type: boolean
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+        '404':
+          description: No e-mails blocked in 'from' direction
+  /mailFilter/to:
+    get:
+      description: Get all rules with specified ruleAddress 'to'  direction
+      responses:
+        '200':
+          description: Successfully returned list of rules for 'to' direction
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleAddress:
+                      type: string
+                    ruleFrom:
+                      type: boolean
+                    ruleTo:
+                      type: boolean
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+        '404':
+          description: No e-mails blocked in 'to' direction

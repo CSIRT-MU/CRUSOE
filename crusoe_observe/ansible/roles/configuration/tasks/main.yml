@@ -1,0 +1,28 @@
+---
+# tasks file for configuration
+- name: create .ssh directory
+  file:
+    path: /root/.ssh
+    state: directory
+
+- name: copy private key with access to flowmon
+  copy:
+    src: "{{ flowmon_key_path }}"
+    dest: /root/.ssh/id_rsa_crusoe
+    mode: 0600
+
+- name: Create directory
+  file:
+    path: /data/flow/
+    state: directory
+    mode: '0755'
+
+- name: Create config directory
+  file:
+    path: /opt/celery/config
+    state: directory
+
+- name: template celery config file
+  template:
+    src: conf.ini
+    dest: /opt/celery/config/conf.ini

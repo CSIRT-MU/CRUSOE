@@ -1,0 +1,73 @@
+- name: Install ruby
+  apt:
+    name: ruby-full
+    state: present
+    cache_valid_time: 1800
+    update_cache: yes
+
+- name: Install nmap
+  apt:
+    name: nmap
+    state: present
+
+- name: Install git
+  apt:
+    name: git
+    state: present
+
+- name: Install common-tools
+  apt:
+    name: software-properties-common
+    state: present
+
+- name: Download WhatWeb
+  git:
+    repo: "https://github.com/urbanadventurer/WhatWeb.git"
+    dest: "/opt/whatweb/"
+    force: yes
+
+- name: Configure WhatWeb
+  lineinfile:
+    path: "/opt/whatweb/plugins/umbraco.rb"
+    insertafter: "matches"
+    line: "{ :text=>'<script src=\"https://cdn.muni.cz/DependencyHandler' },"
+
+# Install latest available version of addressable (dependency for whatweb).
+- gem:
+    name: addressable
+    state: latest
+
+- name: Chrome test
+  shell: "dpkg-query -l google-chrome-stable"
+  register: is_installed
+  failed_when: no
+  changed_when: no
+
+- name: Install Google Chrome
+  block:
+  - name: Add Google Chrome repository
+    lineinfile:
+      dest: "/etc/apt/sources.list"
+      line: "deb http://dl.google.com/linux/chrome/deb/ stable main"
+
+  - name: Add Google Chrome key
+    apt_key:
+      url: "https://dl-ssl.google.com/linux/linux_signing_key.pub"
+      state: present
+
+  - name: Install Google Chrome
+    apt:
+      deb: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+  when: is_installed.rc == 1
+
+- name: install chromedriver
+  pip:
+    name: chromedriver_installer
+    executable: pip3
+    extra_args: '--install-option="--chromedriver-version=2.46"'
+
+- name: desktop
+  shell: tasksel install xfce-desktop
+
+- name: reboot
+  reboot:

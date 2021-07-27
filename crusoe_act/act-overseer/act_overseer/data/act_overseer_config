@@ -1,0 +1,7 @@
+{
+  "security_treshold": 50,
+  "log_path": "/var/log/crusoe/",
+  "user": "user",
+  "password": "pass",
+  "server_url": "https://crusoe.csirt.muni.cz"
+}

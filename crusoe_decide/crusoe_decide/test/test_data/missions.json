@@ -1,0 +1,343 @@
+{
+  "nodes": {
+    "missions": [
+      {
+        "id": 1,
+        "name": "Acquisition",
+        "criticality": 8,
+        "description": "The creation of relevant medical materials."
+      },
+      {
+        "id": 2,
+        "name": "Diagnostics",
+        "criticality": 5,
+        "description": "Mission necessary for proper diagnosis of patients."
+      }
+    ],
+    "services": [
+      {
+        "id": 11,
+        "name": "Primary CT"
+      },
+      {
+        "id": 12,
+        "name": "Secondary CT"
+      },
+      {
+        "id": 13,
+        "name": "Local PACS"
+      },
+      {
+        "id": 14,
+        "name": "Regional PACS"
+      },
+      {
+        "id": 15,
+        "name": "Local Diagnostics"
+      },
+      {
+        "id": 16,
+        "name": "External Diagnostics"
+      }
+    ],
+    "aggregations": {
+      "or": [
+        3,
+        4,
+        17,
+        19
+      ],
+      "and": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        18
+      ]
+    },
+    "hosts": [
+      {
+        "id": 20,
+        "hostname": "host-20.mu",
+        "ip": "192.168.0.1"
+      },
+      {
+        "id": 21,
+        "hostname": "host-21.mu",
+        "ip": "192.168.0.2"
+      },
+      {
+        "id": 22,
+        "hostname": "host-22.mu",
+        "ip": "192.168.0.3"
+      },
+      {
+        "id": 23,
+        "hostname": "host-23.mu",
+        "ip": "192.168.0.4"
+      },
+      {
+        "id": 24,
+        "hostname": "host-24.mu",
+        "ip": "192.168.0.5"
+      },
+      {
+        "id": 25,
+        "hostname": "host-25.mu",
+        "ip": "192.168.0.6"
+      },
+      {
+        "id": 26,
+        "hostname": "host-26.mu",
+        "ip": "192.168.0.7"
+      },
+      {
+        "id": 27,
+        "hostname": "host-27.mu",
+        "ip": "192.168.0.8"
+      },
+      {
+        "id": 28,
+        "hostname": "host-28.mu",
+        "ip": "192.168.0.9"
+      },
+      {
+        "id": 29,
+        "hostname": "host-29.mu",
+        "ip": "192.168.0.10"
+      },
+      {
+        "id": 30,
+        "hostname": "host-30.mu",
+        "ip": "192.168.0.11"
+      }
+    ]
+  },
+    "relationships": {
+      "one_way": [
+        {
+          "from": 1,
+          "to": 3
+        },
+        {
+          "from": 2,
+          "to": 4
+        },
+        {
+          "from": 3,
+          "to": 5
+        },
+        {
+          "from": 3,
+          "to": 6
+        },
+        {
+          "from": 3,
+          "to": 7
+        },
+        {
+          "from": 3,
+          "to": 8
+        },
+        {
+          "from": 4,
+          "to": 9
+        },
+        {
+          "from": 4,
+          "to": 10
+        },
+        {
+          "from": 5,
+          "to": 11
+        },
+        {
+          "from": 5,
+          "to": 13
+        },
+        {
+          "from": 6,
+          "to": 12
+        },
+        {
+          "from": 6,
+          "to": 13
+        },
+        {
+          "from": 7,
+          "to": 11
+        },
+        {
+          "from": 7,
+          "to": 14
+        },
+        {
+          "from": 8,
+          "to": 12
+        },
+        {
+          "from": 8,
+          "to": 14
+        },
+        {
+          "from": 9,
+          "to": 13
+        },
+        {
+          "from": 9,
+          "to": 15
+        },
+        {
+          "from": 10,
+          "to": 14
+        },
+        {
+          "from": 10,
+          "to": 16
+        },
+        {
+          "from": 11,
+          "to": 20
+        },
+        {
+          "from": 12,
+          "to": 21
+        },
+        {
+          "from": 13,
+          "to": 17
+        },
+        {
+          "from": 14,
+          "to": 18
+        },
+        {
+          "from": 15,
+          "to": 19
+        },
+        {
+          "from": 16,
+          "to": 30
+        },
+        {
+          "from": 17,
+          "to": 22
+        },
+        {
+          "from": 17,
+          "to": 23
+        },
+        {
+          "from": 18,
+          "to": 24
+        },
+        {
+          "from": 18,
+          "to": 25
+        },
+        {
+          "from": 18,
+          "to": 26
+        },
+        {
+          "from": 19,
+          "to": 27
+        },
+        {
+          "from": 19,
+          "to": 28
+        },
+        {
+          "from": 19,
+          "to": 29
+        }
+      ],
+      "two_way": [
+        {
+          "from": 20,
+          "to": 22
+        },
+        {
+          "from": 20,
+          "to": 23
+        },
+        {
+          "from": 20,
+          "to": 24
+        },
+        {
+          "from": 21,
+          "to": 22
+        },
+        {
+          "from": 21,
+          "to": 23
+        },
+        {
+          "from": 21,
+          "to": 24
+        },
+        {
+          "from": 22,
+          "to": 27
+        },
+        {
+          "from": 22,
+          "to": 28
+        },
+        {
+          "from": 22,
+          "to": 29
+        },
+        {
+          "from": 23,
+          "to": 27
+        },
+        {
+          "from": 23,
+          "to": 28
+        },
+        {
+          "from": 23,
+          "to": 29
+        },
+        {
+          "from": 24,
+          "to": 25
+        },
+        {
+          "from": 25,
+          "to": 26
+        },
+        {
+          "from": 26,
+          "to": 30
+        }
+      ],
+      "supports": [
+        {"from": "Acquisition", "to": "Primary CT"},
+        {"from": "Acquisition", "to": "Secondary CT"},
+        {"from": "Acquisition", "to": "Local PACS"},
+        {"from": "Acquisition", "to": "Regional PACS"},
+        {"from": "Diagnostics", "to": "Local PACS"},
+        {"from": "Diagnostics", "to": "Regional PACS"},
+        {"from": "Diagnostics", "to": "Local Diagnostics"},
+        {"from": "Diagnostics", "to": "External Diagnostics"}
+      ],
+      "has_identity": [
+        {"from": "Primary CT", "to": "host-20.mu"},
+        {"from": "Secondary CT", "to": "host-21.mu"},
+        {"from": "Local PACS", "to": "host-22.mu"},
+        {"from": "Local PACS", "to": "host-23.mu"},
+        {"from": "Regional PACS", "to": "host-24.mu"},
+        {"from": "Regional PACS", "to": "host-25.mu"},
+        {"from": "Regional PACS", "to": "host-26.mu"},
+        {"from": "Local Diagnostics", "to": "host-27.mu"},
+        {"from": "Local Diagnostics", "to": "host-28.mu"},
+        {"from": "Local Diagnostics", "to": "host-29.mu"},
+        {"from": "External Diagnostics", "to": "host-30.mu"}
+      ]
+  }
+}

@@ -1,0 +1,262 @@
+openapi: 3.0.0
+info:
+  version: v1
+  title: CRUSOE Act API Wrapper for RTBH
+  description: API wrapper for Active Network Defense devices of project CRUSOE
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: 'https://virtserver.swaggerhub.com/MadGeckoo/act/v1'
+paths:
+  '/rtbh/health':
+    get:
+      description: Returns a health check for rtbh
+      responses:
+        '200':
+          description: Successfully returned health check
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  serviceStatus:
+                    type: string
+        '400':
+          description: Invalid request
+        '503':
+          description: Service unavailable
+  '/rtbh/capacity':
+    get:
+      description: Returns capacities for rtbh
+      responses:
+        '200':
+          description: Successfully returned current capacities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  maxCapacity:
+                    type: integer
+                  usedCapacity:
+                    type: integer
+                  freeCapacity:
+                    type: integer
+        '400':
+          description: Invalid request
+        '403':
+          description: Function not supported
+  '/rtbh/blocked':
+    get:
+      description: Returns a list of blocked IP addresses for RTBH interface
+      responses:
+        '200':
+          description: Successfully returned list of blocked IPs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleIp:
+                      type: string
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+    post:
+      description: Block an IP on RTBH interface
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ruleIp
+              properties:
+                ruleIp:
+                  type: string
+                ruleReason:
+                  type: string
+      responses:
+        '200':
+          description: Return ID of a given IP address block rule
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+        '400':
+          description: Invalid request
+  '/rtbh/blocked/{blockedId}':
+    get:
+      description: Get details of a rule with ruleID from RTBH
+      parameters:
+        - name: blockedId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Here are the details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+                  ruleIp:
+                    type: string
+                  ruleReason:
+                    type: string
+        '400':
+          description: Invalid request
+    put:
+      description: Change a reason for a rule with ruleID on the RTBH
+      parameters:
+        - name: blockedId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ruleReason
+              properties:
+                ruleReason:
+                  type: string
+      responses:
+        '200':
+          description: Reason changed, return the new entry
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+                  ruleIp:
+                    type: string
+                  ruleReason:
+                    type: string
+        '400':
+          description: Invalid request
+    delete:
+      description: Delete a rule with blockedId from RTBH
+      parameters:
+        - name: blockedId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Rule for blockedId deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+                  ruleIp:
+                    type: string
+                  ruleReason:
+                    type: string
+        '400':
+          description: Invalid request
+  '/rtbh/{blockedIp}':
+    get:
+      description: Get all rules with specified blockedIp on RTBH
+      parameters:
+        - name: blockedIp
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully returned list of rules for given IP
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleIp:
+                      type: string
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+        '404':
+          description: IP not found
+    put:
+      description: Change the reason for all rules with specified IP
+      parameters:
+        - name: blockedIp
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ruleReason
+              properties:
+                ruleReason:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleIp:
+                      type: string
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+        '404':
+          description: IP not found
+    delete:
+      description: Delete all rules for specified IP
+      parameters:
+        - name: blockedIp
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All rules for the IP deleted
+        '400':
+          description: Invalid request
+        '404':
+          description: IP not found

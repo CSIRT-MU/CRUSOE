@@ -1,0 +1,45 @@
+<!-- TODO move this to panel component -->
+<div class="row page-title">
+  <div class="col-md-6">
+    <h1><strong>My Account</strong></h1>
+  </div>
+</div>
+<div class="container-fluid padding-45">
+  <div class="row">
+    <div class="col-12">
+      <mat-card>
+        <div class="row mt-3">
+          <div class="col">
+            <mat-card-title
+              ><h1>{{ userProfile['name'] }}</h1></mat-card-title
+            >
+            <mat-card-subtitle>
+              <span *ngIf="!userProfile['local']">OIDC User</span>
+            </mat-card-subtitle>
+          </div>
+        </div>
+        <hr />
+        <div class="row">
+          <div class="col-sm"><strong>UČO:</strong> {{ userProfile['sub'] || 'not available' }}</div>
+        </div>
+        <div class="row">
+          <div class="col-sm"><strong>Email:</strong> {{ userProfile['email'] || 'not available' }}</div>
+        </div>
+        <div class="row">
+          <div class="col-sm">
+            <strong>Group names: </strong><span *ngIf="userProfile['groupNames'] === undefined">not available</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm">
+            <ul>
+              <li *ngFor="let group of userProfile['groupNames']">
+                <span>{{ group }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+</div>

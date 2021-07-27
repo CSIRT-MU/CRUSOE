@@ -1,0 +1,41 @@
+<div class="container-fluid h-100">
+  <div class="row h-100">
+    <div class="col-md-7 login-background d-md-block d-sm-none d-none">
+      <img src="./assets/images/csirt_logo_login.png" alt="CSIRT-MU" class="csirt-logo" />
+    </div>
+    <div class="right-panel col-md-5 pl-5 pr-5">
+      <div class="login">
+        <h1 class="text-center">{{ appName }}</h1>
+        <hr class="mb-5" />
+        <!-- OIDC Login -->
+        <div class="oidc-login" #oidcLoginElem>
+          <div *ngIf="showOIDCButton" class="col-lg-6 offset-lg-3 col-md-12 text-center mt-2">
+            <button class="oidc-login-button" (click)="oidcLogin()" mat-raised-button color="primary">Login</button>
+          </div>
+          <div *ngIf="!showOIDCButton" class="col-md-12 text-center mt-5">
+            <p class="alert alert-warning">
+              OIDC login is currently not available, <strong>please use local login.</strong>
+            </p>
+          </div>
+          <div *ngIf="lastErrorMessage !== ''" class="alert alert-danger mt-3">
+            {{ lastErrorMessage }}
+          </div>
+        </div>
+      </div>
+      <div class="official-message mt-5">
+        Tento software vznikl na Masarykově univerzitě v rámci výzkumu podpořeného z Bezpečnostního programu České
+        republiky v 2015 - 2020 (BV III / 1 VS) Ministerstva vnitra České republiky s identifikátorem
+        <a target="_blank" href="https://www.muni.cz/vyzkum/projekty/35444"
+          >VI20172020070 - Výzkum nástrojů pro hodnocení kybernetické situace a podporu rozhodování CSIRT týmů při
+          ochraně kritické infrastruktury.</a
+        >
+        <div class="images">
+          <img class="logo" src="assets/images/muni-logo.png" />
+          <img class="logo" src="assets/images/mvcr-logo.png" />
+        </div>
+      </div>
+    </div>
+
+    <p class="caption">Version: {{ appVersion }}</p>
+  </div>
+</div>

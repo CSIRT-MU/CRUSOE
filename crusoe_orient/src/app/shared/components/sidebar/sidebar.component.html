@@ -1,0 +1,38 @@
+<nav>
+  <div class="brand" routerLink="/auth/panel/overview">
+    <img src="./assets/images/csirt_logo.png" alt="CSIRT-MU logo" width="50" />
+    <h1>{{ appName }}</h1>
+  </div>
+  <hr style="margin-top: 0;" />
+  <li class="nav flex-column">
+    <a routerLink="/auth/panel/overview" class="nav-link" routerLinkActive="active">
+      Overview
+    </a>
+  </li>
+  <div *ngFor="let panelGroup of panelGroups">
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-2 mb-1">
+      <span>{{ panelGroup.name }}</span>
+    </h6>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item" *ngFor="let panel of panels">
+        <a
+          *ngIf="panel.panelGroup?.name === panelGroup.name"
+          class="nav-link"
+          [routerLink]="['panel', panel.path]"
+          routerLinkActive="active"
+        >
+          {{ panel.name }} <mat-icon>chevron_right</mat-icon>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <hr />
+  <!-- <ul class="nav flex-column mb-2">
+      <li class="nav-item">
+        <a class="nav-link" [routerLink]="[ 'profile' ]">
+          User profile
+        </a>
+      </li>
+    </ul> -->
+  <p class="version">Version: {{ appVersion }}</p>
+</nav>

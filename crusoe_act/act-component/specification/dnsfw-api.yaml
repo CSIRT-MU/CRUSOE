@@ -1,0 +1,314 @@
+openapi: 3.0.0
+info:
+  version: v1
+  title: CRUSOE Act API Wrapper for DNS Firewall
+  description: API wrapper for Active Network Defense devices of project CRUSOE
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: 'https://virtserver.swaggerhub.com/MadGeckoo/act/v1'
+paths:
+  '/dnsfw/health':
+    get:
+      description: Returns a health check for the DNS FW
+      responses:
+        '200':
+          description: Successfully returned health check
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  serviceStatus:
+                    type: string
+        '400':
+          description: Invalid request
+        '503':
+          description: Service unavailable
+  '/dnsfw/capacity':
+    get:
+      description: Returns DNS FW capacities
+      responses:
+        '200':
+          description: Successfully returned current capacities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  maxCapacity:
+                    type: integer
+                  usedCapacity:
+                    type: integer
+                  freeCapacity:
+                    type: integer
+        '400':
+          description: Invalid request
+        '403':
+          description: Function not supported
+  '/dnsfw/rules':
+    get:
+      description: Returns a list of all DNS FW rules
+      responses:
+        '200':
+          description: Successfully returned list of DNS FW rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleZone:
+                      type: string
+                    ruleDomain:
+                      type: string
+                    ruleTarget:
+                      type: string
+                    ruleReason:
+                      type: string
+                    ruleNote:
+                      type: string
+        '400':
+          description: Invalid request
+    post:
+      description: Add DNS FW rule to a DNS FW
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ruleZone
+                - ruleDomain
+                - ruleTarget
+              properties:
+                ruleZone:
+                  type: string
+                ruleDomain:
+                  type: string
+                ruleTarget:
+                  type: string
+                ruleReason:
+                  type: string
+                ruleNote:
+                  type: string
+      responses:
+        '200':
+          description: Return ID of the added rule
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+        '400':
+          description: Invalid request
+  '/dnsfw/rules/{ruleId}':
+    get:
+      description: Get details of a rule with ruleID from a DNS FW
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Here are the details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+                  ruleZone:
+                    type: string
+                  ruleDomain:
+                    type: string
+                  ruleTarget:
+                    type: string
+                  ruleReason:
+                    type: string
+                  ruleNote:
+                    type: string
+        '400':
+          description: Invalid request
+    put:
+      description: Change a reason, or zone or target for a rule with ruleID from a DNS FW
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ruleZone:
+                  type: string
+                ruleTarget:
+                  type: string
+                ruleReason:
+                  type: string
+                ruleNote:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+                  ruleZone:
+                    type: string
+                  ruleDomain:
+                    type: string
+                  ruleTarget:
+                    type: string
+                  ruleReason:
+                    type: string
+                  ruleNote:
+                    type: string
+        '400':
+          description: Invalid request
+    delete:
+      description: Delete a rule with ruleId from a DNS FW
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Rule with the ruleId deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+                  ruleZone:
+                    type: string
+                  ruleDomain:
+                    type: string
+                  ruleTarget:
+                    type: string
+                  ruleReason:
+                    type: string
+                  ruleNote:
+                    type: string
+        '400':
+          description: Invalid request
+  '/dnsfw/{ruleDomain}':
+    get:
+      description: Get all rules with the specified ruleDomain from a DNS FW
+      parameters:
+        - name: ruleDomain
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully returned list of rules for the specified ruleDomain
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleZone:
+                      type: string
+                    ruleDomain:
+                      type: string
+                    ruleTarget:
+                      type: string
+                    ruleReason:
+                      type: string
+                    ruleNote:
+                      type: string
+        '400':
+          description: Invalid request
+        '404':
+          description: Domain not found
+    put:
+      description: Change a zone or target or reason or note for all rules with the specified ruleDomain
+      parameters:
+        - name: ruleDomain
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ruleZone:
+                  type: string
+                ruleTarget:
+                  type: string
+                ruleReason:
+                  type: string
+                ruleNote:
+                  type: string
+      responses:
+        '200':
+          description: All rules for the ruleDomain were changed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleZone:
+                      type: string
+                    ruleDomain:
+                      type: string
+                    ruleTarget:
+                      type: string
+                    ruleReason:
+                      type: string
+                    ruleNote:
+                      type: string
+        '400':
+          description: Invalid request
+        '404':
+          description: Domain not found
+    delete:
+      description: Delete all rules for the specified ruleDomain
+      parameters:
+        - name: ruleDomain
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All rules for the ruleDomain deleted
+        '400':
+          description: Invalid request
+        '404':
+          description: Domain not found

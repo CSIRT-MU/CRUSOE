@@ -1,0 +1,7 @@
+portnumber:
+server_name:
+
+overseer_required_variables:
+    portnumber: ' {{ portnumber }}'
+    portnumber_neo4j_rest: '{{ portnumber_neo4j_rest }}'
+    server_name: '{{ server_name }}'

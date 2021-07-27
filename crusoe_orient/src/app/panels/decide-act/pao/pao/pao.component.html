@@ -1,0 +1,32 @@
+<ng-container *ngIf="paoLoading">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</ng-container>
+<ng-container *ngIf="!paoLoading">
+  <div class="heading-wrapper">
+    <a routerLink="../../" class="back-anchor"><mat-icon mat-button class="back-button">chevron_left</mat-icon></a>
+    <div>
+      <p class="worker-label">PAO:</p>
+      <h2>{{ pao.pao }}</h2>
+    </div>
+  </div>
+  <div class="mat-table">
+    <div class="mat-row">
+      <div class="mat-cell">Name:</div>
+      <div class="mat-cell">
+        <strong>{{ pao.pao }}</strong>
+      </div>
+    </div>
+    <div class="mat-row">
+      <div class="mat-cell">IP:</div>
+      <div class="mat-cell">
+        <strong>{{ pao.ip }} </strong>
+      </div>
+    </div>
+    <div class="mat-row">
+      <div class="mat-cell">Port:</div>
+      <div class="mat-cell">
+        <strong>{{ pao.port }} </strong>
+      </div>
+    </div>
+  </div>
+</ng-container>

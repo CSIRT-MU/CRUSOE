@@ -1,0 +1,169 @@
+<h1>Decide/Act</h1>
+<ng-container *ngIf="contentLoading">
+  <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+</ng-container>
+<ng-container *ngIf="!contentLoading && errorMessage">
+  <p class="error">
+    <strong>Error fetching data from REST API.</strong><br /><span>Error message: {{ errorMessage }}</span>
+  </p>
+</ng-container>
+<ng-container *ngIf="!contentLoading && !errorMessage">
+  <div class="content-wrap">
+    <!-- PAOS -->
+    <section class="paos">
+      <h3>Devices for Active Network Defense</h3>
+      <p class="empty" *ngIf="paos.length === 0">No devices for Active Network Defense available.</p>
+      <ng-container *ngIf="paos.length > 0">
+        <mat-table #paosTable [dataSource]="paos">
+          <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+            <mat-cell *matCellDef="let pao">
+              <a [routerLink]="'/auth/panel/decide/pao/' + pao.pao">{{ pao.pao }}</a></mat-cell
+            >
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <mat-header-cell *matHeaderCellDef> Status </mat-header-cell>
+            <mat-cell *matCellDef="let pao">
+              <div [innerHTML]="showPaoStatus(pao.status)"></div>
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="capacity">
+            <mat-header-cell *matHeaderCellDef> Usage </mat-header-cell>
+            <mat-cell *matCellDef="let pao">{{ pao.usedCapacity + '/' + pao.maxCapacity }}</mat-cell>
+          </ng-container>
+          <mat-header-row *matHeaderRowDef="paoColumns"></mat-header-row>
+          <mat-row *matRowDef="let myRowData; columns: paoColumns"></mat-row>
+        </mat-table>
+      </ng-container>
+      <div class="threshold">
+        <h3>
+          Security threshold
+          <mat-icon
+            matTooltip="Any device with the average threat to availability, confidentiality, and integrity lower than this treshold
+          will NOT be blocked. Even if it is not a mission-critical device."
+            matTooltipClass="custom-tooltip"
+            >info</mat-icon
+          >
+        </h3>
+        <form>
+          <mat-form-field class="threshold-input">
+            <mat-label>Threshold value</mat-label>
+            <input matInput min="0" max="100" type="number" [formControl]="securityThreshold" name="threshold" />
+            <mat-error>Invalid value</mat-error>
+            <span matSuffix>%</span>
+          </mat-form-field>
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="updateThreshold(securityThreshold.value)"
+            [disabled]="!securityThreshold.valid"
+          >
+            Update threshold
+          </button>
+        </form>
+      </div>
+    </section>
+    <section class="configurations">
+      <h3>Decide Configurations List</h3>
+      <p class="empty" *ngIf="missions.length === 0">No missions available.</p>
+      <ng-container *ngIf="missions.length > 0">
+        <div class="missions">
+          <div class="mission" *ngFor="let mission of missions">
+            <p class="heading">
+              <a [routerLink]="'/auth/panel/decide/mission/' + mission.name"
+                ><strong>{{ mission.name }}</strong></a
+              >
+              (<strong>{{ selectedConfig(mission) }}</strong> selected)
+            </p>
+            <mat-table [dataSource]="mission.configurations">
+              <ng-container matColumnDef="name">
+                <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+                <mat-cell *matCellDef="let config"
+                  ><a [routerLink]="['/auth/panel/decide/configuration/', mission.name, config.configuration.config_id]"
+                    >Config {{ config.configuration.config_id }}</a
+                  ></mat-cell
+                >
+              </ng-container>
+
+              <ng-container matColumnDef="integrity">
+                <mat-header-cell *matHeaderCellDef> Integrity </mat-header-cell>
+                <mat-cell *matCellDef="let config">{{ config.configuration.integrity | percent: '1.0-2' }}</mat-cell>
+              </ng-container>
+
+              <ng-container matColumnDef="confidentiality">
+                <mat-header-cell *matHeaderCellDef> Confidentiality </mat-header-cell>
+                <mat-cell *matCellDef="let config">{{
+                  config.configuration.confidentiality | percent: '1.0-2'
+                }}</mat-cell>
+              </ng-container>
+
+              <ng-container matColumnDef="availability">
+                <mat-header-cell *matHeaderCellDef> Availability</mat-header-cell>
+                <mat-cell *matCellDef="let config">{{ config.configuration.availability | percent: '1.0-2' }}</mat-cell>
+              </ng-container>
+
+              <ng-container matColumnDef="check">
+                <mat-header-cell *matHeaderCellDef></mat-header-cell>
+                <mat-cell *matCellDef="let config">
+                  <mat-checkbox
+                    color="primary"
+                    [checked]="config.selected"
+                    (change)="toggleConfig(mission, config)"
+                  ></mat-checkbox>
+                </mat-cell>
+              </ng-container>
+              <mat-header-row *matHeaderRowDef="configColumns"></mat-header-row>
+              <mat-row
+                *matRowDef="let configRow; columns: configColumns"
+                [class.green-bg]="configRow.selected"
+              ></mat-row>
+            </mat-table>
+          </div>
+        </div>
+        <button
+          class="apply-button"
+          mat-raised-button
+          color="primary"
+          (click)="applyConfigs()"
+          [disabled]="disableApply"
+        >
+          <ng-container *ngIf="!applyLoading"> Apply selected configs </ng-container>
+          <ng-container *ngIf="applyLoading">
+            <mat-spinner class="white" diameter="25" color="#fff"></mat-spinner>
+          </ng-container>
+        </button>
+      </ng-container>
+    </section>
+    <section class="feedback-log">
+      <h3>Act Feedback Log</h3>
+      <div class="log">
+        <p *ngFor="let message of feedbackLog.slice().reverse()">
+          <strong>{{ message.time * 1000 | date: 'd.M.yyyy H:mm:ss' }}:</strong> {{ message.message }}
+        </p>
+      </div>
+    </section>
+  </div>
+  <ng-container *ngIf="!firewallLoading">
+    <h3>Missions</h3>
+    <ng-container *ngIf="firewallErrorMessage">
+      <p #warnMessage class="warn">
+        <mat-icon (click)="warnMessage.style.display = 'none'">close</mat-icon>
+        <strong
+          >Fetching currently blocked hosts failed. Graph will be showed without the information of unavailable
+          services.</strong
+        ><br />
+        <span>Error message: {{ firewallErrorMessage }}</span>
+      </p>
+    </ng-container>
+    <div class="missions-graph">
+      <app-missions-graph
+        *ngIf="missions.length > 0"
+        [structure]="missionsStructure"
+        [ips]="blockedIPs"
+      ></app-missions-graph>
+      <p class="empty" *ngIf="missions.length === 0">No missions available.</p>
+    </div>
+  </ng-container>
+</ng-container>

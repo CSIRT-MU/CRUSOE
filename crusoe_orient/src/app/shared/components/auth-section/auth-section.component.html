@@ -1,0 +1,17 @@
+<app-navbar>
+  <mat-icon [class.fullscreen]="sidebarState === 'out'" (click)="toggleSidebar()" mat-button class="fullscreen-button">
+    {{ sidebarState === 'out' ? 'chevron_right' : 'chevron_left' }}
+  </mat-icon>
+</app-navbar>
+<div class="container-fluid">
+  <div class="row pl-300px transition" #mainWrapper>
+    <app-sidebar
+      [@slideInOut]="sidebarState"
+      (@slideInOut.start)="onAnimationEvent($event)"
+      (@slideInOut.done)="onAnimationEvent($event)"
+    ></app-sidebar>
+    <main role="main" class="col-lg-12">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

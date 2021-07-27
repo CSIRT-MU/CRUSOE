@@ -1,0 +1,296 @@
+openapi: 3.0.0
+info:
+  version: v1
+  title: CRUSOE Act API Wrapper for User Blocker
+  description: API wrapper for Active Network Defense devices of project CRUSOE
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: 'https://virtserver.swaggerhub.com/MadGeckoo/act/v1'
+paths:
+  '/userBlock/health':
+    get:
+      description: Returns a health check for user block interface with given id
+      responses:
+        '200':
+          description: Successfully returned health check
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  serviceStatus:
+                    type: string
+        '400':
+          description: Invalid request
+        '503':
+          description: Service unavailable
+  '/userBlock/capacity':
+    get:
+      description: Returns user block capacities for user block interface with given id
+      responses:
+        '200':
+          description: Successfully returned current capacities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  maxCapacity:
+                    type: integer
+                  usedCapacity:
+                    type: integer
+                  freeCapacity:
+                    type: integer
+        '400':
+          description: Invalid request
+        '403':
+          description: Function not supported
+  '/userBlock/blocked':
+    get:
+      description: Returns a list of blocked users for userBlock
+      responses:
+        '200':
+          description: Successfully returned list of blocked users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleUser:
+                      type: string
+                    ruleBlockedFrom:
+                      type: string
+                    ruleBlockedTo:
+                      type: string
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+    post:
+      description: Block a user by userBlock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ruleUser
+                - ruleBlockedFrom
+                - ruleBlockedTo
+                - ruleReason
+              properties:
+                ruleUser:
+                  type: string
+                ruleBlockedFrom:
+                  type: string
+                ruleBlockedTo:
+                  type: string
+                ruleReason:
+                  type: string
+      responses:
+        '200':
+          description: Return ID of a given user block rule
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+        '400':
+          description: Invalid request
+  '/userBlock/blocked/{ruleId}':
+    get:
+      description: Get details of a rule with ruleID from userBlock
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Here are the details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+                  ruleUser:
+                    type: string
+                  ruleBlockedFrom:
+                    type: string
+                  ruleBlockedTo:
+                    type: string
+                  ruleReason:
+                    type: string
+        '400':
+          description: Invalid request
+    put:
+      description: Change a reason or date of the user block end for a rule with ruleID on the userBlock
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ruleTo
+                - ruleReason
+              properties:
+                ruleBlockedTo:
+                  type: string
+                ruleReason:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ruleId:
+                    type: integer
+                  ruleUser:
+                    type: string
+                  ruleBlockedFrom:
+                    type: string
+                  ruleBlockedTo:
+                    type: string
+                  ruleReason:
+                    type: string
+        '400':
+          description: Invalid request
+    delete:
+      description: Delete a rule with ruleId from userBlock
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: UserBlock rule with ruleId deleted
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleUser:
+                      type: string
+                    ruleBlockedFrom:
+                      type: string
+                    ruleBlockedTo:
+                      type: string
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+  '/userBlock/{user}':
+    get:
+      description: Get all rules for user
+      parameters:
+        - name: user
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully returned list of rules for given user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleUser:
+                      type: string
+                    ruleBlockedFrom:
+                      type: string
+                    ruleBlockedTo:
+                      type: string
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+        '404':
+          description: User not found
+    put:
+      description: Change a reason and expiration date for all rules for specified user
+      parameters:
+        - name: user
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ruleBlockedTo:
+                  type: string
+                ruleReason:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ruleId:
+                      type: integer
+                    ruleUser:
+                      type: string
+                    ruleBlockedFrom:
+                      type: string
+                    ruleBlockedTo:
+                      type: string
+                    ruleReason:
+                      type: string
+        '400':
+          description: Invalid request
+        '404':
+          description: User not found
+    delete:
+      description: Delete all rules for specified user
+      parameters:
+        - name: user
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: All rules for given user deleted
+        '400':
+          description: Invalid request
+        '404':
+          description: No rules for given user found

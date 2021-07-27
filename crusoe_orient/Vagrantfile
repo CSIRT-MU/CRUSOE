@@ -1,0 +1,24 @@
+Vagrant.configure("2") do |config|
+    config.vm.define "dashboard" do |dashboard|
+        # Template for virtualbox to be used
+        dashboard.vm.box = "debian/buster64"
+        # Check for updates regularly
+        dashboard.vm.box_check_update = true
+        dashboard.vm.network "forwarded_port", guest: 4200, host: 4200
+
+        # Tell vagrant to run ansible as a provisioner
+        dashboard.vm.provision "ansible" do |ansible|
+            # make verbose output
+	          ansible.verbose = "v"
+	          # where is the playbook located
+            ansible.playbook = "ansible/playbook.yml"
+        end
+        dashboard.vm.synced_folder ".", "/home/vagrant/dashboard", create: true, type: "rsync", rsync__exclude: ['node_modules/', 'dist/']
+    end
+
+    config.vm.provider "virtualbox" do |vb|
+      # Customize the amount of memory on the VM:
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+end

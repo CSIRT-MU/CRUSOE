@@ -1,0 +1,37 @@
+- name: Copy crusoe observe components
+  copy:
+    src: "../{{ item }}"
+    dest: /tmp/
+  with_items:
+    - "{{ crusoe_components }}"
+
+- name: Install Crusoe components
+  pip:
+    name: "file:///tmp/{{ item }}"
+    executable: pip3
+    state: forcereinstall
+  with_items:
+    - "{{ crusoe_components }}"
+
+# reload celery configuration
+- name: Delete celery directory
+  file:
+    state: absent
+    path: "/opt/celery/"
+
+- name: Create celery directory
+  file:
+    path: "/opt/celery/"
+    state: "directory"
+
+- name: Copy celery
+  copy:
+    src: "../filler-orchestration-service/"
+    dest: "/opt/celery/"
+
+- name: Point celery to correct neo4j address
+  replace:
+    path: /usr/local/lib/python3.7/dist-packages/neo4jclient/AbsClient.py
+    regexp: 'bolt,'
+    replace: '"bolt://localhost:7687",'
+

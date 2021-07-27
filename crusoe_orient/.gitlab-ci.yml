@@ -1,0 +1,41 @@
+image: cypress/browsers:node12.18.0-chrome83-ff77
+
+stages:
+  - lint
+  - test
+
+cache:
+  key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+  paths:
+    - .npm/
+
+before_script:
+  - npm ci --cache .npm --prefer-offline --ignore-scripts
+
+lint:
+  stage: lint
+  cache:
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+    paths:
+      - .npm/
+    policy: pull
+  script:
+    - npm run lint
+  only:
+    - triggers
+    - branches
+    - tags
+
+unitTests:
+  stage: test
+  cache:
+    key: $CI_COMMIT_REF_SLUG-$CI_PROJECT_DIR
+    paths:
+      - .npm/
+    policy: pull
+  script:
+    - npm run ci-test
+  only:
+    - triggers
+    - branches
+    - tags

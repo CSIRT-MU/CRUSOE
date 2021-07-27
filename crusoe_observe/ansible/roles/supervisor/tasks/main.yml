@@ -1,0 +1,21 @@
+
+# Supervisor
+- name: install supervisor
+  apt:
+    name: supervisor
+    state: present
+    cache_valid_time: 1800
+    update_cache: yes
+
+- name: Copy celery config file into supervisor
+  copy:
+    src: 'celeryd.conf'
+    dest: '/etc/supervisor/conf.d/'
+    force: yes
+
+- name: Update & restart supervisor
+  shell: supervisorctl "{{ item }}"
+  with_items:
+    - reread
+    - update
+

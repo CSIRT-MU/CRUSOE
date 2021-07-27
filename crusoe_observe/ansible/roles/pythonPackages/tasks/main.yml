@@ -1,0 +1,35 @@
+# Set Python3.7 as default
+- name: Run update-alternatives
+  command: "update-alternatives {{ item }}"
+  with_items:
+    - "--install /usr/bin/python python /usr/bin/python3.7 2"
+    - "--install /usr/bin/python python /usr/bin/python2 1"
+
+# Install depedencies for python packages.
+- name: Install python dependencies
+  apt:
+    name: python3-pip
+    state: present
+    cache_valid_time: 1800
+    update_cache: yes
+
+- name: update pip
+  pip:
+    name: pip
+    state: latest
+    executable: pip3
+
+- name: copy requirements
+  copy:
+    src: requirements.txt
+    dest: /tmp/
+
+- name: install requirements.txt
+  pip:
+    requirements: "/tmp/requirements.txt"
+    executable: pip3
+
+- name: clean requirements.txt
+  file:
+    path: "/tmp/requirements.txt"
+    state: absent

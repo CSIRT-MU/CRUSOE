@@ -1,0 +1,189 @@
+:host {
+  width: 100%;
+}
+
+.content-wrap {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+
+  section {
+    h3 {
+      font-size: 20px;
+      margin-top: 20px;
+      margin-bottom: 0;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .description {
+      margin-top: 0;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    &.paos {
+      h3 {
+        position: relative;
+        // top: 10px;
+      }
+
+      width: 32%;
+
+      .mat-table {
+        border: 1px solid #efefef;
+        width: 100%;
+        margin-top: 50px;
+
+        .mat-header-cell,
+        .mat-cell {
+          padding: 10px;
+        }
+      }
+
+      .empty {
+        margin-top: 50px;
+        text-align: center;
+      }
+    }
+
+    &.configurations {
+      width: 35%;
+
+      .mat-table {
+        max-height: 200px;
+        overflow-y: scroll;
+        border: 1px solid #efefef;
+
+        .mat-checkbox {
+          margin-left: 12px;
+          height: 16px;
+        }
+      }
+
+      .empty {
+        margin-top: 50px;
+        text-align: center;
+      }
+
+      .missions {
+        margin-top: 25px;
+
+        .mat-table {
+          margin-bottom: 25px;
+
+          .mat-row.green-bg {
+            background-color: #b5ffb9;
+          }
+        }
+
+        .mission {
+          .heading {
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+
+    &.feedback-log {
+      h3 {
+        position: relative;
+        // top: 10px;
+      }
+
+      width: 28%;
+
+      .log {
+        border: 1px solid #efefef;
+        background-color: #fff;
+        padding: 20px 35px;
+        margin-top: 50px;
+        max-height: 650px;
+        height: 650px;
+        overflow-y: scroll;
+        text-align: left;
+      }
+    }
+  }
+
+  ::ng-deep .pao-status {
+    position: relative;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+
+    // span {
+
+    // }
+
+    &:before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 50%;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-top: -7px;
+    }
+
+    &.green:before {
+      background-color: #52a766;
+    }
+
+    &.red:before {
+      background-color: #bf2d00;
+    }
+
+    &.yellow:before {
+      background-color: #cea800;
+    }
+  }
+}
+
+.threshold {
+  h3 {
+    margin-top: 40px !important;
+    margin-bottom: 35px !important;
+
+    .mat-icon {
+      cursor: pointer;
+      vertical-align: top;
+    }
+  }
+
+  form {
+    text-align: center;
+  }
+
+  .threshold-input {
+    width: 30%;
+  }
+
+  button {
+    width: 40%;
+    margin-left: 20px;
+  }
+}
+
+.missions-graph {
+  width: 100%;
+  height: 500px;
+  background: #fff;
+  border: 1px solid #efefef;
+  overflow: hidden;
+
+  .empty {
+    text-align: center;
+    margin-top: 50px;
+  }
+}
+
+.apply-button {
+  width: 172px;
+  height: 36px;
+}

@@ -1,0 +1,81 @@
+# Install & configuration of neo4j and Java
+- name: Check if Neo4j is already installed
+  stat: path=/etc/init.d/neo4j
+  register: neo4j_installed
+
+- name: Install java
+  apt:
+    name: default-jdk
+    state: present
+    cache_valid_time: 1800
+    update_cache: yes
+
+- name: Install neo4j if not installed
+  block:
+  - name: Add an Apt signing key, for Neo4j apt source repository
+    apt_key:
+      url: https://debian.neo4j.org/neotechnology.gpg.key
+      state: present
+
+  - name: Add apt source repository with Neo4j
+    apt_repository:
+      repo: deb http://debian.neo4j.org/repo stable/
+      state: present
+      filename: neo4j
+
+  - name: Install Neo4j (in combination with Java 8 if it is not already present)
+    apt:
+      name: neo4j=1:3.5.3
+      state: present
+
+  when: neo4j_installed.stat.exists == false
+
+- name: Copy APOC
+  copy:
+    src: apoc-3.5.0.2-all.jar
+    dest: /var/lib/neo4j/plugins
+    mode: 0644
+
+- name: APOC configuration
+  lineinfile:
+    dest: /etc/neo4j/neo4j.conf
+    line: "{{ item.line }}"
+  with_items:
+    - { line: 'dbms.security.procedures.unrestricted=apoc.load.json, algo.*, apoc.convert.*' }
+    - { line: 'apoc.import.file.use_neo4j_config=true' }
+    - { line: 'apoc.import.file.enabled=true' }
+
+- name: connection configuration
+  lineinfile:
+    dest: /etc/neo4j/neo4j.conf
+    line: "{{ item.line }}"
+  with_items:
+    - { line: 'dbms.connector.http.listen_address=0.0.0.0:7474'}
+    - { line: 'dbms.connector.bolt.listen_address=0.0.0.0:7687'}
+
+- name: Copy Graph Algorithms
+  copy:
+    src: graph-algorithms-algo-3.5.4.0.jar
+    dest: /var/lib/neo4j/plugins
+    mode: 0644
+
+- name: Restart neo4j
+  service:
+    name: neo4j
+    state: restarted
+
+- name: Wait for neo4j to start
+  wait_for:
+    port: 7474
+
+- name: Set default password via url
+  uri:
+    url: http://localhost:7474/user/neo4j/password
+    method: POST
+    user: neo4j
+    password: neo4j
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      password: "{{ neo4j_password }}"

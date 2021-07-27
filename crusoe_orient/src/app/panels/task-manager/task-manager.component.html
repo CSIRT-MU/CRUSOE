@@ -1,0 +1,192 @@
+<h1>Task Manager</h1>
+<!-- Overview -->
+<section class="overview">
+  <ng-container *ngIf="dashboardLoading">
+    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+  </ng-container>
+  <ng-container *ngIf="!dashboardLoading">
+    <mat-card class="active">
+      <p class="value">{{ activeTasks || '0' }}</p>
+      <p class="description">Active tasks</p>
+    </mat-card>
+    <mat-card class="succeeded">
+      <p class="value">{{ succeededTasks || '0' }}</p>
+      <p class="description">Succeeded tasks</p>
+    </mat-card>
+    <mat-card class="failed">
+      <p class="value">{{ failedTasks || '0' }}</p>
+      <p class="description">Failed tasks</p>
+    </mat-card>
+    <mat-card class="retried">
+      <p class="value">{{ retriedTasks || '0' }}</p>
+      <p class="description">Retried tasks</p>
+    </mat-card>
+  </ng-container>
+</section>
+<!-- Workers -->
+<section class="workers">
+  <header>
+    <h2>Workers</h2>
+  </header>
+  <ng-container *ngIf="dashboardLoading">
+    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+  </ng-container>
+  <ng-container *ngIf="!dashboardLoading">
+    <mat-table #dashboardTable [dataSource]="dashboardData">
+      <ng-container matColumnDef="hostname">
+        <mat-header-cell *matHeaderCellDef> Worker name </mat-header-cell>
+        <mat-cell *matCellDef="let worker">
+          <a [routerLink]="'/auth/panel/task-manager/workers/' + worker.hostname">{{ worker.hostname }}</a></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="status">
+        <mat-header-cell *matHeaderCellDef> Status </mat-header-cell>
+        <mat-cell *matCellDef="let worker" [innerHTML]="showWorkerStatus(worker.status)"></mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="active">
+        <mat-header-cell *matHeaderCellDef> Active tasks </mat-header-cell>
+        <mat-cell *matCellDef="let worker"> {{ worker.active }} </mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="processed">
+        <mat-header-cell *matHeaderCellDef> Processed tasks </mat-header-cell>
+        <mat-cell *matCellDef="let worker"> {{ worker.processed }} </mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="failed">
+        <mat-header-cell *matHeaderCellDef> Failed tasks </mat-header-cell>
+        <mat-cell *matCellDef="let worker">
+          {{ worker['task-failed'] }}
+        </mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="succeeded">
+        <mat-header-cell *matHeaderCellDef> Suceeded tasks </mat-header-cell>
+        <mat-cell *matCellDef="let worker">
+          {{ worker['task-succeeded'] }}
+        </mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="retried">
+        <mat-header-cell *matHeaderCellDef> Retried tasks </mat-header-cell>
+        <mat-cell *matCellDef="let worker">
+          {{ worker['task-retried'] }}
+        </mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="loadavg">
+        <mat-header-cell *matHeaderCellDef> Load Average </mat-header-cell>
+        <mat-cell *matCellDef="let worker">
+          {{ worker.loadavg.join(', ') }}
+        </mat-cell>
+      </ng-container>
+      <mat-header-row *matHeaderRowDef="workersColumns"></mat-header-row>
+      <mat-row *matRowDef="let myRowData; columns: workersColumns"></mat-row>
+    </mat-table>
+  </ng-container>
+</section>
+<!-- Tasks -->
+<section class="tasks">
+  <header>
+    <h2>Tasks</h2>
+    <div class="table-panel">
+      <div class="chart-panel">
+        <mat-card>
+          <div class="chart-wrapper">
+            <ngx-charts-advanced-pie-chart
+              [scheme]="colorScheme"
+              [results]="piechartData"
+              [gradient]="gradient"
+              (select)="onSelect($event)"
+            >
+            </ngx-charts-advanced-pie-chart>
+          </div>
+        </mat-card>
+      </div>
+      <div class="filter">
+        <mat-card>
+          <mat-form-field>
+            <mat-label>Filter</mat-label>
+            <input #searchInput matInput placeholder="Search for string" />
+          </mat-form-field>
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="applyFilter(searchInput.value)"
+            style="margin-right: 15px; margin-left: 15px"
+          >
+            Search
+          </button>
+          <button mat-raised-button color="warn" (click)="searchInput.value = ''; applyFilter('')">Reset filter</button>
+        </mat-card>
+      </div>
+    </div>
+  </header>
+  <ng-container *ngIf="initialTasksLoading">
+    <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+  </ng-container>
+  <ng-container *ngIf="!initialTasksLoading">
+    <mat-table
+      [dataSource]="tasks"
+      matSort
+      (matSortChange)="sortData($event)"
+      [matSortActive]="'started'"
+      [matSortDirection]="order"
+    >
+      <ng-container matColumnDef="uuid">
+        <mat-header-cell *matHeaderCellDef> UUID </mat-header-cell>
+        <mat-cell *matCellDef="let task">
+          <a [routerLink]="'/auth/panel/task-manager/tasks/' + task.uuid">{{ task.uuid }}</a></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef> Task name </mat-header-cell>
+        <mat-cell *matCellDef="let task"
+          ><strong>{{ task.name || '-' }}</strong></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="state">
+        <mat-header-cell *matHeaderCellDef> State </mat-header-cell>
+        <mat-cell *matCellDef="let task" [innerHTML]="showTaskState(task.state)"></mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="args">
+        <mat-header-cell *matHeaderCellDef> args </mat-header-cell>
+        <mat-cell *matCellDef="let task" [innerHTML]="task.args"></mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="kwargs">
+        <mat-header-cell *matHeaderCellDef> kwargs </mat-header-cell>
+        <mat-cell *matCellDef="let task" [innerHTML]="task.kwargs"></mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="result">
+        <mat-header-cell *matHeaderCellDef> Result </mat-header-cell>
+        <mat-cell *matCellDef="let task" [innerHTML]="task.result"></mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="received">
+        <mat-header-cell *matHeaderCellDef> Received </mat-header-cell>
+        <mat-cell *matCellDef="let task" [innerHTML]="epochToDatetime(task.received)"></mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="started">
+        <mat-header-cell mat-sort-header *matHeaderCellDef> Started </mat-header-cell>
+        <mat-cell *matCellDef="let task" [innerHTML]="epochToDatetime(task.started)"></mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="runtime">
+        <mat-header-cell *matHeaderCellDef> Runtime </mat-header-cell>
+        <mat-cell *matCellDef="let task" [innerHTML]="roundTime(task.runtime)"></mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="worker">
+        <mat-header-cell *matHeaderCellDef> Worker </mat-header-cell>
+        <mat-cell *matCellDef="let task">
+          <a [routerLink]="'/auth/panel/task-manager/workers/' + task.worker">{{ task.worker }}</a>
+        </mat-cell>
+      </ng-container>
+      <mat-header-row *matHeaderRowDef="tasksColumns"></mat-header-row>
+      <mat-row *matRowDef="let tasksRows; columns: tasksColumns"></mat-row>
+    </mat-table>
+  </ng-container>
+  <mat-paginator
+    (page)="tasksPaginatorChange($event)"
+    [length]="tasksTotal"
+    [pageSize]="tasksPageSize"
+    [pageSizeOptions]="[5, 10, 25, 100]"
+  >
+  </mat-paginator>
+</section>

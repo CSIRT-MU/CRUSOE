@@ -1,0 +1,310 @@
+import { Injectable } from '@angular/core';
+import { Apollo } from 'apollo-angular';
+import { Observable } from 'rxjs';
+import gql from 'graphql-tag';
+import { GraphInput } from 'src/app/shared/models/graph.model';
+import { Node, Edge } from '@swimlane/ngx-graph';
+import { entities } from 'src/app/shared/config/network-visualization.config';
+import _ from 'lodash';
+import { tap, map } from 'rxjs/operators';
+import { Attributes } from 'src/app/shared/config/attributes';
+import { CVEResponse, CVE } from 'src/app/shared/models/vulnerability.model';
+import { VulnerabilityData } from '../../panels/vulnerability/vulnerability.component';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class DataService {
+  constructor(private apollo: Apollo) {}
+
+  /**
+   * Get IP node from database based on IP address
+   * @param ip
+   */
+  public getIPNode(ip: string): Observable<GraphInput> {
+    return this.apollo
+      .query<any>({
+        query: gql`
+        {
+          IP(address: "${ip}") {
+            ${this.getAttributesOfType('IP')}
+          }
+        }
+      `,
+      })
+      .pipe(
+        map((data) => {
+          const { nodes, edges } = this.converToGraph(data.data.IP);
+          return { nodes, edges };
+        })
+      );
+  }
+
+  /**
+   * Gets neighbours of given node
+   * @param node
+   */
+  public getNodeNeighbours(node: Node): Observable<GraphInput> {
+    console.log(node, JSON.stringify(node));
+    return this.apollo
+      .query<any>({
+        query: gql`
+        {
+          ${node.data.type}(_id: "${node.id}") {
+            ${this.getAttributesOfType(node.data.type)}
+          }
+        }
+      `,
+      })
+      .pipe(
+        map((data) => {
+          const { nodes, edges } = this.converToGraph(data.data[node.data.type]);
+          return { nodes, edges };
+        })
+      );
+  }
+
+  getAttributesOfType(type: any): string {
+    return Attributes[type].toString();
+  }
+
+  /**
+   * Converts graph data to ngx-graph compliant format
+   * @param data
+   * @param parent
+   * @param edgeName
+   */
+  public converToGraph(data: any[], parent?: string, edgeName?: string): GraphInput {
+    let nodes: Node[] = [];
+    let edges: Edge[] = [];
+
+    data.forEach((item) => {
+      if (nodes.findIndex((n) => n.id === item._id) === -1) {
+        nodes.push({
+          id: item._id,
+          label: this.getLabel(item),
+          data: {
+            customColor: this.getColor(item),
+            type: item.__typename,
+            labelName: this.getLabelName(item),
+            ...this.clearAttributes(item),
+          },
+        });
+      }
+
+      if (parent) {
+        edges.push({ source: parent, target: item._id, label: edgeName });
+      }
+
+      Object.keys(item).forEach((key) => {
+        if (Array.isArray(item[key]) && item[key].length > 0 && item[key][0].__typename) {
+          const { nodes: newNodes, edges: newEdges } = this.converToGraph(item[key], item._id, key);
+          nodes = _.unionBy(nodes, newNodes, (n) => n.id);
+          edges = _.unionBy(edges, newEdges, (e) => [e.source, e.target, e.label]);
+        }
+      });
+    });
+
+    return { nodes, edges };
+  }
+
+  /**
+   * Gets label of given node based on static config
+   * @param node
+   */
+  public getLabel(node: any): string {
+    const initialLabel = node.__typename;
+    if (typeof entities[initialLabel] === 'undefined') {
+      return initialLabel;
+    }
+    if (entities[initialLabel].showProperty.length === 0) {
+      return initialLabel;
+    }
+    const propKey = entities[initialLabel].showProperty.find(
+      (pk) => typeof node[pk] !== 'undefined' && node[pk] !== null
+    );
+    if (typeof node[propKey] === 'undefined') {
+      return initialLabel;
+    }
+    return node[propKey].toString();
+  }
+
+  /**
+   * Gets label name of given node (eg. DomainName, IP)
+   * @param node
+   */
+  public getLabelName(node: any): string {
+    const initialLabel = node.__typename;
+    if (typeof entities[initialLabel] === 'undefined') {
+      return initialLabel;
+    }
+    if (entities[initialLabel].showProperty.length === 0) {
+      return initialLabel;
+    }
+    const propKey = entities[initialLabel].showProperty.find(
+      (pk) => typeof node[pk] !== 'undefined' && node[pk] !== null
+    );
+    if (typeof node[propKey] === 'undefined') {
+      return initialLabel;
+    }
+    return propKey;
+  }
+
+  /**
+   * Return color that should be assigned to given node
+   * @param node
+   */
+  private getColor(node: any): string {
+    const initialLabel = node.__typename;
+    return entities[initialLabel]?.bgColor || 'red';
+  }
+
+  /**
+   * Clears unneccessery attributes of item
+   * @param item
+   */
+  private clearAttributes(item: any) {
+    const clonedItem = { ...item };
+    delete clonedItem._id;
+    delete clonedItem.__typename;
+    return clonedItem;
+  }
+
+  /**
+   * Returns label of ngx-graph node based on static config
+   * @param node
+   */
+  public getLabelOfGraphNode(node: Node) {
+    const initialLabel = node.data.type;
+    if (typeof entities[initialLabel] === 'undefined') {
+      return initialLabel;
+    }
+    if (entities[initialLabel].showProperty.length === 0) {
+      return initialLabel;
+    }
+    const propKey = entities[initialLabel].showProperty.find(
+      (pk) => typeof node.data[pk] !== 'undefined' && node.data[pk] !== null
+    );
+    if (typeof node.data[propKey] === 'undefined') {
+      return initialLabel;
+    }
+    return node.data[propKey].toString();
+  }
+
+  /**
+   * Returns vulnerable machines (software version, ip address, domain, subnet)
+   * @param cveCode CVE code of vulnerability
+   */
+  public getVulnerableMachines(cveCode: string): Observable<VulnerabilityData[]> {
+    return this.apollo
+      .query<CVEResponse>({
+        query: gql`
+      {
+        CVE(filter: {CVE_id_contains: "${cveCode}"}) {
+          vulnerabilitys {
+            in {
+              version
+              on {
+                _id
+                nodes(first: 500) {
+                  _id
+                  has_assigned {
+                    _id
+                    address
+                    resolves_to {
+                      domain_name
+                    }
+                    part_of {
+                      note
+                      range
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      `,
+      })
+      .pipe(
+        map((response) => {
+          const responseArray: VulnerabilityData[] = [];
+          if (!response.data.CVE[0]) {
+            return null;
+          }
+          response.data.CVE[0].vulnerabilitys.forEach((vuln) => {
+            vuln.in.forEach((software) => {
+              _.uniqBy(software.on, (n) => n._id).forEach((host) => {
+                host.nodes.forEach((node) => {
+                  node.has_assigned.forEach((ip) => {
+                    let subnet = '';
+                    let domain = '';
+                    if (ip.part_of[0]) {
+                      subnet = `${ip.part_of[0].range}`;
+                      if (ip.part_of[0].note) {
+                        subnet += ` (${ip.part_of[0].note})`;
+                      }
+                    }
+                    if (ip.resolves_to[0]) {
+                      domain = ip.resolves_to[0].domain_name.toString();
+                    }
+                    responseArray.push({
+                      domainName: domain,
+                      subnet: subnet,
+                      ip: ip.address,
+                      software: software.version,
+                    });
+                  });
+                });
+              });
+            });
+          });
+          return responseArray;
+        })
+      );
+  }
+
+  /**
+   * Returns the description of vulnerability
+   */
+  public getCVEDetails(cveCode: string): Observable<CVE> {
+    return this.apollo
+      .query<{ CVE: CVE[] }>({
+        query: gql`
+      {
+        CVE(filter: {CVE_id_contains: "${cveCode}"}) {
+          description
+          access_complexity
+          access_vector
+          attack_complexity
+          attack_vector
+          authentication
+          availability_impact_v2
+          availability_impact_v3
+          base_score_v2
+          base_score_v3
+          confidentiality_impact_v2
+          confidentiality_impact_v3
+          description
+          integrity_impact_v2
+          integrity_impact_v3
+          obtain_all_privilege
+          obtain_other_privilege
+          obtain_user_privilege
+          privileges_required
+          published_date
+          scope
+          user_interaction
+          impact
+        }
+      }
+      `,
+      })
+      .pipe(
+        map((response) => {
+          return response.data.CVE[0];
+        })
+      );
+  }
+}

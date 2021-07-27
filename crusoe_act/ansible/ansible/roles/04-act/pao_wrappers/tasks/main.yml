@@ -1,0 +1,84 @@
+# Install & configure the Mail Filter PAO
+- name: Template a wrapper to sites-available
+  template:
+    src: generic_wrapper.conf
+    dest: "/etc/apache2/sites-available/{{wrapper}}.conf"
+
+- name: create .ssh directory
+  file:
+    path: "~/.ssh"
+    state: "directory"
+
+- name: set up gitlab.ics.muni.cz as a known host
+  shell: "ssh-keyscan -H gitlab.ics.muni.cz > ~/.ssh/known_hosts"
+
+- name: copy wrapper to /var/www/
+  copy:
+    src: "/crusoe/act-component/{{dst_wrapper}}"
+    dest: /var/www/
+    remote_src: yes
+
+- name: change group for /var/www/{dst_wrapper}
+  file:
+    path: "/var/www/{{dst_wrapper}}"
+    group: www-data
+    recurse: yes
+
+- name: check if simulated firewall present
+  stat:
+    path: /var/www/simulated-pao-firewall/firewall_wrapper_project/simulated_pao_firewall
+  register: file_details
+
+- name: change permissions of simulated_pao_firewall
+  file:
+    path: /var/www/simulated-pao-firewall/firewall_wrapper_project/simulated_pao_firewall
+    mode: 0666
+  when: file_details.stat.exists
+
+- name: modify allowed hosts
+  lineinfile:
+    path: "/var/www/{{dst_wrapper}}/{{wrapper}}/settings.py"
+    regexp: "ALLOWED_HOSTS = \\['127.0.0.1'\\]"
+    line: "ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '{{ip}}', '{{server_name}}']"
+    state: present
+
+- name: modify ports configuration
+  lineinfile:
+    path: /etc/apache2/ports.conf
+    line: "LISTEN {{portnumber}}"
+    state: present
+
+- name: Add proxypass to default apache site
+  lineinfile:
+    dest: /etc/apache2/sites-available/000-default.conf
+    line:  "{{ item.line }}"
+    insertbefore: '</VirtualHost>'
+  with_items:
+    - { line: 'ProxyPass /{{ pao_name }} http://127.0.0.1:{{ portnumber }}/{{ pao_name }}'}
+    - { line: 'ProxyPassReverse /{{ pao_name }} http://127.0.0.1:{{ portnumber }}/{{ pao_name }}'}
+  notify:
+    - reload apache
+
+
+- name: Enable new site
+  shell: "/usr/sbin/a2ensite {{wrapper}}.conf"
+  notify:
+    - reload apache
+
+- name: install neo4j package
+  pip:
+    name: neo4j_driver==1.7.1
+    executable: pip3
+
+- name: template neo4j script
+  template:
+    src: neo4j_update.py
+    dest: /tmp/neo4j_update.py
+
+- name: run script
+  command: python3 /tmp/neo4j_update.py
+
+- name: remove script after usage
+  file:
+    path: /tmp/neo4j_update.py
+    state: absent

@@ -1,0 +1,21 @@
+.container-fluid {
+  margin-top: 45px;
+  margin-bottom: 45px;
+}
+
+.page-title {
+  background: #ffffff;
+  margin: 0 -15px 15px;
+  margin-bottom: 45px;
+  padding: 15px;
+  /* -webkit-box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */
+  box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1);
+
+  h1 {
+    margin-bottom: 0;
+    line-height: 38px;
+    color: #1a237e;
+    font-size: 20px;
+    text-align: left;
+  }
+}

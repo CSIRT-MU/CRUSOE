@@ -1,0 +1,459 @@
+<div class="heading-wrapper">
+  <a routerLink="../../" class="back-anchor"><mat-icon mat-button class="back-button">chevron_left</mat-icon></a>
+  <div>
+    <p class="worker-label">Worker:</p>
+    <h2>{{ workerName }}</h2>
+  </div>
+</div>
+<mat-tab-group *ngIf="workerData">
+  <mat-tab label="Pool">
+    <div class="pool-tab">
+      <div class="table-wrap">
+        <p class="heading">Worker pool options:</p>
+        <div class="mat-table pool-table">
+          <div class="mat-row">
+            <div class="mat-cell">Max concurrency:</div>
+            <div class="mat-cell">
+              <strong>{{ workerData.stats.pool['max-concurrency'] }}</strong>
+            </div>
+          </div>
+          <div class="mat-row">
+            <div class="mat-cell">Processes:</div>
+            <div class="mat-cell">
+              <strong>{{ workerData.stats.pool['processes'] }}</strong>
+            </div>
+          </div>
+          <div class="mat-row">
+            <div class="mat-cell">Max tasks per child:</div>
+            <div class="mat-cell">
+              <strong>{{ workerData.stats.pool['max-tasks-per-child'] }}</strong>
+            </div>
+          </div>
+          <div class="mat-row">
+            <div class="mat-cell">Put guarded by semaphore:</div>
+            <div class="mat-cell">
+              <strong>{{ workerData.stats.pool['put-guarded-by-semaphore'] }}</strong>
+            </div>
+          </div>
+          <div class="mat-row">
+            <div class="mat-cell">Timeouts:</div>
+            <div class="mat-cell">
+              <strong>{{ workerData.stats.pool.timeouts }}</strong>
+            </div>
+          </div>
+          <div class="mat-row">
+            <div class="mat-cell">Writes:</div>
+            <div class="mat-cell">
+              <strong>{{ JSON.stringify(workerData.stats.pool.writes) }}</strong>
+            </div>
+          </div>
+          <div class="mat-row">
+            <div class="mat-cell">Worker PID:</div>
+            <div class="mat-cell">
+              <strong>{{ workerData.stats.pid }}</strong>
+            </div>
+          </div>
+          <div class="mat-row">
+            <div class="mat-cell">Prefetch Count:</div>
+            <div class="mat-cell">
+              <strong>{{ workerData.stats.prefetch_count }} </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pool-control">
+        <h3>Pool size control</h3>
+        <div class="pool-size">
+          <mat-form-field appearance="fill">
+            <mat-label>Pool size</mat-label>
+            <mat-select #poolSize>
+              <mat-option *ngFor="let item of [1, 2, 3, 4, 5]" [value]="item">
+                {{ item }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button
+            [disabled]="!poolSize.value"
+            (click)="growPool(poolSize.value)"
+            class="grow"
+            color="primary"
+            mat-raised-button
+          >
+            Grow
+          </button>
+          <button
+            [disabled]="!poolSize.value"
+            (click)="shrinkPool(poolSize.value)"
+            class="shrink"
+            color="primary"
+            mat-raised-button
+          >
+            Shrink
+          </button>
+        </div>
+        <div class="auto-scale">
+          <mat-label>Min/Max autoscale</mat-label>
+          <mat-form-field class="scale-number">
+            <mat-label>Min</mat-label>
+            <input #minScale type="number" matInput />
+          </mat-form-field>
+          <mat-form-field class="scale-number">
+            <mat-label>Max</mat-label>
+            <input #maxScale type="number" matInput />
+          </mat-form-field>
+          <button [disabled]="!minScale.value || !maxScale.value" color="primary" mat-raised-button>Apply</button>
+        </div>
+      </div>
+    </div>
+  </mat-tab>
+  <mat-tab label="Broker">
+    <div class="table-wrap">
+      <p class="heading">Broker options:</p>
+      <div class="mat-table">
+        <div class="mat-row">
+          <div class="mat-cell">Hostname:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.hostname }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">UserID:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.userid || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Virtual host:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.virtual_host }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Port:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.port }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Insist:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.insist }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">SSL:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.ssl }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Transport:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.transport }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Connect timeout:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.connect_timeout }} </strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Transport options:</div>
+          <div class="mat-cell">
+            <strong>{{ JSON.stringify(workerData.stats.broker.transport_options) }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Login method:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.login_method || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">URI prefix:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.uri_prefix || '-' }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Heartbeat:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.heartbeat }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Failover strategy:</div>
+          <div class="mat-cell">
+            <strong>{{ workerData.stats.broker.failover_strategy }}</strong>
+          </div>
+        </div>
+        <div class="mat-row">
+          <div class="mat-cell">Alternates:</div>
+          <div class="mat-cell">
+            <strong>{{ JSON.stringify(workerData.stats.broker.alternates) }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-tab>
+  <!-- 'exclusive', 'durable', 'routing_key', 'no_ack', 'alias', 'queue_arguments', 'binding_arguments', 'auto_delete']; -->
+  <mat-tab label="Queues">
+    <div class="queues-table">
+      <mat-table [dataSource]="activeQueues">
+        <ng-container matColumnDef="name">
+          <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+          <mat-cell *matCellDef="let queue">{{ queue.name }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="exclusive">
+          <mat-header-cell *matHeaderCellDef> Exclusive </mat-header-cell>
+          <mat-cell *matCellDef="let queue">{{ queue.exclusive }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="durable">
+          <mat-header-cell *matHeaderCellDef> Durable </mat-header-cell>
+          <mat-cell *matCellDef="let queue">{{ queue.durable }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="routing_key">
+          <mat-header-cell *matHeaderCellDef> Routing key </mat-header-cell>
+          <mat-cell *matCellDef="let queue">{{ queue.routing_key }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="no_ack">
+          <mat-header-cell *matHeaderCellDef> No ACK </mat-header-cell>
+          <mat-cell *matCellDef="let queue">{{ queue.no_ack }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="alias">
+          <mat-header-cell *matHeaderCellDef> Alias </mat-header-cell>
+          <mat-cell *matCellDef="let queue">{{ queue.alias || '-' }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="queue_arguments">
+          <mat-header-cell *matHeaderCellDef> Queue arguments </mat-header-cell>
+          <mat-cell *matCellDef="let queue">{{ queue.queue_arguments || '-' }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="binding_arguments">
+          <mat-header-cell *matHeaderCellDef> Binding arguments </mat-header-cell>
+          <mat-cell *matCellDef="let queue">{{ queue.binding_arguments || '-' }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="auto_delete">
+          <mat-header-cell *matHeaderCellDef> Auto delete </mat-header-cell>
+          <mat-cell *matCellDef="let queue">{{ queue.auto_delete }}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="cancel_queue">
+          <mat-header-cell *matHeaderCellDef></mat-header-cell>
+          <mat-cell *matCellDef="let queue"
+            ><button (click)="cancelConsumer(queue.name)" mat-raised-button color="warn">
+              Cancel Consumer
+            </button></mat-cell
+          >
+        </ng-container>
+        <mat-header-row *matHeaderRowDef="queuesColumns"></mat-header-row>
+        <mat-row *matRowDef="let activeQueues; columns: queuesColumns"></mat-row>
+      </mat-table>
+    </div>
+  </mat-tab>
+  <!-- Tasks -->
+  <mat-tab label="Tasks">
+    <!-- Processed Tasks -->
+    <h3>Processed <span class="description">number of completed tasks</span></h3>
+    <mat-table [dataSource]="processedTasks">
+      <ng-container matColumnDef="name">
+        <mat-cell *matCellDef="let task"
+          ><strong>{{ task.name }}</strong></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="value">
+        <mat-cell *matCellDef="let task">{{ task.value }}</mat-cell>
+      </ng-container>
+      <mat-row *matRowDef="let processedTasks; columns: ['name', 'value']"></mat-row>
+    </mat-table>
+    <!-- Active Tasks -->
+    <h3>Active <span class="description">currently executing tasks</span></h3>
+    <mat-table [dataSource]="activeTasks">
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+        <mat-cell *matCellDef="let task"
+          ><strong>{{ task.name }}</strong></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef> UUID </mat-header-cell>
+        <mat-cell *matCellDef="let task"
+          ><a [routerLink]="'/auth/panel/task-manager/tasks/' + task.id">{{ task.id }}</a></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="acknowledged">
+        <mat-header-cell *matHeaderCellDef> Ack </mat-header-cell>
+        <mat-cell *matCellDef="let task">{{ task.acknowledged }}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="worker_pid">
+        <mat-header-cell *matHeaderCellDef> PID </mat-header-cell>
+        <mat-cell *matCellDef="let task">{{ task.worker_pid }}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="args">
+        <mat-header-cell *matHeaderCellDef> args </mat-header-cell>
+        <mat-cell *matCellDef="let task">{{ task.args }}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="kwargs">
+        <mat-header-cell *matHeaderCellDef> kwargs </mat-header-cell>
+        <mat-cell *matCellDef="let task">{{ task.kwargs }}</mat-cell>
+      </ng-container>
+      <mat-header-row
+        *matHeaderRowDef="['name', 'id', 'acknowledged', 'worker_pid', 'args', 'kwargs']"
+      ></mat-header-row>
+      <mat-row
+        *matRowDef="let activeTasks; columns: ['name', 'id', 'acknowledged', 'worker_pid', 'args', 'kwargs']"
+      ></mat-row>
+    </mat-table>
+    <!-- Scheduled Tasks -->
+    <h3>Scheduled <span class="description">scheduled (eta/countdown/retry) tasks</span></h3>
+    <mat-table [dataSource]="scheduledTasks">
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+        <mat-cell *matCellDef="let task"
+          ><strong>{{ task.name }}</strong></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef> UUID </mat-header-cell>
+        <mat-cell *matCellDef="let task"
+          ><a [routerLink]="'/auth/panel/task-manager/tasks/' + task.id">{{ task.id }}</a></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="args">
+        <mat-header-cell *matHeaderCellDef> args </mat-header-cell>
+        <mat-cell *matCellDef="let task">{{ task.args }}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="kwargs">
+        <mat-header-cell *matHeaderCellDef> kwargs </mat-header-cell>
+        <mat-cell *matCellDef="let task">{{ task.kwargs }}</mat-cell>
+      </ng-container>
+      <mat-header-row *matHeaderRowDef="['name', 'id', 'args', 'kwargs']"></mat-header-row>
+      <mat-row *matRowDef="let scheduledTasks; columns: ['name', 'id', 'args', 'kwargs']"></mat-row>
+    </mat-table>
+    <!-- Reserved Tasks -->
+    <h3>
+      Reserved <span class="description">tasks that have been received, but are still waiting to be executed</span>
+    </h3>
+    <mat-table [dataSource]="reservedTasks">
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
+        <mat-cell *matCellDef="let task"
+          ><strong>{{ task.name }}</strong></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef> UUID </mat-header-cell>
+        <mat-cell *matCellDef="let task"
+          ><a [routerLink]="'/auth/panel/task-manager/tasks/' + task.id">{{ task.id }}</a></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="args">
+        <mat-header-cell *matHeaderCellDef> args </mat-header-cell>
+        <mat-cell *matCellDef="let task">{{ task.args }}</mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="kwargs">
+        <mat-header-cell *matHeaderCellDef> kwargs </mat-header-cell>
+        <mat-cell *matCellDef="let task">{{ task.kwargs }}</mat-cell>
+      </ng-container>
+      <mat-header-row *matHeaderRowDef="['name', 'id', 'args', 'kwargs']"></mat-header-row>
+      <mat-row *matRowDef="let reservedTasks; columns: ['name', 'id', 'args', 'kwargs']"></mat-row>
+    </mat-table>
+    <!-- Revoked Tasks -->
+    <h3>Revoked <span class="description">cancelled tasks</span></h3>
+    <mat-table [dataSource]="revokedTasks">
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef> UUID </mat-header-cell>
+        <mat-cell *matCellDef="let task"
+          ><a [routerLink]="'/auth/panel/task-manager/tasks/' + task.id">{{ task.id }}</a></mat-cell
+        >
+      </ng-container>
+      <mat-header-row *matHeaderRowDef="['id']"></mat-header-row>
+      <mat-row *matRowDef="let revokedTasks; columns: ['id']"></mat-row>
+    </mat-table>
+  </mat-tab>
+  <mat-tab label="Limits">
+    <h3>Task limits</h3>
+    <mat-table [dataSource]="registeredTasks">
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef> Task name </mat-header-cell>
+        <mat-cell *matCellDef="let task"
+          ><strong>{{ task }}</strong></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="ratelimit">
+        <mat-header-cell *matHeaderCellDef> Rate limit </mat-header-cell>
+        <mat-cell *matCellDef="let task">
+          <mat-form-field class="number-input">
+            <input #ratelimit matInput type="number" />
+          </mat-form-field>
+          <button
+            [disabled]="!ratelimit.value"
+            (click)="editRatelimit(task, ratelimit.value)"
+            mat-raised-button
+            color="primary"
+          >
+            Apply
+          </button>
+        </mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="timeouts">
+        <mat-header-cell *matHeaderCellDef> Timeouts </mat-header-cell>
+        <mat-cell *matCellDef="let task">
+          <mat-form-field class="number-input">
+            <input #timeout matInput type="number" />
+          </mat-form-field>
+          <button
+            [disabled]="!timeout.value"
+            (click)="editTaskTimeout(task, timeout.value)"
+            mat-raised-button
+            color="primary"
+            style="margin-right: 20px"
+          >
+            Soft
+          </button>
+          <button
+            [disabled]="!timeout.value"
+            (click)="editTaskTimeout(task, timeout.value)"
+            mat-raised-button
+            color="primary"
+          >
+            Hard
+          </button>
+        </mat-cell>
+      </ng-container>
+      <mat-header-row *matHeaderRowDef="['name', 'ratelimit', 'timeouts']"></mat-header-row>
+      <mat-row *matRowDef="let processedTasks; columns: ['name', 'ratelimit', 'timeouts']"></mat-row>
+    </mat-table>
+  </mat-tab>
+  <mat-tab label="Config">
+    <h3>Configuration options</h3>
+    <mat-table [dataSource]="workerConfTable">
+      <ng-container matColumnDef="name">
+        <mat-cell *matCellDef="let conf"
+          ><strong>{{ conf.name }}</strong></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="value">
+        <mat-cell *matCellDef="let conf">
+          {{ JSON.stringify(conf.value) }}
+        </mat-cell>
+      </ng-container>
+      <mat-row *matRowDef="let workerConfTable; columns: ['name', 'value']"></mat-row>
+    </mat-table>
+  </mat-tab>
+  <mat-tab label="System">
+    <h3>System usage statistics</h3>
+    <mat-table [dataSource]="usageStatistics">
+      <ng-container matColumnDef="name">
+        <mat-cell *matCellDef="let usage"
+          ><strong>{{ usage.name }}</strong></mat-cell
+        >
+      </ng-container>
+      <ng-container matColumnDef="value">
+        <mat-cell *matCellDef="let usage">
+          {{ JSON.stringify(usage.value) }}
+        </mat-cell>
+      </ng-container>
+      <mat-row *matRowDef="let usageStatistics; columns: ['name', 'value']"></mat-row>
+    </mat-table>
+  </mat-tab>
+</mat-tab-group>
