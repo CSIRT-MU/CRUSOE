@@ -19,7 +19,7 @@ Lukáš Matta and Martin Husák (Orient tool)
 Lukáš Sadlek, Michal Javorník, and Martin Husák (Decide tool)  
 Stanislav Špaček and Milan Žiaran (Act tool)
 
-Special thanks goes to Jana Medková for the design of the data model and Daniel Tovarňák for consulting the design of the toolset.
+Special thanks goes to Jana Komárková for the designing the data model and Daniel Tovarňák for consulting the design of the toolset.
 
 ### References
 
