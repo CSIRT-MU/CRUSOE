@@ -10,7 +10,18 @@ Orient: https://www.muni.cz/en/research/publications/1724716
 Decide: https://www.muni.cz/en/research/publications/1724737  
 Act: https://www.muni.cz/en/research/publications/1728677  
 
-### Literature
+### Authors
+
+The authors of the CRUSOE toolset are:
+
+Martin Laštovička, Jakub Bartoloměj Košuth, Danei Filakovský, and Martin Husák (Observe tool)  
+Lukáš Matta and Martin Husák (Orient tool)  
+Lukáš Sadlek, Michal Javorník, and Martin Husák (Decide tool)  
+Stanislav Špaček and Milan Žiaran (Act tool)
+
+Special thanks goes to Jana Medková for the design of the data model and Daniel Tovarňák for consulting the design of the toolset.
+
+### References
 
 The developments of the CRUSOE framework resulted in numerous publications. Their list can be found at: https://www.muni.cz/en/research/projects/35444
 
