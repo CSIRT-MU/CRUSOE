@@ -1,6 +1,6 @@
 # CRUSOE
 
-## Toolset for Cyber Situational Awareness and Decision Support in Incident Handling Inspired by the OODA Loop
+## A Toolset for Cyber Situational Awareness and Decision Support in Incident Handling Inspired by the OODA Loop
 
 ### About
 
