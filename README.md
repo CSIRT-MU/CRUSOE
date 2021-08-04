@@ -1,6 +1,12 @@
 # CRUSOE
 
-CRUSOE - A toolset for cyber situational awareness and decision support of CSIRT/CERT teams
+## Toolset for Cyber Situational Awareness and Decision Support in Incident Handling Inspired by the OODA Loop
+
+### About
+
+The growing size and complexity of today's computer network make it hard to achieve and maintain so-called cyber situational awareness, i.e., the ability to perceive and comprehend the cyber environment and be able to project the situation in the near future. Namely, CSIRT/CERT or SOC personnel should be aware of the security situation in the network to effectively prevent or mitigate cyber attacks and avoid mistakes in the process. Herein, we present a toolset for achieving cyber situational awareness in a large and heterogeneous environment. The goal of the toolset is to support cybersecurity teams in iterating through the OODA loop (Observe, Orient, Decide, Act). The tool was designed to help the operator make informed decisions in incident handling and response for each phase of the cycle. The Observe phase builds on common tools for active and passive network monitoring and vulnerability assessment. In the Orient phase, the data on the network are structured and presented in a comprehensible and visually appealing manner. The Decide phase is represented by a recommender system that suggests the most resilient configuration of the critical infrastructure. Finally, the Act phase is supported by a service that orchestrates network security tools and allows for prompt mitigation actions.
+
+![Architecture of the CRUSOE Toolset](/crusoe-architecture.png "Architecture of the CRUSOE toolset")
 
 ### Original Source Codes
 
