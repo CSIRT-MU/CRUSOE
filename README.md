@@ -16,6 +16,10 @@ Orient: https://www.muni.cz/en/research/publications/1724716
 Decide: https://www.muni.cz/en/research/publications/1724737  
 Act: https://www.muni.cz/en/research/publications/1728677  
 
+### Installation
+
+The software is modular and can be installed either in parts, or as a whole using Ansible. For installation instructions of each separate tool or component, see readme.md files in the corresponding subfolders.
+
 ### Authors
 
 The authors of the CRUSOE toolset are:
