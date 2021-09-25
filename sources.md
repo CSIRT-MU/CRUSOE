@@ -14,3 +14,4 @@
 
 ## Python driver
 - Driver manual: https://neo4j.com/docs/python-manual/current/
+- Driver API documentation: https://neo4j.com/docs/api/python-driver/current/api.html
