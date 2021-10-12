@@ -9,6 +9,13 @@ class Host:
         self.software_components = []
         self.network_services = []
 
+    def __str__(self):
+        return f"IP: {self.ip}\n" \
+               f"DOMAIN(s): {self.domains}\n" \
+               f"OS: {self.os_cpe}\n" \
+               f"SW: {[sw.__str__() for sw in self.software_components]}\n" \
+               f"NS: {[ns.__str__() for ns in self.network_services]}"
+
 
 class HostWithScore(Host):
     """
