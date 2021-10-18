@@ -4,7 +4,16 @@ class SoftwareComponent:
     """
     def __init__(self, tag, cpe):
         self.tag = tag
-        self.cpe = cpe
+
+        if cpe is not None:
+            cpe_split = cpe.split(":", 3)
+            self.vendor = cpe_split[0]
+            self.product = cpe_split[1]
+            self.version = cpe_split[2]
+        else:
+            self.vendor = None
+            self.product = None
+            self.version = None
 
     def __str__(self):
-        return f"{self.tag}: {self.cpe}"
+        return f"{self.tag}: {self.vendor}:{self.product}:{self.version}"
