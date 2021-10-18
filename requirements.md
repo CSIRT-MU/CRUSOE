@@ -6,7 +6,7 @@
  ### - Options:
  - IP: -i/\-\-ip "147.251.147.90"
  - Domain: -d/\-\-domain "fi.muni.cz"
- - Weights:  -w/\-\-weights "PATH"
+ - Configuration:  -c/\-\-config "PATH"
  
  ### - Input is validated (correct structure of IP or domain name)
  
