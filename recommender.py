@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from db_connection import DatabaseConnection
 from input import Input
+import time
 
 
 def main():
@@ -20,8 +21,12 @@ def main():
 
         print(attacked_host)
 
+        host_list = db_connection.find_close_hosts(str(attacked_host.ip), 4)
+
     db_connection.close()
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    print("--- %s seconds ---" % (time.time() - start_time))

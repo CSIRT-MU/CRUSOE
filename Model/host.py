@@ -24,9 +24,11 @@ class HostWithScore(Host):
     """
     Represents nearby hosts evaluated with score and distance
     """
-    def __init__(self, ip, domains, os_cpe, cve_count, event_count):
+    def __init__(self, ip, domains, os_cpe, cve_count, event_count,
+                 distance, path_type):
         super().__init__(ip, domains, os_cpe)
         self.cve_count = cve_count
         self.event_count = event_count
+        self.distance = distance
+        self.path_type = path_type
         self.risk_score = None
-        self.distance = None

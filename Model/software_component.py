@@ -9,7 +9,9 @@ class SoftwareComponent:
             cpe_split = cpe.split(":", 3)
             self.vendor = cpe_split[0]
             self.product = cpe_split[1]
-            self.version = cpe_split[2]
+
+            if len(cpe_split) > 2:
+                self.version = cpe_split[2]
         else:
             self.vendor = None
             self.product = None
