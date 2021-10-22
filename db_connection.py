@@ -1,8 +1,9 @@
 from neo4j import GraphDatabase
-from Model.host import Host
+from Model.host import Host, HostWithScore
 from Model.network_service import NetworkService
 from Model.software_component import SoftwareComponent
 from ipaddress import ip_address
+from Model.path_type import PathType
 import logging
 from neo4j.exceptions import ServiceUnavailable
 
@@ -28,7 +29,7 @@ class DatabaseConnection:
         """
 
         with self.driver.session() as session:
-            result = session.read_transaction(self._get_ip, domain)
+            result = session.read_transaction(self._get_ip_query, domain)
 
             # Domain doesn't exist in database
             if not result:
@@ -51,62 +52,106 @@ class DatabaseConnection:
         ip_str = str(ip)
 
         with self.driver.session() as session:
-            result = session.read_transaction(self._get_host_by_ip,
+            result = session.read_transaction(self._get_host_by_ip_query,
                                               ip_str)
 
             # IP doesn't exist in database
             if not result:
-                raise ValueError("Given IP was not found in database.")
+                return
+                # raise ValueError("Given IP was not found in database.")
 
             domains = result[0]["domain_list"]
-            os = result[0]["os"]
+            os_cpe = result[0]["os"]
 
-        # Create new host
-        new_host = Host(ip, domains, os)
+            # Create new host
+            new_host = Host(ip, domains, os_cpe)
 
-        # Initialize software components and network services lists
-        new_host.software_components = self.get_software_components(ip_str)
-        new_host.network_services = self.get_network_services(ip_str)
+            # Initialize software components and network services lists
+            new_host.software_components = self._get_software_components(
+                ip_str,
+                session)
+            new_host.network_services = self._get_network_services(ip_str,
+                                                                   session)
 
         return new_host
 
-    def get_network_services(self, ip):
-        """
-        Loads
-        :param ip:
-        :return:
-        """
-        with self.driver.session() as session:
-            result = session.read_transaction(self._get_network_services, ip)
-
-            services = []
-            for row in result:
-                service = NetworkService(row["port"],
-                                         row["protocol"],
-                                         row["service"])
-                services.append(service)
-            return services
-
-    def get_software_components(self, ip):
+    def find_close_hosts(self, ip, max_distance):
         """
 
         :param ip:
+        :param max_distance:
         :return:
         """
         with self.driver.session() as session:
+            result = session.read_transaction(self._find_close_hosts_query,
+                                              ip, max_distance)
 
-            result = session.read_transaction(
-                self._get_software_components, ip)
+            result_list = []
 
-            sw_components = []
             for row in result:
-                sw = SoftwareComponent(row["tag"],
-                                       row["version"])
-                sw_components.append(sw)
-            return sw_components
+                try:
+                    ip = ip_address(row["ip"])
+                except ValueError:
+                    # log
+                    continue
+
+                path_types = {"subnet": PathType.Subnet,
+                              "organization": PathType.Organization,
+                              "contact": PathType.Contact}
+
+                new_host = HostWithScore(ip,
+                                         row["domains"],
+                                         row["os"],
+                                         row["vulner_count"],
+                                         row["event_count"],
+                                         path_types[row["path_type"]],
+                                         row["distance"])
+
+                new_host.network_services = self._get_network_services(str(ip),
+                                                                       session)
+                new_host.software_components = \
+                    self._get_software_components(str(ip), session)
+
+                result_list.append(new_host)
+
+            return result_list
+
+    def _get_network_services(self, ip, session):
+        """
+        Finds network services in database which runs on a host with given IP.
+        :param ip: Host's IP address
+        :return: List of network_service objects
+        """
+
+        result = session.read_transaction(self._get_network_services_query, ip)
+
+        services = []
+        for row in result:
+            service = NetworkService(row["port"],
+                                     row["protocol"],
+                                     row["service"])
+            services.append(service)
+        return services
+
+    def _get_software_components(self, ip, session):
+        """
+        Finds software (except operation system components) in database which
+        runs on a host with given IP.
+        :param ip: Host's IP address
+        :return: List of network_service objects
+        """
+        result = session.read_transaction(self._get_software_components_query,
+                                          ip)
+
+        sw_components = []
+        for row in result:
+            sw = SoftwareComponent(row["tag"],
+                                   row["version"])
+            sw_components.append(sw)
+        return sw_components
 
     @staticmethod
-    def _get_ip(tx, domain):
+    def _get_ip_query(tx, domain):
         query = (
             "MATCH (ip:IP)-[:RESOLVES_TO]->(domain:DomainName) "
             "WHERE $domain IN domain.domain_name "
@@ -116,38 +161,29 @@ class DatabaseConnection:
         return [row["ip"] for row in result]
 
     @staticmethod
-    def _check_ip(tx, ip):
+    def _get_host_by_ip_query(tx, ip):
         query = (
-            "MATCH (ip:IP) "
-            "WHERE ip.address = $ip "
-            "RETURN ip"
-        )
-        result = tx.run(query, ip=ip)
-        return [row["ip"] for row in result]
-
-    @staticmethod
-    def _get_host_by_ip(tx, ip):
-        query = (
-            "MATCH (node:Node)-[:HAS_ASSIGNED]->(ip:IP) "  # Find IP
+            "MATCH (node:Node)-[:HAS_ASSIGNED]->(ip:IP) "
             "WHERE ip.address = $ip "
             "MATCH (node)-[:IS_A]->(host:Host) "
-            "OPTIONAL MATCH (sw:SoftwareVersion)-[rel:ON]->(host) "
+            "OPTIONAL MATCH (vulner:Vulnerability)-[:IN]->(sw:SoftwareVersion)-[rel:ON]->(host) "
+            "OPTIONAL MATCH (sw) "
             "WHERE sw.tag = \"os_component\" "
             "WITH sw AS os, ip "
-            "ORDER BY datetime(sw.end) DESC "  # Get latest running OS
+            "ORDER BY datetime(sw.end) DESC "
             "LIMIT 1 "
-            # Get domains
             "OPTIONAL MATCH (ip:IP)-[:RESOLVES_TO]->(domain:DomainName) "
-            # Reduce all domain names in one list
-            "RETURN REDUCE(s = [], domain_name IN COLLECT(domain.domain_name) "  
-            "| s + domain_name) AS domain_list, os.version AS os"
+            "RETURN ip.address, "
+            "REDUCE(s = [], domain_name IN COLLECT(domain.domain_name) | s + domain_name) AS domain_list, "
+            "os.version AS os "
         )
+
         result = tx.run(query, ip=ip)
 
         return [row for row in result]
 
     @staticmethod
-    def _get_network_services(tx, ip):
+    def _get_network_services_query(tx, ip):
         query = (
             "MATCH (node:Node)-[:HAS_ASSIGNED]->(ip:IP) "
             "WHERE ip.address = $ip "
@@ -159,7 +195,7 @@ class DatabaseConnection:
         return [row["service"] for row in result]
 
     @staticmethod
-    def _get_software_components(tx, ip):
+    def _get_software_components_query(tx, ip):
         query = (
             "MATCH (node:Node)-[:HAS_ASSIGNED]->(ip:IP) "
             "WHERE ip.address = $ip "
@@ -170,3 +206,50 @@ class DatabaseConnection:
         )
         result = tx.run(query, ip=ip)
         return [row["software"] for row in result]
+
+    @staticmethod
+    def _find_close_hosts_query(tx, ip, max_distance):
+        query = (
+            # Traverse from given IP address node
+            "CALL traverse.findCloseHosts($ip, $max_distance) "
+            "YIELD ip, distance, path_type "
+            "MATCH (host:Host)<-[:IS_A]-(:Node)-[:HAS_ASSIGNED]->(ip) "
+            
+            # Get domains that resolves to given IP address
+            "OPTIONAL MATCH (ip:IP)-[:RESOLVES_TO]->(domain:DomainName) "
+
+            # Get number of security events that happened on given host
+            "CALL { "  
+            "   WITH ip "
+            "   OPTIONAL MATCH (ip:IP)-[:SOURCE_OF]->(event:SecurityEvent) "
+            "   RETURN count(event) AS event_count "
+            "} "
+
+            # Get number of cve in software running on host
+            "CALL { "
+            "    WITH host "
+            "    MATCH (sw:SoftwareVersion)-[:ON]->(host) "
+            "    WITH DISTINCT sw "
+            "    MATCH (vulner:Vulnerability)-[:IN]->(sw:SoftwareVersion) "
+            "    RETURN count(DISTINCT vulner) AS vulner_count "
+            "} "
+            
+            # Get operation system running on host
+            "CALL { "
+            "    WITH ip, host, domain "
+            "    MATCH (sw:SoftwareVersion)-[:ON]->(host) "
+            "    WHERE sw.tag = \"os_component\" "
+            "    WITH sw, ip "
+            "    ORDER BY datetime(sw.end) DESC "
+            "    LIMIT 1 "
+            "    RETURN sw.version AS os "
+            "} "
+
+            # Return domains reduced to one list and rest of the variables
+            "RETURN REDUCE(s = [], domain_name IN COLLECT(domain.domain_name) "
+            "| s + domain_name) AS domains, "
+            "ip.address AS ip, os, event_count, "
+            "vulner_count, distance, path_type"
+        )
+        result = tx.run(query, ip=ip, max_distance=max_distance)
+        return [row for row in result]
