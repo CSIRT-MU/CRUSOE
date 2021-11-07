@@ -57,14 +57,15 @@ class DatabaseConnection:
 
             # IP doesn't exist in database
             if not result:
-                return
-                # raise ValueError("Given IP was not found in database.")
-
-            domains = result[0]["domain_list"]
-            os_cpe = result[0]["os"]
+                # log
+                raise ValueError("Given IP was not found in database.")
 
             # Create new host
-            new_host = Host(ip, domains, os_cpe)
+            new_host = Host(ip,
+                            result[0]["domains"],
+                            result[0]["os"],
+                            result[0]["vulner_count"],
+                            result[0]["event_count"])
 
             # Initialize software components and network services lists
             new_host.software_components = self._get_software_components(
@@ -104,8 +105,8 @@ class DatabaseConnection:
                                          row["os"],
                                          row["vulner_count"],
                                          row["event_count"],
-                                         path_types[row["path_type"]],
-                                         row["distance"])
+                                         row["distance"],
+                                         path_types[row["path_type"]])
 
                 new_host.network_services = self._get_network_services(str(ip),
                                                                        session)
@@ -115,6 +116,31 @@ class DatabaseConnection:
                 result_list.append(new_host)
 
             return result_list
+
+    def get_total_cve_count(self):
+        """
+        Counts total number of CVE that were identified in software running
+        on devices in network
+        :return: Total number of CVE
+        """
+
+        with self.driver.session() as session:
+            result = session.read_transaction(self._get_total_cve_count_query)
+
+        return result[0]["cve_count"]
+
+    def get_total_event_count(self):
+        """
+        Counts total number of security events that happened in network
+        :return: Total number of security events
+        """
+
+        with self.driver.session() as session:
+            result = session.read_transaction(
+                self._get_total_event_count_query)
+
+        return result[0]["event_count"]
+
 
     def _get_network_services(self, ip, session):
         """
@@ -163,22 +189,67 @@ class DatabaseConnection:
     @staticmethod
     def _get_host_by_ip_query(tx, ip):
         query = (
-            "MATCH (node:Node)-[:HAS_ASSIGNED]->(ip:IP) "
+            "MATCH (host:Host)<-[:IS_A]-(:Node)-[:HAS_ASSIGNED]->(ip:IP) "
             "WHERE ip.address = $ip "
-            "MATCH (node)-[:IS_A]->(host:Host) "
-            "OPTIONAL MATCH (vulner:Vulnerability)-[:IN]->(sw:SoftwareVersion)-[rel:ON]->(host) "
-            "OPTIONAL MATCH (sw) "
-            "WHERE sw.tag = \"os_component\" "
-            "WITH sw AS os, ip "
-            "ORDER BY datetime(sw.end) DESC "
-            "LIMIT 1 "
+
+            # Get domains that resolves to given IP address
             "OPTIONAL MATCH (ip:IP)-[:RESOLVES_TO]->(domain:DomainName) "
-            "RETURN ip.address, "
-            "REDUCE(s = [], domain_name IN COLLECT(domain.domain_name) | s + domain_name) AS domain_list, "
-            "os.version AS os "
+
+            # Get number of security events that happened on given host
+            "CALL { "
+            "   WITH ip "
+            "   OPTIONAL MATCH (ip:IP)-[:SOURCE_OF]->(event:SecurityEvent) "
+            "   RETURN count(event) AS event_count "
+            "} "
+
+            # Get number of cve in software running on host
+            "CALL { "
+            "    WITH host "
+            "    MATCH (sw:SoftwareVersion)-[:ON]->(host) "
+            "    WITH DISTINCT sw "
+            "    MATCH (vulner:Vulnerability)-[:IN]->(sw:SoftwareVersion) "
+            "    RETURN count(DISTINCT vulner) AS vulner_count "
+            "} "
+
+            # Get operation system running on host
+            "CALL { "
+            "    WITH ip, host, domain "
+            "    MATCH (sw:SoftwareVersion)-[:ON]->(host) "
+            "    WHERE sw.tag = \"os_component\" "
+            "    WITH sw, ip "
+            "    ORDER BY datetime(sw.end) DESC "
+            "    LIMIT 1 "
+            "    RETURN sw.version AS os "
+            "} "
+
+            # Return domains reduced to one list and rest of the variables
+            "RETURN REDUCE(s = [], domain_name IN COLLECT(domain.domain_name) "
+            "| s + domain_name) AS domains, os, event_count, vulner_count"
         )
 
         result = tx.run(query, ip=ip)
+
+        return [row for row in result]
+
+    @staticmethod
+    def _get_total_cve_count_query(tx):
+        query = (
+            "MATCH (v:Vulnerability) "
+            "RETURN count(DISTINCT v) AS cve_count"
+        )
+
+        result = tx.run(query)
+
+        return [row for row in result]
+
+    @staticmethod
+    def _get_total_event_count_query(tx):
+        query = (
+            "MATCH (e:SecurityEvent) "
+            "RETURN count(e) AS event_count"
+        )
+
+        result = tx.run(query)
 
         return [row for row in result]
 
@@ -215,10 +286,10 @@ class DatabaseConnection:
             "YIELD ip, distance, path_type "
             "MATCH (host:Host)<-[:IS_A]-(:Node)-[:HAS_ASSIGNED]->(ip) "
             
-            # Get domains that resolves to given IP address
+            # Get domains
             "OPTIONAL MATCH (ip:IP)-[:RESOLVES_TO]->(domain:DomainName) "
 
-            # Get number of security events that happened on given host
+            # Get number of security events
             "CALL { "  
             "   WITH ip "
             "   OPTIONAL MATCH (ip:IP)-[:SOURCE_OF]->(event:SecurityEvent) "
