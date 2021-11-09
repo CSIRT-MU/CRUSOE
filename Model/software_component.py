@@ -4,18 +4,19 @@ class SoftwareComponent:
     """
     def __init__(self, tag, cpe):
         self.tag = tag
+        self.cpe_list = cpe.split(":")
 
-        if cpe is not None:
-            cpe_split = cpe.split(":", 3)
-            self.vendor = cpe_split[0]
-            self.product = cpe_split[1]
+    @property
+    def vendor(self):
+        return self.cpe_list[0] if len(self.cpe_list) > 0 else None
 
-            if len(cpe_split) > 2:
-                self.version = cpe_split[2]
-        else:
-            self.vendor = None
-            self.product = None
-            self.version = None
+    @property
+    def product(self):
+        return self.cpe_list[1] if len(self.cpe_list) > 1 else None
+
+    @property
+    def version(self):
+        return self.cpe_list[2] if len(self.cpe_list) > 2 else None
 
     def __str__(self):
         return f"{self.tag}: {self.vendor}:{self.product}:{self.version}"
