@@ -1,0 +1,25 @@
+{
+  "max_distance": 2,
+
+  "path_subnet": 0.8,
+  "path_organization": 0.7,
+  "path_contact": 0.6,
+
+  "os_vendor": 0.5,
+  "os_product": 0.25,
+  "os_version": 0.25,
+
+  "nmap_vendor": 0.5,
+  "nmap_product": 0.25,
+  "nmap_version": 0.25,
+
+  "cms_vendor": 0.5,
+  "cms_product": 0.25,
+  "cms_version": 0.25,
+
+  "services_vendor": 0.5,
+  "services_product": 0.25,
+  "service_versions": 0.25,
+
+  "net_service_diff": 0.8
+}
