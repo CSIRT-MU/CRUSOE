@@ -141,7 +141,6 @@ class DatabaseConnection:
 
         return result[0]["event_count"]
 
-
     def _get_network_services(self, ip, session):
         """
         Finds network services in database which runs on a host with given IP.
