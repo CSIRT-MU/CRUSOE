@@ -1,25 +1,51 @@
 {
   "max_distance": 2,
 
-  "path_subnet": 0.8,
-  "path_organization": 0.7,
-  "path_contact": 0.6,
-
-  "os_vendor": 0.5,
-  "os_product": 0.25,
-  "os_version": 0.25,
-
-  "nmap_vendor": 0.5,
-  "nmap_product": 0.25,
-  "nmap_version": 0.25,
-
-  "cms_vendor": 0.5,
-  "cms_product": 0.25,
-  "cms_version": 0.25,
-
-  "services_vendor": 0.5,
-  "services_product": 0.25,
-  "service_versions": 0.25,
-
-  "net_service_diff": 0.8
+  "path":
+  {
+    "apply": true,
+    "subnet": 0.8,
+    "organization": 0.7,
+    "contact": 0.6
+  },
+  "os":
+  {
+    "apply": true,
+    "vendor": 0.5,
+    "product": 0.25,
+    "version": 0.25,
+    "diff_value": 0.1
+  },
+  "antivirus":
+  {
+    "apply": true,
+    "vendor": 0.5,
+    "product": 0.25,
+    "version": 0.25,
+    "diff_value": 0.8
+  },
+  "cms":
+  {
+    "apply": true,
+    "vendor": 0.5,
+    "product": 0.25,
+    "version": 0.25,
+    "diff_value": 0.8
+  },
+  "net_service":
+  {
+    "apply": true,
+    "diff_value": 0.8,
+    "value": 1
+  },
+  "cve_cumulative":
+  {
+    "apply": true,
+    "zero_value": 1
+  },
+  "event_cumulative":
+  {
+    "apply": true,
+    "zero_value": 1
+  }
 }
