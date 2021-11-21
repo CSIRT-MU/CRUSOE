@@ -1,5 +1,7 @@
 class BaseComparator:
-
+    """
+    Abstract class serving as a base class for all comparator objects.
+    """
     def __init__(self, config):
         self.config = config
         self.reference_host = None
@@ -16,7 +18,7 @@ class BaseComparator:
         """
         Calculates partial similarity defined by comparator. Must be overridden
         in child classes, otherwise default similarity is returned (1).
-        :param host: Host to be compared with reference host
-        :return: Partial similarity
+        :param host: Host object (host to be compared with reference host)
+        :return: Partial similarity (number in <0,1>)
         """
         return 1

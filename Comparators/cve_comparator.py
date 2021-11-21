@@ -10,7 +10,7 @@ class CveComparator(CumulativeSimilarityComparator):
         """
         Calculates cumulative similarity of number of vulnerabilities (CVE)
         on hosts
-        :param host: Compared host
+        :param host: Host object (host to be compared with reference host)
         :return: Cumulative partial similarity
         """
 

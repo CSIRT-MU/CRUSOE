@@ -5,6 +5,11 @@ class CpeComparator(BaseComparator):
 
     def __init__(self, config):
         super().__init__(config)
+        self.weights = [
+            config["vendor"],
+            config["product"],
+            config["version"]
+        ]
 
     @staticmethod
     def _compare_sw_components(sw1, sw2, weights):
