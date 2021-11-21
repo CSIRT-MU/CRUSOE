@@ -4,13 +4,13 @@ from Model.network_service import NetworkService
 from Model.software_component import SoftwareComponent
 from ipaddress import ip_address
 from Model.path_type import PathType
-import logging
 from neo4j.exceptions import ServiceUnavailable
 
 
 class DatabaseConnection:
-    def __init__(self, url, user, password):
+    def __init__(self, url, user, password, logger):
         self.driver = GraphDatabase.driver(url, auth=(user, password))
+        self.logger = logger
 
     def close(self):
         """
@@ -24,7 +24,7 @@ class DatabaseConnection:
         Finds host in the database by its domain address and initialize its
         properties. Throws ValueError when given domain doesn't exist in
         database.
-        :param domain: Domain name as string
+        :param domain: Domain name as a string
         :return: Host object
         """
 
@@ -33,12 +33,13 @@ class DatabaseConnection:
 
             # Domain doesn't exist in database
             if not result:
-                raise ValueError("Given domain was not resolved to any IP")
+                self.logger.critical("Given domain doesn't resolve to any IP")
+                raise ValueError("Given domain doesn't resolve to any IP")
 
             # Create new IP address object
-            ip_str = ip_address(result[0]["address"])
+            ip = ip_address(result[0]["address"])
 
-        return self.get_host_by_ip(ip_str)
+        return self.get_host_by_ip(ip)
 
     def get_host_by_ip(self, ip):
         """
@@ -48,7 +49,7 @@ class DatabaseConnection:
         :return: Host object
         """
 
-        # Get IP as string
+        # Convert IP to string representation
         ip_str = str(ip)
 
         with self.driver.session() as session:
@@ -57,63 +58,97 @@ class DatabaseConnection:
 
             # IP doesn't exist in database
             if not result:
-                # log
-                raise ValueError("Given IP was not found in database.")
+                self.logger.critical("Given IP was not found in database.")
+                raise ValueError("Given IP was not found in database")
 
             # Create new host
             new_host = Host(ip,
                             result[0]["domains"],
                             result[0]["os"],
+                            result[0]["antivirus"],
                             result[0]["vulner_count"],
                             result[0]["event_count"])
 
             # Initialize software components and network services lists
-            new_host.software_components = self._get_software_components(
-                ip_str,
-                session)
+            new_host.cms_components = self._get_cms_components(ip_str, session)
             new_host.network_services = self._get_network_services(ip_str,
                                                                    session)
 
         return new_host
 
-    def find_close_hosts(self, ip, max_distance):
+    def get_host_with_score_by_ip(self, ip, distance, path_type, session):
         """
 
+        :param ip:
+        :param distance:
+        :param path_type:
+        :param session:
+        :return:
+        """
+        # Get IP as string
+        ip_str = str(ip)
+        result = session.read_transaction(self._get_host_by_ip_query,
+                                          ip_str)
+
+        if not result:
+            self.logger.info(f"Given IP ({ip_str}) "
+                             f"is not assigned to any host.")
+            return None
+
+        # Create new host
+        new_host = HostWithScore(ip,
+                                 result[0]["domains"],
+                                 result[0]["os"],
+                                 result[0]["antivirus"],
+                                 result[0]["vulner_count"],
+                                 result[0]["event_count"],
+                                 distance,
+                                 path_type)
+
+        # Initialize software components and network services lists
+        new_host.cms_components = self._get_cms_components(
+            ip_str,
+            session)
+        new_host.network_services = self._get_network_services(ip_str,
+                                                               session)
+
+        return new_host
+
+    def find_close_hosts(self, ip, max_distance):
+        """
+        Starts BFS traversal (uses Java traversal API) from given IP node and
+        finds neighbour hosts to maximum distance given as an argument. Type
+        of a path is stored as an enum.
         :param ip:
         :param max_distance:
         :return:
         """
         with self.driver.session() as session:
             result = session.read_transaction(self._find_close_hosts_query,
-                                              ip, max_distance)
+                                              str(ip), max_distance)
 
+            # Initialization of a result list of hosts
             result_list = []
+
+            # Dictionary for converting string to enum
+            path_types = {"subnet": PathType.Subnet,
+                          "organization": PathType.Organization,
+                          "contact": PathType.Contact}
 
             for row in result:
                 try:
                     ip = ip_address(row["ip"])
                 except ValueError:
-                    # log
+                    self.logger.error(f"Found invalid IP address {row['ip']}")
                     continue
 
-                path_types = {"subnet": PathType.Subnet,
-                              "organization": PathType.Organization,
-                              "contact": PathType.Contact}
+                new_host = self.get_host_with_score_by_ip(str(ip),
+                                                          row["distance"],
+                                                          path_types[row["path_type"]],
+                                                          session)
 
-                new_host = HostWithScore(ip,
-                                         row["domains"],
-                                         row["os"],
-                                         row["vulner_count"],
-                                         row["event_count"],
-                                         row["distance"],
-                                         path_types[row["path_type"]])
-
-                new_host.network_services = self._get_network_services(str(ip),
-                                                                       session)
-                new_host.software_components = \
-                    self._get_software_components(str(ip), session)
-
-                result_list.append(new_host)
+                if new_host is not None:
+                    result_list.append(new_host)
 
             return result_list
 
@@ -148,7 +183,8 @@ class DatabaseConnection:
         :return: List of network_service objects
         """
 
-        result = session.read_transaction(self._get_network_services_query, ip)
+        result = session.read_transaction(self._get_network_services_query,
+                                          str(ip))
 
         services = []
         for row in result:
@@ -158,15 +194,14 @@ class DatabaseConnection:
             services.append(service)
         return services
 
-    def _get_software_components(self, ip, session):
+    def _get_cms_components(self, ip, session):
         """
-        Finds software (except operation system components) in database which
-        runs on a host with given IP.
+        Finds cms clients which runs on a host with given IP.
         :param ip: Host's IP address
-        :return: List of network_service objects
+        :return: List of SoftwareComponent objects
         """
-        result = session.read_transaction(self._get_software_components_query,
-                                          ip)
+        result = session.read_transaction(self._get_cms_components_query,
+                                          str(ip))
 
         sw_components = []
         for row in result:
@@ -191,39 +226,22 @@ class DatabaseConnection:
             "MATCH (host:Host)<-[:IS_A]-(:Node)-[:HAS_ASSIGNED]->(ip:IP) "
             "WHERE ip.address = $ip "
 
+            # Get number of security events
+            f"{DatabaseConnection.__get_host_event_count_subquery()}"
+
+            # Get number of cve in software running on host
+            f"{DatabaseConnection.__get_host_cve_count_subquery()}"
+
+            # Get operation system running on host + optional antivirus
+            f"{DatabaseConnection.__get_host_os_and_antivirus_subquery()}"
+            
             # Get domains that resolves to given IP address
             "OPTIONAL MATCH (ip:IP)-[:RESOLVES_TO]->(domain:DomainName) "
 
-            # Get number of security events that happened on given host
-            "CALL { "
-            "   WITH ip "
-            "   OPTIONAL MATCH (ip:IP)-[:SOURCE_OF]->(event:SecurityEvent) "
-            "   RETURN count(event) AS event_count "
-            "} "
-
-            # Get number of cve in software running on host
-            "CALL { "
-            "    WITH host "
-            "    MATCH (sw:SoftwareVersion)-[:ON]->(host) "
-            "    WITH DISTINCT sw "
-            "    MATCH (vulner:Vulnerability)-[:IN]->(sw:SoftwareVersion) "
-            "    RETURN count(DISTINCT vulner) AS vulner_count "
-            "} "
-
-            # Get operation system running on host
-            "CALL { "
-            "    WITH ip, host, domain "
-            "    MATCH (sw:SoftwareVersion)-[:ON]->(host) "
-            "    WHERE sw.tag = \"os_component\" "
-            "    WITH sw, ip "
-            "    ORDER BY datetime(sw.end) DESC "
-            "    LIMIT 1 "
-            "    RETURN sw.version AS os "
-            "} "
-
             # Return domains reduced to one list and rest of the variables
             "RETURN REDUCE(s = [], domain_name IN COLLECT(domain.domain_name) "
-            "| s + domain_name) AS domains, os, event_count, vulner_count"
+            "| s + domain_name) AS domains, os, antivirus, event_count, "
+            "vulner_count"
         )
 
         result = tx.run(query, ip=ip)
@@ -265,13 +283,13 @@ class DatabaseConnection:
         return [row["service"] for row in result]
 
     @staticmethod
-    def _get_software_components_query(tx, ip):
+    def _get_cms_components_query(tx, ip):
         query = (
             "MATCH (node:Node)-[:HAS_ASSIGNED]->(ip:IP) "
             "WHERE ip.address = $ip "
             "MATCH (node)-[:IS_A]->(host:Host) "
             "MATCH (software: SoftwareVersion)-[:ON]->(host) "
-            "WHERE software.tag <> 'os_component' "
+            "WHERE software.tag = 'cms_client' "
             "RETURN software"
         )
         result = tx.run(query, ip=ip)
@@ -283,19 +301,24 @@ class DatabaseConnection:
             # Traverse from given IP address node
             "CALL traverse.findCloseHosts($ip, $max_distance) "
             "YIELD ip, distance, path_type "
-            "MATCH (host:Host)<-[:IS_A]-(:Node)-[:HAS_ASSIGNED]->(ip) "
-            
-            # Get domains
-            "OPTIONAL MATCH (ip:IP)-[:RESOLVES_TO]->(domain:DomainName) "
+            "RETURN ip.address as ip, distance, path_type"
+        )
+        result = tx.run(query, ip=ip, max_distance=max_distance)
+        return [row for row in result]
 
-            # Get number of security events
-            "CALL { "  
+    @staticmethod
+    def __get_host_event_count_subquery():
+        return (
+            "CALL { "
             "   WITH ip "
             "   OPTIONAL MATCH (ip:IP)-[:SOURCE_OF]->(event:SecurityEvent) "
             "   RETURN count(event) AS event_count "
             "} "
+        )
 
-            # Get number of cve in software running on host
+    @staticmethod
+    def __get_host_cve_count_subquery():
+        return (
             "CALL { "
             "    WITH host "
             "    MATCH (sw:SoftwareVersion)-[:ON]->(host) "
@@ -303,23 +326,23 @@ class DatabaseConnection:
             "    MATCH (vulner:Vulnerability)-[:IN]->(sw:SoftwareVersion) "
             "    RETURN count(DISTINCT vulner) AS vulner_count "
             "} "
-            
-            # Get operation system running on host
-            "CALL { "
-            "    WITH ip, host, domain "
-            "    MATCH (sw:SoftwareVersion)-[:ON]->(host) "
-            "    WHERE sw.tag = \"os_component\" "
-            "    WITH sw, ip "
-            "    ORDER BY datetime(sw.end) DESC "
-            "    LIMIT 1 "
-            "    RETURN sw.version AS os "
-            "} "
-
-            # Return domains reduced to one list and rest of the variables
-            "RETURN REDUCE(s = [], domain_name IN COLLECT(domain.domain_name) "
-            "| s + domain_name) AS domains, "
-            "ip.address AS ip, os, event_count, "
-            "vulner_count, distance, path_type"
         )
-        result = tx.run(query, ip=ip, max_distance=max_distance)
-        return [row for row in result]
+
+    @staticmethod
+    def __get_host_os_and_antivirus_subquery():
+        return (
+            "CALL { "
+            "   WITH host "
+            "   OPTIONAL MATCH (sw:SoftwareVersion)-[r:ON]->(host) "
+            "   WHERE sw.tag = 'os_component' "
+            "   WITH sw, r, host "
+            "   ORDER BY r.end DESC "
+            "   LIMIT 1 "
+            "   OPTIONAL MATCH (sw2:SoftwareVersion)-[r2:ON]->(host) "
+            "   WHERE sw2.tag = 'services_component' "
+            # negation of not overlapping condition
+            # => time intervals are overlapping
+            "   AND NOT (r.end < r2.start OR r.start > r2.end) "
+            "   RETURN sw.version AS os, sw2.version AS antivirus "
+            "} "
+        )
