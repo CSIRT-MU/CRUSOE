@@ -1,4 +1,4 @@
-from Comparators.comparator_base import BaseComparator
+from Comparators.base_comparator import BaseComparator
 
 
 class NetServicesComparator(BaseComparator):
@@ -31,14 +31,14 @@ class NetServicesComparator(BaseComparator):
 
         i1 = 0
         i2 = 0
-        len1 = len(self.reference_host.network_services)
-        len2 = len(host.network_services)
+        ns1_list = self.reference_host.network_services
+        ns2_list = host.network_services
+
+        len1 = len(ns1_list)
+        len2 = len(ns2_list)
 
         if len1 == 0 and len2 == 0:
             return 1
-
-        ns1_list = self.reference_host.network_services
-        ns2_list = host.network_services
 
         same_service_count = 0
 

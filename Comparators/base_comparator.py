@@ -19,6 +19,6 @@ class BaseComparator:
         Calculates partial similarity defined by comparator. Must be overridden
         in child classes, otherwise default similarity is returned (1).
         :param host: Host object (host to be compared with reference host)
-        :return: Partial similarity (number in <0,1>)
+        :return: Partial similarity (number in interval <0,1>)
         """
         return 1

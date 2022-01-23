@@ -1,4 +1,4 @@
-from Comparators.comparator_base import BaseComparator
+from Comparators.base_comparator import BaseComparator
 
 
 class CpeComparator(BaseComparator):
@@ -10,9 +10,27 @@ class CpeComparator(BaseComparator):
             config["product"],
             config["version"]
         ]
+        self.diff_value = config["diff_value"]
+
+    def _compare_sw_components(self, sw1, sw2):
+        # Both hosts do not have this SW component
+        if sw1 is None and sw2 is None:
+            return 1
+
+        # Only one of the hosts has this SW component, use predefined diff
+        # value
+        if sw1 is None or sw2 is None:
+            return self.diff_value
+
+        compare_result = self._compare_cpe(sw1, sw2, self.weights)
+
+        # Zero similarity -> use configured diff value
+        if compare_result == 0:
+            return self.config["diff_value"]
+        return compare_result
 
     @staticmethod
-    def _compare_sw_components(sw1, sw2, weights):
+    def _compare_cpe(sw1, sw2, weights):
         """
         Compares two software components (their CPE strings) and evaluates
         similarity with list of weights for each part.

@@ -14,6 +14,7 @@ class CveComparator(CumulativeSimilarityComparator):
         :return: Cumulative partial similarity
         """
 
-        return self._calculate_cumulative_similarity(self.reference_host.cve_count,
-                                                     host.cve_count,
-                                                     self.total_cve_count)
+        return self._calculate_cumulative_similarity(
+            self.reference_host.cve_count,
+            host.cve_count,
+            self.total_cve_count)

@@ -1,4 +1,4 @@
-from Comparators.comparator_base import BaseComparator
+from Comparators.base_comparator import BaseComparator
 
 
 class CumulativeSimilarityComparator(BaseComparator):

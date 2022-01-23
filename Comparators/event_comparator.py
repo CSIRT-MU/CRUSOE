@@ -12,6 +12,7 @@ class EventComparator(CumulativeSimilarityComparator):
         :param host: Host object (host to be compared with reference host)
         :return: Cumulative partial similarity
         """
-        return self._calculate_cumulative_similarity(self.reference_host.event_count,
-                                                     host.event_count,
-                                                     self.total_event_count)
+        return self._calculate_cumulative_similarity(
+            self.reference_host.event_count,
+            host.event_count,
+            self.total_event_count)
