@@ -66,11 +66,11 @@ class DatabaseConnection:
                             result[0]["domains"],
                             result[0]["os"],
                             result[0]["antivirus"],
+                            result[0]["cms"],
                             result[0]["vulner_count"],
                             result[0]["event_count"])
 
             # Initialize software components and network services lists
-            new_host.cms_components = self._get_cms_components(ip_str, session)
             new_host.network_services = self._get_network_services(ip_str,
                                                                    session)
 
@@ -100,15 +100,12 @@ class DatabaseConnection:
                                  result[0]["domains"],
                                  result[0]["os"],
                                  result[0]["antivirus"],
+                                 result[0]["cms"],
                                  result[0]["vulner_count"],
                                  result[0]["event_count"],
                                  distance,
                                  path_type)
 
-        # Initialize software components and network services lists
-        new_host.cms_components = self._get_cms_components(
-            ip_str,
-            session)
         new_host.network_services = self._get_network_services(ip_str,
                                                                session)
 
@@ -194,22 +191,6 @@ class DatabaseConnection:
             services.append(service)
         return services
 
-    def _get_cms_components(self, ip, session):
-        """
-        Finds cms clients which runs on a host with given IP.
-        :param ip: Host's IP address
-        :return: List of SoftwareComponent objects
-        """
-        result = session.read_transaction(self._get_cms_components_query,
-                                          str(ip))
-
-        sw_components = []
-        for row in result:
-            sw = SoftwareComponent(row["tag"],
-                                   row["version"])
-            sw_components.append(sw)
-        return sw_components
-
     @staticmethod
     def _get_ip_query(tx, domain):
         query = (
@@ -235,28 +216,19 @@ class DatabaseConnection:
             # Get operation system running on host + optional antivirus
             f"{DatabaseConnection.__get_host_os_and_antivirus_subquery()}"
             
+            # Get CMS software
+            f"{DatabaseConnection.__get_cms_subquery()}"
+            
             # Get domains that resolves to given IP address
             "OPTIONAL MATCH (ip:IP)-[:RESOLVES_TO]->(domain:DomainName) "
 
             # Return domains reduced to one list and rest of the variables
             "RETURN REDUCE(s = [], domain_name IN COLLECT(domain.domain_name) "
-            "| s + domain_name) AS domains, os, antivirus, event_count, "
+            "| s + domain_name) AS domains, os, antivirus, cms, event_count, "
             "vulner_count"
         )
 
         result = tx.run(query, ip=ip)
-
-        return [row for row in result]
-
-    @staticmethod
-    def _get_total_cve_count_query(tx):
-        query = (
-            "MATCH (v:Vulnerability) "
-            "RETURN count(DISTINCT v) AS cve_count"
-        )
-
-        result = tx.run(query)
-
         return [row for row in result]
 
     @staticmethod
@@ -267,43 +239,6 @@ class DatabaseConnection:
         )
 
         result = tx.run(query)
-
-        return [row for row in result]
-
-    @staticmethod
-    def _get_network_services_query(tx, ip):
-        query = (
-            "MATCH (node:Node)-[:HAS_ASSIGNED]->(ip:IP) "
-            "WHERE ip.address = $ip "
-            "MATCH (node)-[:IS_A]->(host:Host) "
-            "MATCH (service:NetworkService)-[:ON]->(host) "
-            "RETURN service"
-        )
-        result = tx.run(query, ip=ip)
-        return [row["service"] for row in result]
-
-    @staticmethod
-    def _get_cms_components_query(tx, ip):
-        query = (
-            "MATCH (node:Node)-[:HAS_ASSIGNED]->(ip:IP) "
-            "WHERE ip.address = $ip "
-            "MATCH (node)-[:IS_A]->(host:Host) "
-            "MATCH (software: SoftwareVersion)-[:ON]->(host) "
-            "WHERE software.tag = 'cms_client' "
-            "RETURN software"
-        )
-        result = tx.run(query, ip=ip)
-        return [row["software"] for row in result]
-
-    @staticmethod
-    def _find_close_hosts_query(tx, ip, max_distance):
-        query = (
-            # Traverse from given IP address node
-            "CALL traverse.findCloseHosts($ip, $max_distance) "
-            "YIELD ip, distance, path_type "
-            "RETURN ip.address as ip, distance, path_type"
-        )
-        result = tx.run(query, ip=ip, max_distance=max_distance)
         return [row for row in result]
 
     @staticmethod
@@ -315,6 +250,16 @@ class DatabaseConnection:
             "   RETURN count(event) AS event_count "
             "} "
         )
+
+    @staticmethod
+    def _get_total_cve_count_query(tx):
+        query = (
+            "MATCH (v:Vulnerability) "
+            "RETURN count(DISTINCT v) AS cve_count"
+        )
+
+        result = tx.run(query)
+        return [row for row in result]
 
     @staticmethod
     def __get_host_cve_count_subquery():
@@ -329,17 +274,55 @@ class DatabaseConnection:
         )
 
     @staticmethod
+    def _get_network_services_query(tx, ip):
+        query = (
+            "MATCH (node:Node)-[:HAS_ASSIGNED]->(ip:IP) "
+            "WHERE ip.address = $ip "
+            "MATCH (node)-[:IS_A]->(host:Host) "
+            "MATCH (service:NetworkService)-[:ON]->(host) "
+            "RETURN service"
+        )
+        result = tx.run(query, ip=ip)
+        return [row["service"] for row in result]
+
+    @staticmethod
+    def __get_cms_subquery():
+        return (
+            "CALL { "
+            "   WITH host "
+            "   OPTIONAL MATCH (sw:SoftwareVersion)-[r:ON]->(host) "
+            "   WHERE sw.tag = 'cms_client' "
+            "   RETURN sw.version AS cms "
+            "   LIMIT 1 "
+            "} "
+        )
+
+    @staticmethod
+    def _find_close_hosts_query(tx, ip, max_distance):
+        query = (
+            # Traverse from given IP address node
+            "CALL traverse.findCloseHosts($ip, $max_distance) "
+            "YIELD ip, distance, path_type "
+            "RETURN ip.address AS ip, distance, path_type"
+        )
+        result = tx.run(query, ip=ip, max_distance=max_distance)
+        return [row for row in result]
+
+    @staticmethod
     def __get_host_os_and_antivirus_subquery():
         return (
             "CALL { "
             "   WITH host "
             "   OPTIONAL MATCH (sw:SoftwareVersion)-[r:ON]->(host) "
+            # Get last OS running on host.
             "   WHERE sw.tag = 'os_component' "
             "   WITH sw, r, host "
             "   ORDER BY r.end DESC "
             "   LIMIT 1 "
             "   OPTIONAL MATCH (sw2:SoftwareVersion)-[r2:ON]->(host) "
             "   WHERE sw2.tag = 'services_component' "
+            # Assure that antivirus runs on the same computer (host might be 
+            # a DHCP client).
             # negation of not overlapping condition
             # => time intervals are overlapping
             "   AND NOT (r.end < r2.start OR r.start > r2.end) "

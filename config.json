@@ -1,6 +1,5 @@
 {
   "max_distance": 2,
-
   "path":
   {
     "apply": true,
@@ -30,6 +29,7 @@
     "vendor": 0.5,
     "product": 0.25,
     "version": 0.25,
+    "require_open_http": true,
     "diff_value": 0.8
   },
   "net_service":
@@ -47,5 +47,15 @@
   {
     "apply": true,
     "zero_value": 1
+  },
+  "rdp_heuristic":
+  {
+    "apply": true,
+    "multiplier": 1
+  },
+  "cve_heuristic":
+  {
+    "apply": true,
+    "multiplier": 1
   }
 }

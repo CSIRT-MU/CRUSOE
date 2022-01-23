@@ -3,8 +3,7 @@ from db_connection import DatabaseConnection
 from input import Input
 import time
 from similarity_calculator import SimilarityCalculator
-from Comparators import *
-from output_printer import OutputPrinter
+from RecommenderOutput.stdout import OutputPrinter
 import logging
 
 
@@ -18,23 +17,7 @@ class Recommender:
         self.attacked_host = None
         self.host_list = []
 
-    def __initialize_comparators(self):
-        """
-        Initializes comparators used for comparing hosts.
-        :return: None
-        """
-        self.comparator_list = [
-            CveComparator(self.config["cve_cumulative"],
-                          self.db_connection.get_total_cve_count()),
-            EventComparator(self.config["event_cumulative"],
-                            self.db_connection.get_total_event_count()),
-            OsComparator(self.config["os"]),
-            AntivirusComparator(self.config["antivirus"]),
-            NetServicesComparator(self.config["net_service"])
-            # CmsComparator
-        ]
-
-    def __sort_list_by_risk(self):
+    def __sort_host_list_by_risk(self):
         """
         Sorts list of host by risk of exploiting.
         :return: None
@@ -44,8 +27,8 @@ class Recommender:
     @staticmethod
     def __initialize_logger():
         """
-        Initialize logging for recommender. Two loggers are used, to stderr
-        output and in file "recommender.log".
+        Initialize logging for recommender. Two loggers are used (stderr and
+        in file "recommender.log").
         :return: Initialized logger
         """
         logger = logging.getLogger(__name__)
@@ -90,15 +73,13 @@ class Recommender:
             printer.print_number_of_hosts(len(self.host_list),
                                           self.config["max_distance"])
 
-            self.__initialize_comparators()
-
-            sim_calc = SimilarityCalculator(self.config["path"],
-                                            self.attacked_host,
-                                            self.comparator_list)
+            sim_calc = SimilarityCalculator(self.db_connection,
+                                            self.config,
+                                            self.attacked_host)
 
             sim_calc.calculate_risk_scores(self.host_list)
 
-            self.__sort_list_by_risk()
+            self.__sort_host_list_by_risk()
 
             printer.print_host_list(self.host_list)
 

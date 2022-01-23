@@ -11,7 +11,7 @@ class Input:
         self.domain = None
         self.limit = None
         self.config_path = None
-        self.logger = logger
+        self.__logger = logger
 
     def parse_options(self):
         """
@@ -28,33 +28,33 @@ class Input:
             # -i | --ip     -> IP input
             # -d | --domain -> domain input
             # -p | --path   –> config path
-            # -l | --limit   –> number of hosts to print on output
+            # -l | --limit  –> number of hosts to print on output
             opts, _ = getopt(argv[1:], "i:d:c:l:", ["ip=", "domain=",
                                                     "config=", "limit="])
 
         except GetoptError:
             # Unsupported options
-            self.logger.critical("Invalid option(s)")
+            self.__logger.critical("Invalid option(s)")
             return result
 
         if not opts:
             # No options were obtained
-            self.logger.critical("No arguments were given")
+            self.__logger.critical("No arguments were given")
             return result
 
         for opt, arg in opts:
             if opt in ("-i", "--ip"):
-                if not self._parse_ip_address(arg):
+                if not self.__parse_ip_address(arg):
                     return False
                 result = True
             elif opt in ("-d", "--domain"):
-                if not self._parse_domain(arg):
+                if not self.__parse_domain(arg):
                     return False
                 result = True
             elif opt in ("-c", "--config"):
                 self.config_path = arg
             elif opt in ("-l", "--limit"):
-                if not self._parse_limit(arg):
+                if not self.__parse_limit(arg):
                     return False
         return result
 
@@ -71,7 +71,7 @@ class Input:
         with open(path, 'r') as config_stream:
             return load(config_stream)
 
-    def _parse_ip_address(self, address):
+    def __parse_ip_address(self, address):
         """
         Checks if given string is a valid IP address, sets "ip" member if yes.
         :param address: IP address in a form of a string
@@ -80,13 +80,13 @@ class Input:
         try:
             ip = ip_address(address)
         except ValueError:
-            self.logger\
+            self.__logger\
                 .critical(f"Given input '{address}' is not a valid IP address")
             return False
         self.ip = ip
         return True
 
-    def _parse_domain(self, domain):
+    def __parse_domain(self, domain):
         """
         Checks if given string is a domain name, sets "domain" member if yes.
         :param domain: Domain name to be checked
@@ -98,7 +98,7 @@ class Input:
         self.domain = domain
         return True
 
-    def _parse_limit(self, limit):
+    def __parse_limit(self, limit):
         """
         Checks if given limit is a correct positive integer number and sets
         limit property if yes.
@@ -108,11 +108,11 @@ class Input:
         try:
             limit_number = int(limit)
         except ValueError:
-            self.logger.critical("Limit option must be an integer value")
+            self.__logger.critical("Limit option must be an integer value")
             return False
 
         if limit_number <= 0:
-            self.logger.critical("Limit must be a positive number.")
+            self.__logger.critical("Limit must be a positive number.")
             return False
 
         self.limit = limit_number
