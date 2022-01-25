@@ -12,7 +12,14 @@ class EventComparator(CumulativeSimilarityComparator):
         :param host: Host object (host to be compared with reference host)
         :return: Cumulative partial similarity
         """
-        return self._calculate_cumulative_similarity(
+
+        partial_similarity, critical = self._calculate_cumulative_similarity(
             self.reference_host.event_count,
             host.event_count,
             self.total_event_count)
+
+        if critical:
+            message = "High cumulative security incident count"
+            self._add_warning_message(host, message, partial_similarity)
+
+        return partial_similarity

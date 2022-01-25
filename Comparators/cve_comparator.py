@@ -14,7 +14,14 @@ class CveComparator(CumulativeSimilarityComparator):
         :return: Cumulative partial similarity
         """
 
-        return self._calculate_cumulative_similarity(
+        partial_similarity, critical = self._calculate_cumulative_similarity(
             self.reference_host.cve_count,
             host.cve_count,
             self.total_cve_count)
+
+        if critical:
+            self._add_warning_message(host,
+                                      "High cumulative vulnerability count",
+                                      partial_similarity)
+
+        return partial_similarity

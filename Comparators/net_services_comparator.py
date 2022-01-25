@@ -58,7 +58,14 @@ class NetServicesComparator(BaseComparator):
         if same_service_count == 0:
             return self.config["diff_value"]
 
-        return same_service_count / (len1 + len2 - same_service_count)
+        partial_similarity = \
+            same_service_count / (len1 + len2 - same_service_count)
+
+        if self._check_critical_bound(partial_similarity):
+            message = "High number of common net services between hosts"
+            self._add_warning_message(host, message, partial_similarity)
+
+        return partial_similarity
 
     @staticmethod
     def _sort_net_services(host):

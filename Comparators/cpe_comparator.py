@@ -1,4 +1,5 @@
 from Comparators.base_comparator import BaseComparator
+from Model.warning_message import WarningMessage
 
 
 class CpeComparator(BaseComparator):
@@ -13,26 +14,32 @@ class CpeComparator(BaseComparator):
         self.diff_value = config["diff_value"]
 
     def _compare_sw_components(self, sw1, sw2):
+        """
+        Compares two software components and return partial similarity.
+        :param sw1: First SW component
+        :param sw2: Second SW component
+        :return: Partial similarity (float in <0,1>) of sw1 and sw2
+        """
         # Both hosts do not have this SW component
         if sw1 is None and sw2 is None:
-            return 1
+            return 1, False
 
         # Only one of the hosts has this SW component, use predefined diff
         # value
         if sw1 is None or sw2 is None:
-            return self.diff_value
+            return self.diff_value, False
 
         compare_result = self._compare_cpe(sw1, sw2, self.weights)
 
         # Zero similarity -> use configured diff value
         if compare_result == 0:
-            return self.config["diff_value"]
-        return compare_result
+            return self.config["diff_value"], False
+        return compare_result, self._check_critical_bound(compare_result)
 
     @staticmethod
     def _compare_cpe(sw1, sw2, weights):
         """
-        Compares two software components (their CPE strings) and evaluates
+        Compares two cpe strings (their CPE strings) and evaluates
         similarity with list of weights for each part.
         :param sw1: First software component
         :param sw2: Second software component
@@ -56,9 +63,9 @@ class CpeComparator(BaseComparator):
     def _compare_cpe_parts(part1, part2):
         """
         Compares two CPE elements. Elements are the same, if they are equal or
-        one of is *.
-        :param part1:
-        :param part2:
-        :return:
+        one of them is * (ANY).
+        :param part1: First CPE string part
+        :param part2: Second CPE string part
+        :return: Bool
         """
         return part1 == part2 or part1 == "*" or part2 == "*"

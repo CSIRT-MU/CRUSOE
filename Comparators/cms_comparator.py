@@ -28,12 +28,24 @@ class CmsComparator(CpeComparator):
         if self.config["require_open_http"]:
             # Check if both hosts have opened HTTP(S) ports
             if self.__check_http_ports(host) != self.ref_host_open_ports:
-                return self.config["diff_value"]
+                return self.config["diff_value"], False
             # Both hosts have closed ports
             if not self.ref_host_open_ports:
-                return 1
+                return 1, False
 
-        return self._compare_sw_components(self.reference_host.cms, host.cms)
+        # Calculate partial similarity
+        partial_similarity, critical = self._compare_sw_components(
+            self.reference_host.cms, host.cms)
+
+        if critical:
+            message = str(host.cms)
+            # Add information about open http(s) ports to the output
+            if self.config["require_open_http"]:
+                message += ", both hosts have open HTTP(S) ports"
+
+            self._add_warning_message(host, message, partial_similarity)
+
+        return partial_similarity
 
     @staticmethod
     def __check_http_ports(host):
