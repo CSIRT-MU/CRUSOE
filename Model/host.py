@@ -20,6 +20,18 @@ class Host:
             if cms_cpe is not None else None
         self.network_services = []
 
+    def to_json(self):
+        return {
+            "ip": str(self.ip),
+            "domains": self.domains,
+            "os": self.os_component,
+            "antivirus": self.antivirus_component,
+            "cms": self.cms,
+            "cve_count": self.cve_count,
+            "security_event_count": self.event_count,
+            "network_services": self.network_services
+        }
+
     def __str__(self):
         return f"IP: {self.ip}\n" \
                f"DOMAIN(s): {self.domains}\n" \
@@ -41,4 +53,20 @@ class HostWithScore(Host):
                          cve_count, event_count)
         self.distance = distance
         self.path_type = path_type
+        self.warnings = []
         self.risk = None
+
+    def add_warning_message(self, warning_message):
+        """
+
+        :param warning_message:
+        :return:
+        """
+        self.warnings.append(warning_message)
+
+    def to_json(self):
+        parent_json = super().to_json()
+        parent_json["risk"] = round(self.risk, 4)
+        parent_json["distance"] = self.distance
+        parent_json["path_type"] = self.path_type
+        return parent_json

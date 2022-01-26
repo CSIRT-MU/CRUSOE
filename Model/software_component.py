@@ -20,3 +20,10 @@ class SoftwareComponent:
 
     def __str__(self):
         return f"{self.tag}: {self.vendor}:{self.product}:{self.version}"
+
+    def to_json(self):
+        return {
+            "vendor": self.vendor,
+            "product": self.product,
+            "version": self.version
+        }

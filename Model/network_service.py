@@ -9,3 +9,10 @@ class NetworkService:
 
     def __str__(self):
         return f"{self.service}:{self.protocol}:{self.port}"
+
+    def to_json(self):
+        return {
+            "service": self.service,
+            "port": self.port,
+            "protocol": self.protocol
+        }
