@@ -10,6 +10,7 @@ class Input:
         self.ip = None
         self.domain = None
         self.limit = None
+        self.verbose = False
         self.config_path = None
         self.__logger = logger
 
@@ -25,12 +26,14 @@ class Input:
         result = False
 
         try:
-            # -i | --ip     -> IP input
-            # -d | --domain -> domain input
-            # -p | --path   –> config path
-            # -l | --limit  –> number of hosts to print on output
-            opts, _ = getopt(argv[1:], "i:d:c:l:", ["ip=", "domain=",
-                                                    "config=", "limit="])
+            # -i | --ip      -> IP input
+            # -d | --domain  -> domain input
+            # -p | --path    –> config path
+            # -l | --limit   –> number of hosts to print on output
+            # -v | --verbose -> use verbose output
+            opts, _ = getopt(argv[1:], "i:d:c:l:v", ["ip=", "domain=",
+                                                     "config=", "limit=",
+                                                     "verbose"])
 
         except GetoptError:
             # Unsupported options
@@ -56,6 +59,8 @@ class Input:
             elif opt in ("-l", "--limit"):
                 if not self.__parse_limit(arg):
                     return False
+            elif opt in ("-v", "--verbose"):
+                self.verbose = True
         return result
 
     def load_config(self):
