@@ -16,6 +16,19 @@
 - Driver manual: https://neo4j.com/docs/python-manual/current/
 - Driver API documentation: https://neo4j.com/docs/api/python-driver/current/api.html
 
+## Network monitoring
+- https://www.muni.cz/en/research/publications/1785219
+
+## Incident handling, CSIRT
+- https://www.rfc-editor.org/rfc/pdfrfc/rfc2350.txt.pdf
+- https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-61r2.pdf
+- https://www.enisa.europa.eu/publications/good-practice-guide-for-incident-management
+- https://is.muni.cz/auth/el/fi/podzim2021/PV210/um/04/Incident_handling-reading.pdf
+
+## Ransomware recommender system 
+- https://www.researchgate.net/publication/355874212_Towards_a_Data-Driven_Recommender_System_for_Handling_Ransomware_and_Similar_Incidents
+- https://is.muni.cz/publication/1800767/2021-ISI-Towards_a_recommender_system_for_handling_ransomware-slides.pdf
+
 ## Ransomware articles
 - https://www.enisa.europa.eu/publications/enisa-threat-landscape-2021
 - https://www.enisa.europa.eu/topics/threat-risk-management/threats-and-trends/etl-review-folder/etl-2020-ransomware
@@ -28,4 +41,3 @@
 - https://www.sophos.com/en-us/medialibrary/gated-assets/white-papers/sophos-the-state-of-ransomware-2020-wp.pdf
 - https://www.statista.com/statistics/700965/leading-cause-of-ransomware-infection/
 - https://digitalcommons.kennesaw.edu/cgi/viewcontent.cgi?article=5312&context=facpubs
-- 
