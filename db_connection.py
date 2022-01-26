@@ -10,7 +10,7 @@ from neo4j.exceptions import ServiceUnavailable
 class DatabaseConnection:
     def __init__(self, url, user, password, logger):
         self.driver = GraphDatabase.driver(url, auth=(user, password))
-        self.logger = logger
+        self.__logger = logger
 
     def close(self):
         """
@@ -33,7 +33,7 @@ class DatabaseConnection:
 
             # Domain doesn't exist in database
             if not result:
-                self.logger.critical("Given domain doesn't resolve to any IP")
+                self.__logger.critical("Given domain doesn't resolve to any IP")
                 raise ValueError("Given domain doesn't resolve to any IP")
 
             # Create new IP address object
@@ -58,7 +58,7 @@ class DatabaseConnection:
 
             # IP doesn't exist in database
             if not result:
-                self.logger.critical("Given IP was not found in database.")
+                self.__logger.critical("Given IP was not found in database.")
                 raise ValueError("Given IP was not found in database")
 
             # Create new host
@@ -91,7 +91,7 @@ class DatabaseConnection:
                                           ip_str)
 
         if not result:
-            self.logger.info(f"Given IP ({ip_str}) "
+            self.__logger.info(f"Given IP ({ip_str}) "
                              f"is not assigned to any host.")
             return None
 
@@ -136,7 +136,7 @@ class DatabaseConnection:
                 try:
                     ip = ip_address(row["ip"])
                 except ValueError:
-                    self.logger.error(f"Found invalid IP address {row['ip']}")
+                    self.__logger.error(f"Found invalid IP address {row['ip']}")
                     continue
 
                 new_host = self.get_host_with_score_by_ip(str(ip),

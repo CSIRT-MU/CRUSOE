@@ -1,25 +1,26 @@
 #!/usr/bin/env python
+import RecommenderOutput.json_output
 from db_connection import DatabaseConnection
 from input import Input
 import time
 from similarity_calculator import SimilarityCalculator
-from RecommenderOutput.stdout import OutputPrinter
+from RecommenderOutput.stdout import StdoutPrinter
 import logging
+import json
 
 
 class Recommender:
     def __init__(self, bolt_url, user, password):
-        self.logger = self.__initialize_logger()
+        self.__logger = self.__initialize_logger()
         self.db_connection = DatabaseConnection(bolt_url,
-                                                user, password, self.logger)
-        self.comparator_list = []
+                                                user, password, self.__logger)
         self.config = None
         self.attacked_host = None
         self.host_list = []
 
     def __sort_host_list_by_risk(self):
         """
-        Sorts list of host by risk of exploiting.
+        Sorts list of host by risk of exploiting (descending).
         :return: None
         """
         self.host_list.sort(key=lambda h: h.risk, reverse=True)
@@ -49,7 +50,7 @@ class Recommender:
         return logger
 
     def main(self):
-        input_parser = Input(self.logger)
+        input_parser = Input(self.__logger)
 
         if input_parser.parse_options():
             if input_parser.ip is not None:
@@ -59,16 +60,16 @@ class Recommender:
                 self.attacked_host = \
                     self.db_connection.get_host_by_domain(input_parser.domain)
 
-            printer = OutputPrinter(input_parser.limit, True)
+            printer = StdoutPrinter(input_parser.limit, input_parser.verbose)
 
             printer.print_attacked_host(self.attacked_host)
             print()
 
             self.config = input_parser.load_config()
 
-            self.host_list = \
-                self.db_connection.find_close_hosts(self.attacked_host.ip,
-                                                    self.config["max_distance"])
+            self.host_list = self.db_connection.find_close_hosts(
+                self.attacked_host.ip,
+                self.config["max_distance"])
 
             printer.print_number_of_hosts(len(self.host_list),
                                           self.config["max_distance"])
@@ -82,6 +83,9 @@ class Recommender:
             self.__sort_host_list_by_risk()
 
             printer.print_host_list(self.host_list)
+
+            RecommenderOutput.json_output.JsonOutput.json_export(
+                self.host_list, "/Users/vboucek/Desktop/export.json")
 
         self.db_connection.close()
 
