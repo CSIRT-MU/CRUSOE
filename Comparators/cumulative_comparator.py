@@ -1,7 +1,8 @@
+from abc import ABC
 from Comparators.base_comparator import BaseComparator
 
 
-class CumulativeSimilarityComparator(BaseComparator):
+class CumulativeSimilarityComparator(BaseComparator, ABC):
 
     def __init__(self, config):
         super().__init__(config)
@@ -16,9 +17,10 @@ class CumulativeSimilarityComparator(BaseComparator):
         :return: Cumulative partial similarity
         """
 
-        # Check zero values to emmit dividing by zero
+        # Check zero values to avoid dividing by zero / returning zero
+        # similarity, predefined value from config is used in this case
         if n1 == 0 or n2 == 0 or total == 0:
-            return 1, False
+            return self.config["zero_value"], False
 
         sh1 = n1 / total
         sh2 = n2 / total

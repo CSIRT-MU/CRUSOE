@@ -8,10 +8,10 @@ class OsComparator(CpeComparator):
 
     def calc_partial_similarity(self, host):
         """
-        Calculates partial similarity by comparing operating systems running on
+        Calculates partial similarity of operating systems running on
         given hosts.
         :param host: Host object (host to be compared with reference host)
-        :return: Partial similarity of OS.
+        :return: Partial similarity of OS components.
         """
 
         partial_similarity, critical = self._compare_sw_components(

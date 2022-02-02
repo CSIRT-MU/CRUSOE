@@ -1,6 +1,8 @@
+from abc import ABC, abstractmethod
 from Model.warning_message import WarningMessage
 
-class BaseComparator:
+
+class BaseComparator(ABC):
     """
     Abstract class serving as a base class for all comparator objects.
     """
@@ -8,22 +10,33 @@ class BaseComparator:
         self.config = config
         self.reference_host = None
 
+    @abstractmethod
+    def calc_partial_similarity(self, host):
+        """
+        Calculates partial similarity defined by comparator. Must be overridden
+        in child classes.
+        :param host: Host object (host to be compared with reference host)
+        :return: Partial similarity (number in interval <0,1>)
+        """
+        pass
+
     def _check_critical_bound(self, partial_similarity):
         """
-
-        :param partial_similarity:
-        :return:
+        Checks if calculated partial similarity is higher than value
+        predefined in the config for this comparator.
+        :param partial_similarity: Partial similarity in <0,1>
+        :return: True if higher than critical bound
         """
         return partial_similarity > self.config["critical_bound"]
 
     @staticmethod
     def _add_warning_message(host, message, partial_similarity):
         """
-
-        :param host:
-        :param message:
-        :param partial_similarity:
-        :return:
+        Add warning message to a host.
+        :param host: Host to add warning message
+        :param message: String warning, what is causing similarity
+        :param partial_similarity: Partial similarity in <0,1>
+        :return: None
         """
         warning = WarningMessage(message, partial_similarity)
         host.add_warning_message(warning)
@@ -36,11 +49,3 @@ class BaseComparator:
         """
         self.reference_host = host
 
-    def calc_partial_similarity(self, host):
-        """
-        Calculates partial similarity defined by comparator. Must be overridden
-        in child classes, otherwise default similarity is returned (1).
-        :param host: Host object (host to be compared with reference host)
-        :return: Partial similarity (number in interval <0,1>)
-        """
-        return 1

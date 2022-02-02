@@ -1,8 +1,9 @@
+from abc import ABC
+
 from Comparators.base_comparator import BaseComparator
-from Model.warning_message import WarningMessage
 
 
-class CpeComparator(BaseComparator):
+class CpeComparator(BaseComparator, ABC):
 
     def __init__(self, config):
         super().__init__(config)
@@ -18,7 +19,7 @@ class CpeComparator(BaseComparator):
         Compares two software components and return partial similarity.
         :param sw1: First SW component
         :param sw2: Second SW component
-        :return: Partial similarity (float in <0,1>) of sw1 and sw2
+        :return: Partial similarity (float in <0,1>) between sw1 and sw2
         """
         # Both hosts do not have this SW component
         if sw1 is None and sw2 is None:
@@ -29,31 +30,28 @@ class CpeComparator(BaseComparator):
         if sw1 is None or sw2 is None:
             return self.diff_value, False
 
-        compare_result = self._compare_cpe(sw1, sw2, self.weights)
+        compare_result = self._compare_cpe(sw1.cpe_list, sw2.cpe_list)
 
         # Zero similarity -> use configured diff value
         if compare_result == 0:
             return self.config["diff_value"], False
         return compare_result, self._check_critical_bound(compare_result)
 
-    @staticmethod
-    def _compare_cpe(sw1, sw2, weights):
+    def _compare_cpe(self, list1, list2):
         """
-        Compares two cpe strings (their CPE strings) and evaluates
+        Compares two cpe string in form of list of CPE parts and evaluates
         similarity with list of weights for each part.
-        :param sw1: First software component
-        :param sw2: Second software component
-        :param weights: List of weights for CPE parts
+        :param list1: First CPE list
+        :param list2: Second CPE list
         :return: Result similarity (float in range <0,1>)
         """
         result_similarity = 0
 
-        # Take the shorter CPE
-        for i in range(min(len(sw1.cpe_list), len(sw2.cpe_list))):
-            if(CpeComparator._compare_cpe_parts(sw1.cpe_list[i],
-                                                sw2.cpe_list[i])):
+        # Take the shorter CPE, CPE might miss some part(s) (e.g. error)
+        for i in range(min(len(list1), len(list2))):
+            if CpeComparator._compare_cpe_parts(list1[i], list2[i]):
                 # Add cpe part weight to result when parts match
-                result_similarity += weights[i]
+                result_similarity += self.weights[i]
             else:
                 break
 

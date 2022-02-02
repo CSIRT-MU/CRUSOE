@@ -70,7 +70,7 @@ class NetServicesComparator(BaseComparator):
     @staticmethod
     def _sort_net_services(host):
         """
-        Sorts network services by protocol and port.
+        Sorts network services by protocol and then port.
         :param host: Host that network services list should be sorted.
         :return: None
         """

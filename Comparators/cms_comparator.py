@@ -2,7 +2,9 @@ from Comparators.cpe_comparator import CpeComparator
 
 
 class CmsComparator(CpeComparator):
-
+    """
+    Content management system comparator
+    """
     def __init__(self, config):
         super().__init__(config)
         self.ref_host_open_ports = None
@@ -55,6 +57,6 @@ class CmsComparator(CpeComparator):
         """
         for net_service in host.network_services:
             if net_service.protocol == "TCP" and \
-                    (net_service.port == 80 or net_service == 443):
+                    (net_service.port == 80 or net_service.port == 443):
                 return True
         return False
