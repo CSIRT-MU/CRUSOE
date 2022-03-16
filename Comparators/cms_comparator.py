@@ -30,10 +30,10 @@ class CmsComparator(CpeComparator):
         if self.config["require_open_http"]:
             # Check if both hosts have opened HTTP(S) ports
             if self.__check_http_ports(host) != self.ref_host_open_ports:
-                return self.config["diff_value"], False
+                return self.config["diff_value"]
             # Both hosts have closed ports
             if not self.ref_host_open_ports:
-                return 1, False
+                return 1
 
         # Calculate partial similarity
         partial_similarity, critical = self._compare_sw_components(
