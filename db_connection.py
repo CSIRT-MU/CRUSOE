@@ -1,13 +1,15 @@
 from neo4j import GraphDatabase
 from Model.host import Host, HostWithScore
 from Model.network_service import NetworkService
-from Model.software_component import SoftwareComponent
 from ipaddress import ip_address
 from Model.path_type import PathType
-from neo4j.exceptions import ServiceUnavailable
 
 
 class DatabaseConnection:
+    """
+    Manages connection with Neo4j database
+    """
+
     def __init__(self, url, user, password, logger):
         self.driver = GraphDatabase.driver(url, auth=(user, password))
         self.__logger = logger
@@ -33,11 +35,12 @@ class DatabaseConnection:
 
             # Domain doesn't exist in database
             if not result:
-                self.__logger.critical("Given domain doesn't resolve to any IP")
+                self.__logger.critical(
+                    "Given domain doesn't resolve to any IP")
                 raise ValueError("Given domain doesn't resolve to any IP")
 
             # Create new IP address object
-            ip = ip_address(result[0]["address"])
+            ip = ip_address(result["ip"]["address"])
 
         return self.get_host_by_ip(ip)
 
@@ -46,7 +49,7 @@ class DatabaseConnection:
         Finds host in the database by its IP address and initialize its
         properties. Throws ValueError when given IP doesn't exist in database.
         :param ip: IP address object
-        :return: Host object
+        :return: Host object or none if host with given IP does not exist
         """
 
         # Convert IP to string representation
@@ -63,62 +66,67 @@ class DatabaseConnection:
 
             # Create new host
             new_host = Host(ip,
-                            result[0]["domains"],
-                            result[0]["os"],
-                            result[0]["antivirus"],
-                            result[0]["cms"],
-                            result[0]["vulner_count"],
-                            result[0]["event_count"])
+                            result["domains"],
+                            result["contact"],
+                            result["os"],
+                            result["antivirus"],
+                            result["cms"],
+                            result["vulner_count"],
+                            result["event_count"])
 
             # Initialize software components and network services lists
-            new_host.network_services = self._get_network_services(ip_str,
-                                                                   session)
+            new_host.network_services = self._get_network_services(
+                ip_str, session, result["start"], result["end"])
 
         return new_host
 
     def get_host_with_score_by_ip(self, ip, distance, path_type, session):
         """
-
-        :param ip:
-        :param distance:
-        :param path_type:
-        :param session:
-        :return:
+        Gets information about nearby host which was found during the
+        traversal by IP address.
+        :param ip: Host's IP address
+        :param distance: Distance where host was found
+        :param path_type: Type of a path where host was found
+        :param session: Database session
+        :return: Host object or none if host with given IP does not exist
         """
-        # Get IP as string
+        # Get IP as a string
         ip_str = str(ip)
         result = session.read_transaction(self._get_host_by_ip_query,
                                           ip_str)
 
         if not result:
-            self.__logger.info(f"Given IP ({ip_str}) "
-                             f"is not assigned to any host.")
+            self.__logger.info(
+                f"Given IP ({ip_str}) is not assigned to any host.")
             return None
 
         # Create new host
         new_host = HostWithScore(ip,
-                                 result[0]["domains"],
-                                 result[0]["os"],
-                                 result[0]["antivirus"],
-                                 result[0]["cms"],
-                                 result[0]["vulner_count"],
-                                 result[0]["event_count"],
+                                 result["domains"],
+                                 result["contact"],
+                                 result["os"],
+                                 result["antivirus"],
+                                 result["cms"],
+                                 result["vulner_count"],
+                                 result["event_count"],
                                  distance,
                                  path_type)
 
         new_host.network_services = self._get_network_services(ip_str,
-                                                               session)
+                                                               session,
+                                                               result["start"],
+                                                               result["end"])
 
         return new_host
 
     def find_close_hosts(self, ip, max_distance):
         """
         Starts BFS traversal (uses Java traversal API) from given IP node and
-        finds neighbour hosts to maximum distance given as an argument. Type
+        finds nearby hosts to the maximum distance given as an argument. Type
         of a path is stored as an enum.
-        :param ip:
-        :param max_distance:
-        :return:
+        :param ip: IP address of a hosts where BFS should start
+        :param max_distance: Maximum distance search from initial host
+        :return: List of IP addresses found with search
         """
         with self.driver.session() as session:
             result = session.read_transaction(self._find_close_hosts_query,
@@ -136,12 +144,14 @@ class DatabaseConnection:
                 try:
                     ip = ip_address(row["ip"])
                 except ValueError:
-                    self.__logger.error(f"Found invalid IP address {row['ip']}")
+                    self.__logger.error(
+                        f"Found invalid IP address {row['ip']}")
                     continue
 
                 new_host = self.get_host_with_score_by_ip(str(ip),
                                                           row["distance"],
-                                                          path_types[row["path_type"]],
+                                                          path_types[row[
+                                                              "path_type"]],
                                                           session)
 
                 if new_host is not None:
@@ -159,11 +169,11 @@ class DatabaseConnection:
         with self.driver.session() as session:
             result = session.read_transaction(self._get_total_cve_count_query)
 
-        return result[0]["cve_count"]
+        return result["cve_count"]
 
     def get_total_event_count(self):
         """
-        Counts total number of security events that happened in network
+        Counts total number of security events that happened in network.
         :return: Total number of security events
         """
 
@@ -171,17 +181,20 @@ class DatabaseConnection:
             result = session.read_transaction(
                 self._get_total_event_count_query)
 
-        return result[0]["event_count"]
+        return result["event_count"]
 
-    def _get_network_services(self, ip, session):
+    def _get_network_services(self, ip, session, start, end):
         """
         Finds network services in database which runs on a host with given IP.
-        :param ip: Host's IP address
-        :return: List of network_service objects
+        :param ip: IP address of a host
+        :param session: Database session
+        :param start: Start of latest OS runtime
+        :param end: End of latest OS runtime
+        :return: List of net services
         """
 
         result = session.read_transaction(self._get_network_services_query,
-                                          str(ip))
+                                          str(ip), start, end)
 
         services = []
         for row in result:
@@ -191,6 +204,8 @@ class DatabaseConnection:
             services.append(service)
         return services
 
+    # CYPHER queries
+
     @staticmethod
     def _get_ip_query(tx, domain):
         query = (
@@ -199,7 +214,7 @@ class DatabaseConnection:
             "RETURN ip"
         )
         result = tx.run(query, domain=domain)
-        return [row["ip"] for row in result]
+        return result.single()
 
     @staticmethod
     def _get_host_by_ip_query(tx, ip):
@@ -215,21 +230,28 @@ class DatabaseConnection:
 
             # Get operation system running on host + optional antivirus
             f"{DatabaseConnection.__get_host_os_and_antivirus_subquery()}"
-            
+
             # Get CMS software
             f"{DatabaseConnection.__get_cms_subquery()}"
-            
+
+            "CALL { "
+            "    WITH ip "
+            "    OPTIONAL MATCH (ip:IP)-[:PART_OF]-(:Subnet)-[:HAS]->"
+            "    (c:Contact) "
+            "    RETURN collect(c.name) AS contact "
+            "} "
+
             # Get domains that resolves to given IP address
             "OPTIONAL MATCH (ip:IP)-[:RESOLVES_TO]->(domain:DomainName) "
 
             # Return domains reduced to one list and rest of the variables
             "RETURN REDUCE(s = [], domain_name IN COLLECT(domain.domain_name) "
-            "| s + domain_name) AS domains, os, antivirus, cms, event_count, "
-            "vulner_count"
+            "| s + domain_name) AS domains, os, contact, "
+            "antivirus, cms, event_count, vulner_count, start, end"
         )
 
         result = tx.run(query, ip=ip)
-        return [row for row in result]
+        return result.single()
 
     @staticmethod
     def _get_total_event_count_query(tx):
@@ -239,7 +261,7 @@ class DatabaseConnection:
         )
 
         result = tx.run(query)
-        return [row for row in result]
+        return result.single()
 
     @staticmethod
     def __get_host_event_count_subquery():
@@ -259,7 +281,7 @@ class DatabaseConnection:
         )
 
         result = tx.run(query)
-        return [row for row in result]
+        return result.single()
 
     @staticmethod
     def __get_host_cve_count_subquery():
@@ -274,15 +296,16 @@ class DatabaseConnection:
         )
 
     @staticmethod
-    def _get_network_services_query(tx, ip):
+    def _get_network_services_query(tx, ip, start, end):
         query = (
             "MATCH (node:Node)-[:HAS_ASSIGNED]->(ip:IP) "
             "WHERE ip.address = $ip "
             "MATCH (node)-[:IS_A]->(host:Host) "
-            "MATCH (service:NetworkService)-[:ON]->(host) "
+            "MATCH (service:NetworkService)-[r:ON]->(host) "
+            "WHERE NOT (r.end < $start OR r.start > $end)"
             "RETURN service"
         )
-        result = tx.run(query, ip=ip)
+        result = tx.run(query, ip=ip, start=start, end=end)
         return [row["service"] for row in result]
 
     @staticmethod
@@ -326,6 +349,8 @@ class DatabaseConnection:
             # negation of not overlapping condition
             # => time intervals are overlapping
             "   AND NOT (r.end < r2.start OR r.start > r2.end) "
-            "   RETURN sw.version AS os, sw2.version AS antivirus "
+            "   RETURN sw.version AS os, sw2.version AS antivirus, "
+            "   r.start AS start, r.end AS end"
+            "   LIMIT 1 "
             "} "
         )

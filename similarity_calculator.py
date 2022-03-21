@@ -3,7 +3,10 @@ from Comparators import *
 
 
 class SimilarityCalculator:
-
+    """
+    Calculates risk scores between attacked host and found hosts in close
+    proximity.
+    """
     def __init__(self, db_connection, config, attacked_host):
         self.db_connection = db_connection
         self.config = config
@@ -30,8 +33,8 @@ class SimilarityCalculator:
     def calculate_risk_scores(self, compared_hosts):
         """
         Calculates and sets risk score for every host in compared_hosts list.
-        :param compared_hosts:
-        :return:
+        :param compared_hosts: List of hosts which risk should be calculated
+        :return: None
         """
         self.__set_reference_host()
 
