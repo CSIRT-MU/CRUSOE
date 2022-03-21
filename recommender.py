@@ -1,22 +1,34 @@
 #!/usr/bin/env python
-import RecommenderOutput.json_output
 from db_connection import DatabaseConnection
-from input import Input
-import time
 from similarity_calculator import SimilarityCalculator
-from RecommenderOutput.stdout import StdoutPrinter
+from RecommenderIO import *
 import logging
-import json
 
 
 class Recommender:
-    def __init__(self, bolt_url, user, password):
+    """
+    Main recommender script
+    """
+
+    def __init__(self):
         self.__logger = self.__initialize_logger()
-        self.db_connection = DatabaseConnection(bolt_url,
-                                                user, password, self.__logger)
+        self.input_parser = Input(self.__logger)
+        self.db_connection = None
         self.config = None
         self.attacked_host = None
         self.host_list = []
+
+    def __connect_to_database(self):
+        """
+        Initialize connection with database.
+        :return:
+        """
+        credentials = self.config["credentials"]
+
+        self.db_connection = DatabaseConnection(credentials["url"],
+                                                credentials["user"],
+                                                self.input_parser.password,
+                                                self.__logger)
 
     def __sort_host_list_by_risk(self):
         """
@@ -32,69 +44,103 @@ class Recommender:
         in file "recommender.log").
         :return: Initialized logger
         """
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger("neo4j")
         logger.setLevel(20)
         # File log handler
         file_handler = logging.FileHandler("recommender.log")
-        file_handler.setFormatter(
-            logging.Formatter("[%(levelname)s] - %(asctime)s - %(name)s - : %(message)s"))
+        log_format = "[%(levelname)s] - %(asctime)s - %(name)s - : %(message)s"
+        file_handler.setFormatter(logging.Formatter(log_format))
         file_handler.setLevel(logging.INFO)
 
         # stderr log handler
         stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(logging.Formatter("[%(levelname)s]: %(message)s"))
+        stderr_format = "[%(levelname)s]: %(message)s"
+        stream_handler.setFormatter(logging.Formatter(stderr_format))
         file_handler.setLevel(logging.INFO)
 
         logger.addHandler(stream_handler)
         logger.addHandler(file_handler)
         return logger
 
+    def __get_attacked_host(self, input_parser):
+        """
+        Loads attacked host from database in attacked_host attribute.
+        :param input_parser: Recommender input parser
+        :return: None
+        """
+        if input_parser.ip is not None:
+            self.attacked_host = \
+                self.db_connection.get_host_by_ip(input_parser.ip)
+        elif input_parser.domain is not None:
+            self.attacked_host = \
+                self.db_connection.get_host_by_domain(input_parser.domain)
+
+    def __export_result(self, ):
+        """
+        Exports result list in CSV or/and JSON.
+        :return: None
+        """
+        if self.input_parser.json:
+            JsonOutput.json_export(self.host_list, self.input_parser.verbose,
+                                   self.input_parser.json)
+
+        if self.input_parser.csv:
+            CsvOutput.csv_export(self.host_list, self.input_parser.verbose,
+                                 self.input_parser.csv)
+
     def main(self):
-        input_parser = Input(self.__logger)
+        # 1) Get options and config
+        if not self.input_parser.parse_options():
+            # Could not parse options
+            return
 
-        if input_parser.parse_options():
-            if input_parser.ip is not None:
-                self.attacked_host = \
-                    self.db_connection.get_host_by_ip(input_parser.ip)
-            else:
-                self.attacked_host = \
-                    self.db_connection.get_host_by_domain(input_parser.domain)
+        if not self.input_parser.load_config():
+            # Error while loading config
+            return
 
-            printer = StdoutPrinter(input_parser.limit, input_parser.verbose)
+        self.config = self.input_parser.config
 
-            printer.print_attacked_host(self.attacked_host)
-            print()
+        self.db_connection = DatabaseConnection(
+            self.config["credentials"]["url"],
+            self.config["credentials"]["user"],
+            self.input_parser.password,
+            self.__logger)
 
-            self.config = input_parser.load_config()
+        # 2) Find given host from input in the database
+        self.__get_attacked_host(self.input_parser)
 
-            self.host_list = self.db_connection.find_close_hosts(
-                self.attacked_host.ip,
-                self.config["max_distance"])
+        printer = \
+            stdout.StdoutPrinter(self.input_parser.limit,
+                                 self.input_parser.verbose)
 
-            printer.print_number_of_hosts(len(self.host_list),
-                                          self.config["max_distance"])
+        printer.print_attacked_host(self.attacked_host)
 
-            sim_calc = SimilarityCalculator(self.db_connection,
-                                            self.config,
-                                            self.attacked_host)
+        # 3) Start BFS from attacked host IP and find hosts in close proximity
+        self.host_list = self.db_connection.find_close_hosts(
+            self.attacked_host.ip,
+            self.config["max_distance"])
 
-            sim_calc.calculate_risk_scores(self.host_list)
+        printer.print_number_of_hosts(len(self.host_list),
+                                      self.config["max_distance"])
 
-            self.__sort_host_list_by_risk()
+        # 4) Calculate risk scores
+        sim_calc = SimilarityCalculator(self.db_connection,
+                                        self.config,
+                                        self.attacked_host)
 
-            printer.print_host_list(self.host_list)
+        sim_calc.calculate_risk_scores(self.host_list)
 
-            RecommenderOutput.json_output.JsonOutput.json_export(
-                self.host_list, "/Users/vboucek/Desktop/export.json")
+        # 5) Sort host list by risk score descending
+        self.__sort_host_list_by_risk()
+
+        # 6) Print result to screen, export in file (if set in config)
+        #  and close connection with database
+        printer.print_host_list(self.host_list)
+        self.__export_result()
 
         self.db_connection.close()
 
 
 if __name__ == "__main__":
-    start_time = time.time()
-    url = "bolt://localhost:7687"
-    usr = "neo4j"
-    user_pass = open("pass", mode='r').read()
-    recommender = Recommender(url, usr, user_pass)
+    recommender = Recommender()
     recommender.main()
-    print("--- %s seconds ---" % (time.time() - start_time))
