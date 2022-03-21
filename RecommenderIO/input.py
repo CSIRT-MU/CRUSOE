@@ -6,75 +6,101 @@ from json import load
 
 
 class Input:
+    """
+    Parses all input needed for recommender script.
+    """
+
     def __init__(self, logger):
         self.ip = None
         self.domain = None
         self.limit = None
         self.verbose = False
+        self.config = None
         self.config_path = None
+        self.csv = None
+        self.json = None
+        self.password = None
         self.__logger = logger
 
     def parse_options(self):
         """
         Parses input from options. Sets ip or domain attribute of attacked
-        host. Optional parameters are limit - number of hosts with highest
-        risk to print and config path (if no config path is given, default
-        config is used.
+        host. Password parameter is necessary. Optional parameters are limit
+        - number of hosts with highest risk to print and config path
+        (if no config path is given, default config is used.
         :return: True if options were obtained correctly, False otherwise
         """
 
-        result = False
+        host_input = False
+        password = False
 
         try:
             # -i | --ip      -> IP input
             # -d | --domain  -> domain input
-            # -p | --path    –> config path
+            # -c | --config  –> config path
             # -l | --limit   –> number of hosts to print on output
             # -v | --verbose -> use verbose output
-            opts, _ = getopt(argv[1:], "i:d:c:l:v", ["ip=", "domain=",
-                                                     "config=", "limit=",
-                                                     "verbose"])
+            # -s | --csv     -> export in csv
+            # -j | --json    –> export in json
+            # -p | --pass    –> neo4j database password
+            opts, _ = getopt(argv[1:], "p:i:d:c:l:j:s:v",
+                             ["pass=", "ip=", "domain=", "config=", "limit=",
+                              "json=", "csv=", "verbose"])
 
         except GetoptError:
             # Unsupported options
             self.__logger.critical("Invalid option(s)")
-            return result
+            return False
 
         if not opts:
             # No options were obtained
             self.__logger.critical("No arguments were given")
-            return result
+            return False
 
         for opt, arg in opts:
             if opt in ("-i", "--ip"):
                 if not self.__parse_ip_address(arg):
                     return False
-                result = True
+                host_input = True
             elif opt in ("-d", "--domain"):
                 if not self.__parse_domain(arg):
                     return False
-                result = True
+                host_input = True
             elif opt in ("-c", "--config"):
                 self.config_path = arg
             elif opt in ("-l", "--limit"):
                 if not self.__parse_limit(arg):
                     return False
+            elif opt in ("-s", "--csv"):
+                self.csv = arg
+            elif opt in ("-j", "--json"):
+                self.json = arg
             elif opt in ("-v", "--verbose"):
                 self.verbose = True
-        return result
+            elif opt in ("-p", "--pass"):
+                self.password = arg
+                password = True
+
+        return host_input and password
 
     def load_config(self):
         """
         Loads config from path in config_path. If None, default config is used.
-        :return: Config dictionary
+        :return: True if config was successfully parsed, False otherwise.
         """
         if self.config_path is None:
             path = "default_config.json"
         else:
             path = self.config_path
 
-        with open(path, 'r') as config_stream:
-            return load(config_stream)
+        try:
+            with open(path, 'r') as config_stream:
+                self.config = load(config_stream)
+        except IOError:
+            self.__logger.critical("Error while loading config file.")
+            return False
+
+        return True
 
     def __parse_ip_address(self, address):
         """
@@ -85,7 +111,7 @@ class Input:
         try:
             ip = ip_address(address)
         except ValueError:
-            self.__logger\
+            self.__logger \
                 .critical(f"Given input '{address}' is not a valid IP address")
             return False
         self.ip = ip
