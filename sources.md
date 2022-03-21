@@ -34,6 +34,7 @@
 - https://is.muni.cz/publication/1800767/2021-ISI-Towards_a_recommender_system_for_handling_ransomware-slides.pdf
 
 ## Ransomware articles
+- https://www.datto.com/resource-downloads/Datto-State-of-the-Channel-Ransomware-Report-v2-1.pdf
 - https://www.coveware.com/blog/2021/10/20/ransomware-attacks-continue-as-pressure-mounts
 - https://www.enisa.europa.eu/publications/enisa-threat-landscape-2021
 - https://www.enisa.europa.eu/topics/threat-risk-management/threats-and-trends/etl-review-folder/etl-2020-ransomware
@@ -43,5 +44,7 @@
 - https://documents.trendmicro.com/assets/rpt/rpt-attacks-from-all-angles.pdf
 - https://www.welivesecurity.com/wp-content/uploads/2021/09/eset_threat_report_t22021.pdf
 - https://www.sophos.com/en-us/medialibrary/gated-assets/white-papers/sophos-the-state-of-ransomware-2020-wp.pdf
-- https://www.statista.com/statistics/700965/leading-cause-of-ransomware-infection/
 - https://digitalcommons.kennesaw.edu/cgi/viewcontent.cgi?article=5312&context=facpubs
+
+- https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8418627
+- https://www.researchgate.net/profile/Muhammad-Aleem-7/publication/317380115_Ransomware_A_Survey_and_Trends/links/5e19a33ea6fdcc283769077c/Ransomware-A-Survey-and-Trends.pdf
