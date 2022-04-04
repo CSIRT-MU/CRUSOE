@@ -10,8 +10,10 @@ class DatabaseConnection:
     Manages connection with Neo4j database
     """
 
-    def __init__(self, url, user, password, logger):
-        self.driver = GraphDatabase.driver(url, auth=(user, password))
+    def __init__(self, config, logger):
+        self.driver = GraphDatabase.driver(config["url"],
+                                           auth=(config["user"],
+                                                 config["pass"]))
         self.__logger = logger
 
     def close(self):

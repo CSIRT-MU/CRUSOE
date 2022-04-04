@@ -16,7 +16,9 @@ class Input:
         self.limit = None
         self.verbose = False
         self.config = None
-        self.config_path = None
+        self.__config_path = None
+        self.db_config = None
+        self.__db_config_path = None
         self.csv = None
         self.json = None
         self.password = None
@@ -31,8 +33,7 @@ class Input:
         :return: True if options were obtained correctly, False otherwise
         """
 
-        host_input = False
-        password = False
+        result = False
 
         try:
             # -i | --ip      -> IP input
@@ -42,10 +43,10 @@ class Input:
             # -v | --verbose -> use verbose output
             # -s | --csv     -> export in csv
             # -j | --json    –> export in json
-            # -p | --pass    –> neo4j database password
-            opts, _ = getopt(argv[1:], "p:i:d:c:l:j:s:v",
-                             ["pass=", "ip=", "domain=", "config=", "limit=",
-                              "json=", "csv=", "verbose"])
+            # -b | --db      -> database config path
+            opts, _ = getopt(argv[1:], "b:i:d:c:l:j:s:v",
+                             ["database=", "ip=", "domain=", "config=",
+                              "limit=", "json=", "csv=", "verbose"])
 
         except GetoptError:
             # Unsupported options
@@ -61,46 +62,70 @@ class Input:
             if opt in ("-i", "--ip"):
                 if not self.__parse_ip_address(arg):
                     return False
-                host_input = True
+                result = True
             elif opt in ("-d", "--domain"):
                 if not self.__parse_domain(arg):
                     return False
-                host_input = True
+                result = True
             elif opt in ("-c", "--config"):
-                self.config_path = arg
+                self.__config_path = arg
             elif opt in ("-l", "--limit"):
                 if not self.__parse_limit(arg):
                     return False
-            elif opt in ("-s", "--csv"):
+            elif opt in ("-c", "--csv"):
                 self.csv = arg
             elif opt in ("-j", "--json"):
                 self.json = arg
             elif opt in ("-v", "--verbose"):
                 self.verbose = True
-            elif opt in ("-p", "--pass"):
-                self.password = arg
-                password = True
+            elif opt in ("-b", "--database"):
+                self.__db_config_path = arg
 
-        return host_input and password
+        return result
 
     def load_config(self):
         """
         Loads config from path in config_path. If None, default config is used.
         :return: True if config was successfully parsed, False otherwise.
         """
-        if self.config_path is None:
+        if self.__config_path is None:
             path = "default_config.json"
         else:
-            path = self.config_path
+            path = self.__config_path
 
         try:
-            with open(path, 'r') as config_stream:
-                self.config = load(config_stream)
+            self.config = self.__load_json(path)
         except IOError:
             self.__logger.critical("Error while loading config file.")
             return False
 
         return True
+
+    def load_db_config(self):
+        """
+        Loads database config from path in db_config_path. If None, default
+        path is used.
+        :return: True if databse config was successfully parsed, False
+        otherwise.
+        """
+        if self.__db_config_path is None:
+            path = "db_config.json"
+        else:
+            path = self.__db_config_path
+
+        try:
+            self.db_config = self.__load_json(path)
+        except IOError:
+            self.__logger.critical("Error while loading database config file.")
+            return False
+
+        return True
+
+    @staticmethod
+    def __load_json(path):
+        with open(path, 'r') as config_stream:
+            json = load(config_stream)
+        return json
 
     def __parse_ip_address(self, address):
         """
