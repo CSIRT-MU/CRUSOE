@@ -19,18 +19,6 @@ class Recommender:
         self.attacked_host = None
         self.host_list = []
 
-    def __connect_to_database(self):
-        """
-        Initialize connection with database.
-        :return:
-        """
-        credentials = self.config["credentials"]
-
-        self.db_connection = DatabaseConnection(credentials["url"],
-                                                credentials["user"],
-                                                self.input_parser.password,
-                                                self.__logger)
-
     def __sort_host_list_by_risk(self):
         """
         Sorts list of host by risk of exploiting (descending).
@@ -95,8 +83,8 @@ class Recommender:
         :return: True if everything was obtained successfully, False otherwise
         """
         result = self.input_parser.parse_options() and \
-                 self.input_parser.load_config() and \
-                 self.input_parser.load_db_config()
+            self.input_parser.load_config() and \
+            self.input_parser.load_db_config()
 
         if result:
             self.config = self.input_parser.config
