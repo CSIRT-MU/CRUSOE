@@ -14,6 +14,7 @@ class Recommender:
         self.__logger = self.__initialize_logger()
         self.input_parser = Input(self.__logger)
         self.db_connection = None
+        self.db_config = None
         self.config = None
         self.attacked_host = None
         self.host_list = []
@@ -88,25 +89,36 @@ class Recommender:
             CsvOutput.csv_export(self.host_list, self.input_parser.verbose,
                                  self.input_parser.csv)
 
+    def __get_input_and_configs(self):
+        """
+        Gets options, main config and database config from input parser.
+        :return: True if everything was obtained successfully, False otherwise
+        """
+        result = self.input_parser.parse_options() and \
+                 self.input_parser.load_config() and \
+                 self.input_parser.load_db_config()
+
+        if result:
+            self.config = self.input_parser.config
+            self.db_config = self.input_parser.db_config
+
+        return result
+
     def main(self):
-        # 1) Get options and config
-        if not self.input_parser.parse_options():
-            # Could not parse options
+        """
+        Main recommender method.
+        :return: None
+        """
+
+        # 1) Get options and configs
+        if not self.__get_input_and_configs():
+            # Error occurred in options or config files
             return
 
-        if not self.input_parser.load_config():
-            # Error while loading config
-            return
+        # 2) Connect to database
+        self.db_connection = DatabaseConnection(self.db_config, self.__logger)
 
-        self.config = self.input_parser.config
-
-        self.db_connection = DatabaseConnection(
-            self.config["credentials"]["url"],
-            self.config["credentials"]["user"],
-            self.input_parser.password,
-            self.__logger)
-
-        # 2) Find given host from input in the database
+        # 3) Find given host from input in the database
         self.__get_attacked_host(self.input_parser)
 
         printer = \
@@ -115,7 +127,7 @@ class Recommender:
 
         printer.print_attacked_host(self.attacked_host)
 
-        # 3) Start BFS from attacked host IP and find hosts in close proximity
+        # 4) Start BFS from attacked host IP and find hosts in close proximity
         self.host_list = self.db_connection.find_close_hosts(
             self.attacked_host.ip,
             self.config["max_distance"])
@@ -123,21 +135,21 @@ class Recommender:
         printer.print_number_of_hosts(len(self.host_list),
                                       self.config["max_distance"])
 
-        # 4) Calculate risk scores
+        # 5) Calculate risk scores
         sim_calc = SimilarityCalculator(self.db_connection,
                                         self.config,
                                         self.attacked_host)
 
         sim_calc.calculate_risk_scores(self.host_list)
 
-        # 5) Sort host list by risk score descending
+        # 6) Sort host list by risk score descending
         self.__sort_host_list_by_risk()
 
-        # 6) Print result to screen, export in file (if set in config)
-        #  and close connection with database
+        # 7) Print result to screen and export in file (if set in config)
         printer.print_host_list(self.host_list)
         self.__export_result()
 
+        # 8) Close connection with database
         self.db_connection.close()
 
 
