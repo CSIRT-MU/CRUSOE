@@ -21,39 +21,44 @@ class StdoutPrinter:
         self.__headers = ["IP ADDRESS", "DOMAIN(S)", "CONTACT(S)", "RISK"]
         self.__widths = [20, 0, 0, 10]
 
-    def print_attacked_host(self, host):
+    def print_attacked_host(self, host, header_color=BLUE, color=END):
         """
         Prints information about attacked host.
         :param host: Attacked host
+        :param header_color: Color of the header
+        :param color: Color of the host's attributes
         :return: None
         """
-        print(self.BLUE + self.BOLD + "ATTACKED HOST:" + self.END)
-        print(host)
+        print(header_color + "ATTACKED HOST:" + self.END)
+        print(color + str(host) + self.END)
         print()
 
-    def print_number_of_hosts(self, number_of_hosts, max_distance):
+    def print_number_of_hosts(self, number_of_hosts, max_distance, color=BLUE):
         """
         Prints information about number of nearby hosts find and number
         of hosts actually given to stdout (in case limit option is used.
         :param number_of_hosts: Number of hosts found
         :param max_distance: Maximum distance in graph used during BFS search
+        :param color: Color of the result string
         :return: None
         """
 
-        print(self.BLUE +
+        print(color +
               f"Found {number_of_hosts} hosts to maximum distance of "
-              f"{max_distance}:")
+              f"{max_distance}:" + self.END)
 
         # Show how much hosts is actually being printed (defined by limit
         # given as a option)
         if self.limit is not None and self.limit < number_of_hosts:
-            print(self.BLUE + f"Displaying {self.limit} hosts.")
+            print(color + f"Displaying {self.limit} hosts." + self.END)
         print()
 
-    def print_host_list(self, host_list):
+    def print_host_list(self, host_list, header_color=BLUE, color=END):
         """
         Prints given host list to stdout formatted in a table.
         :param host_list: List of hosts to print
+        :param header_color: Color of the header
+        :param color: Color of the header
         :return: None
         """
 
@@ -68,17 +73,15 @@ class StdoutPrinter:
         # Calculate width for variable size columns
         self.__calc_column_widths(host_list)
 
-        table_color = self.YELLOW
-
         # Print table header
-        self.__print_host_list_header(self.BLUE)
+        self.__print_host_list_header(header_color)
 
         # Print table
-        self.__print_horizontal_separator(table_color)
+        self.__print_horizontal_separator(color)
 
         for host in list_slice:
-            self.__print_host_in_table(host, table_color)
-            self.__print_horizontal_separator(self.YELLOW)
+            self.__print_host_in_table(host, color)
+            self.__print_horizontal_separator(color)
 
     def __calc_column_widths(self, host_list):
         """
@@ -134,7 +137,7 @@ class StdoutPrinter:
         :param color: Header color as ASCII edit symbol
         :return: None
         """
-        print(color + self.BOLD, end="")
+        print(color, end="")
         for header, width in zip(self.__headers, self.__widths):
             print(" " + str.center(header, width), end="")
         print(self.END)
@@ -158,7 +161,7 @@ class StdoutPrinter:
             print_items.append("")
 
         for item, width in zip(print_items, self.__widths):
-            print(self.YELLOW + str.center(item, width) + "|", end="")
+            print(color + str.center(item, width) + "|", end="")
 
         # Print domains and warnings, which can take more rows
         if len(host.domains) > 1 or len(host.contacts) or \
