@@ -1,6 +1,0 @@
-from Comparators.cve_comparator import CveComparator
-from Comparators.event_comparator import EventComparator
-from Comparators.os_comparator import OsComparator
-from Comparators.antivirus_comparator import AntivirusComparator
-from Comparators.net_services_comparator import NetServicesComparator
-from Comparators.cms_comparator import CmsComparator
