@@ -38,7 +38,8 @@ class Recommender:
 
     def recommend_hosts(self):
         """
-
+        Finds close hosts and calculates risk for them. Attacked host must be
+        found before search. Saves recommended hosts in host_list attribute.
         :return: None
         """
 
