@@ -37,13 +37,12 @@
  - Same subnet
  - Same contact 
  - Same organization
- - Same mission
 
 ### - Distance weights
 
 ### - Similarity based on:
 - Operation system (from latest scan)
-- Running software
+- Running software (antivirus, cms...)
 - Running network services
 - CVE (cumulative similarity)
 - Number of incidents (cumulative similarity)
