@@ -7,7 +7,7 @@ class CmsComparator(CpeComparator):
     """
     def __init__(self, config):
         super().__init__(config)
-        self.ref_host_open_ports = None
+        self.__ref_host_open_ports = None
 
     def set_reference_host(self, host):
         """
@@ -16,8 +16,8 @@ class CmsComparator(CpeComparator):
         :param host: Host object
         :return: None
         """
-        self.reference_host = host
-        self.ref_host_open_ports = self.__check_http_ports(host)
+        self._reference_host = host
+        self.__ref_host_open_ports = self.__check_http_ports(host)
 
     def calc_partial_similarity(self, host):
         """
@@ -27,22 +27,22 @@ class CmsComparator(CpeComparator):
         :param host: Host object (host to be compared with reference host)
         :return: Partial similarity of cms software
         """
-        if self.config["require_open_http"]:
+        if self._config["require_open_http"]:
             # Check if both hosts have opened HTTP(S) ports
-            if self.__check_http_ports(host) != self.ref_host_open_ports:
-                return self.config["diff_value"]
+            if self.__check_http_ports(host) != self.__ref_host_open_ports:
+                return self._config["diff_value"]
             # Both hosts have closed ports
-            if not self.ref_host_open_ports:
+            if not self.__ref_host_open_ports:
                 return 1
 
         # Calculate partial similarity
         partial_similarity, critical = self._compare_sw_components(
-            self.reference_host.cms, host.cms)
+            self._reference_host.cms, host.cms)
 
         if critical:
             message = "Similar CMS component between hosts"
             # Add information about open http(s) ports to the output
-            if self.config["require_open_http"]:
+            if self._config["require_open_http"]:
                 message += ", both hosts have open HTTP(S) ports"
 
             self._add_warning_message(host, message, partial_similarity)

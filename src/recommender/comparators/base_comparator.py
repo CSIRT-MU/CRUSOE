@@ -7,8 +7,8 @@ class BaseComparator(ABC):
     Abstract class serving as a base class for all comparator objects.
     """
     def __init__(self, config):
-        self.config = config
-        self.reference_host = None
+        self._config = config
+        self._reference_host = None
 
     @abstractmethod
     def calc_partial_similarity(self, host):
@@ -27,7 +27,7 @@ class BaseComparator(ABC):
         :param partial_similarity: Partial similarity in <0,1>
         :return: True if higher than critical bound
         """
-        return partial_similarity > self.config["critical_bound"]
+        return partial_similarity > self._config["critical_bound"]
 
     @staticmethod
     def _add_warning_message(host, message, partial_similarity):
@@ -47,5 +47,5 @@ class BaseComparator(ABC):
         :param host: Host object
         :return: None
         """
-        self.reference_host = host
+        self._reference_host = host
 

@@ -13,8 +13,8 @@ class NetServicesComparator(BaseComparator):
         :param host: Host object
         :return: None
         """
-        self._sort_net_services(host)
-        self.reference_host = host
+        self.__sort_net_services(host)
+        self._reference_host = host
 
     def calc_partial_similarity(self, host):
         """
@@ -27,11 +27,11 @@ class NetServicesComparator(BaseComparator):
         """
 
         # Sort network services on the host
-        self._sort_net_services(host)
+        self.__sort_net_services(host)
 
         i1 = 0
         i2 = 0
-        ns1_list = self.reference_host.network_services
+        ns1_list = self._reference_host.network_services
         ns2_list = host.network_services
 
         len1 = len(ns1_list)
@@ -53,7 +53,7 @@ class NetServicesComparator(BaseComparator):
                 i1 += 1
 
         if same_service_count == 0:
-            return self.config["diff_value"]
+            return self._config["diff_value"]
 
         partial_similarity = \
             same_service_count / (len1 + len2 - same_service_count)
@@ -65,7 +65,7 @@ class NetServicesComparator(BaseComparator):
         return partial_similarity
 
     @staticmethod
-    def _sort_net_services(host):
+    def __sort_net_services(host):
         """
         Sorts network services by protocol and then port.
         :param host: Host that network services list should be sorted.

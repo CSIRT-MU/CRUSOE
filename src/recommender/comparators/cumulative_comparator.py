@@ -3,10 +3,9 @@ from recommender.comparators.base_comparator import BaseComparator
 
 
 class CumulativeSimilarityComparator(BaseComparator, ABC):
-
-    def __init__(self, config):
-        super().__init__(config)
-
+    """
+    Abstract comparator for comparing based on history of hosts
+    """
     def _calculate_cumulative_similarity(self, n1, n2, total):
         """
         Calculates cumulative partial similarity of some attribute, e.g.
@@ -20,7 +19,7 @@ class CumulativeSimilarityComparator(BaseComparator, ABC):
         # Check zero values to avoid dividing by zero / returning zero
         # similarity, predefined value from config is used in this case
         if n1 == 0 or n2 == 0 or total == 0:
-            return self.config["zero_value"], False
+            return self._config["zero_value"], False
 
         sh1 = n1 / total
         sh2 = n2 / total

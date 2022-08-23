@@ -12,7 +12,7 @@ class Neo4jClient:
     """
 
     def __init__(self, url, user, password, logger):
-        self.driver = GraphDatabase.driver(url, auth=(user, password))
+        self.__driver = GraphDatabase.driver(url, auth=(user, password))
         self.__logger = logger
 
     def close(self):
@@ -20,7 +20,7 @@ class Neo4jClient:
         Closes connection with database.
         :return: None
         """
-        self.driver.close()
+        self.__driver.close()
 
     def get_host_by_domain(self, domain):
         """
@@ -31,7 +31,7 @@ class Neo4jClient:
         :return: Host object
         """
 
-        with self.driver.session() as session:
+        with self.__driver.session() as session:
             result = session.read_transaction(self.__get_ip_query, domain)
 
             # Domain doesn't exist in database
@@ -56,7 +56,7 @@ class Neo4jClient:
         # Convert IP to string representation
         ip_str = str(ip)
 
-        with self.driver.session() as session:
+        with self.__driver.session() as session:
             result = session.read_transaction(self.__get_host_by_ip_query,
                                               ip_str)
 
@@ -81,17 +81,16 @@ class Neo4jClient:
 
         return new_host
 
-    def get_host_with_score_by_ip(self, ip, distance, path_type, session):
+    def __get_host_with_score(self, ip, distance, path_type, session):
         """
         Gets information about nearby host which was found during the
         traversal by IP address.
         :param ip: Host's IP address
-        :param distance: Distance where host was found
-        :param path_type: Type of a path where host was found
+        :param distance: Distance to the attacked host
+        :param path_type: Type of path
         :param session: Database session
         :return: Host object or none if host with given IP does not exist
         """
-        # Get IP as a string
         ip_str = str(ip)
         result = session.read_transaction(self.__get_host_by_ip_query,
                                           ip_str)
@@ -101,7 +100,6 @@ class Neo4jClient:
                 f"Given IP ({ip_str}) is not assigned to any host.")
             return None
 
-        # Create new host
         new_host = HostWithScore(ip,
                                  result["domains"],
                                  result["contact"],
@@ -123,11 +121,11 @@ class Neo4jClient:
         Starts BFS traversal (uses Java traversal API) from given IP node and
         finds nearby hosts to the maximum distance given as an argument. Type
         of a path is stored as an enum.
-        :param ip: IP address of a hosts where BFS should start
+        :param ip: IP address object of a hosts where BFS should start
         :param max_distance: Maximum distance search from initial host
         :return: List of IP addresses found with search
         """
-        with self.driver.session() as session:
+        with self.__driver.session() as session:
             result = session.read_transaction(self.__find_close_hosts_query,
                                               str(ip), max_distance)
 
@@ -147,11 +145,11 @@ class Neo4jClient:
                         f"Found invalid IP address {row['ip']}")
                     continue
 
-                new_host = self.get_host_with_score_by_ip(str(ip),
-                                                          row["distance"],
-                                                          path_types[row[
+                new_host = self.__get_host_with_score(str(ip),
+                                                      row["distance"],
+                                                      path_types[row[
                                                               "path_type"]],
-                                                          session)
+                                                      session)
 
                 if new_host is not None:
                     result_list.append(new_host)
@@ -165,7 +163,7 @@ class Neo4jClient:
         :return: Total number of CVE
         """
 
-        with self.driver.session() as session:
+        with self.__driver.session() as session:
             result = session.read_transaction(self.__get_total_cve_count_query)
 
         return result["cve_count"]
@@ -176,7 +174,7 @@ class Neo4jClient:
         :return: Total number of security events
         """
 
-        with self.driver.session() as session:
+        with self.__driver.session() as session:
             result = session.read_transaction(
                 self.__get_total_event_count_query)
 
@@ -227,7 +225,7 @@ class Neo4jClient:
             # Get number of cve in software running on host
             f"{Neo4jClient.__get_host_cve_count_subquery()}"
 
-            # Get operation system running on host + optional antivirus
+            # Get operating system running on host + optional antivirus
             f"{Neo4jClient.__get_host_os_and_antivirus_subquery()}"
 
             # Get CMS software

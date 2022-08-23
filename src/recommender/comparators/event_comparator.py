@@ -15,7 +15,7 @@ class EventComparator(CumulativeSimilarityComparator):
         """
 
         partial_similarity, critical = self._calculate_cumulative_similarity(
-            self.reference_host.event_count,
+            self._reference_host.event_count,
             host.event_count,
             self.total_event_count)
 

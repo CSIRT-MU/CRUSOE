@@ -7,19 +7,19 @@ class RiskCalculator:
     Calculates risk scores between attacked host and found hosts in close
     proximity.
     """
-    def __init__(self, db_connection, config, attacked_host):
-        self.db_connection = db_connection
-        self.config = config
-        self.attacked_host = attacked_host
-        self.comparator_list = []
 
-        self.path_coefficients = {
-            PathType.Subnet: self.config["path"]["subnet"],
-            PathType.Organization: self.config["path"]["organization"],
-            PathType.Contact: self.config["path"]["contact"],
+    def __init__(self, db_client, config):
+        self.__db_client = db_client
+        self.__config = config
+        self.__comparators = []
+
+        self.__path_coefficients = {
+            PathType.Subnet: self.__config["path"]["subnet"],
+            PathType.Organization: self.__config["path"]["organization"],
+            PathType.Contact: self.__config["path"]["contact"],
         }
 
-        self.available_comparators = [
+        self.__available_comparators = [
             "os",
             "antivirus",
             "cms",
@@ -30,13 +30,14 @@ class RiskCalculator:
 
         self.__initialize_comparators()
 
-    def calculate_risk_scores(self, compared_hosts):
+    def calculate_risk_scores(self, attacked_host, compared_hosts):
         """
         Calculates and sets risk score for every host in compared_hosts list.
+        :param attacked_host: Attacked host to which hosts are compared
         :param compared_hosts: List of hosts which risk should be calculated
         :return: None
         """
-        self.__set_reference_host()
+        self.__set_reference_host(attacked_host)
 
         for host in compared_hosts:
             host.risk = self.__calculate_risk_score(host)
@@ -46,39 +47,40 @@ class RiskCalculator:
         Initialize comparators that should be applied by config.
         :return: None
         """
-        self.comparator_list = []
+        self.__comparators = []
 
-        for comparator in self.available_comparators:
-            if self.config[comparator]["apply"]:
+        for comparator in self.__available_comparators:
+            if self.__config[comparator]["apply"]:
                 match comparator:
                     case "os":
-                        self.comparator_list.append(
-                            OsComparator(self.config["os"]))
+                        self.__comparators.append(
+                            OsComparator(self.__config["os"]))
                     case "antivirus":
-                        self.comparator_list.append(
-                            AntivirusComparator(self.config["antivirus"]))
+                        self.__comparators.append(
+                            AntivirusComparator(self.__config["antivirus"]))
                     case "cms":
-                        self.comparator_list.append(
-                            CmsComparator(self.config["cms"]))
+                        self.__comparators.append(
+                            CmsComparator(self.__config["cms"]))
                     case "cve_cumulative":
-                        self.comparator_list.append(CveComparator(
-                            self.config["cve_cumulative"],
-                            self.db_connection.get_total_cve_count()))
+                        self.__comparators.append(CveComparator(
+                            self.__config["cve_cumulative"],
+                            self.__db_client.get_total_cve_count()))
                     case "event_cumulative":
-                        self.comparator_list.append(EventComparator(
-                            self.config["event_cumulative"],
-                            self.db_connection.get_total_event_count()))
+                        self.__comparators.append(EventComparator(
+                            self.__config["event_cumulative"],
+                            self.__db_client.get_total_event_count()))
                     case "net_service":
-                        self.comparator_list.append(
-                            NetServicesComparator(self.config["net_service"]))
+                        self.__comparators.append(
+                            NetServicesComparator(
+                                self.__config["net_service"]))
 
-    def __set_reference_host(self):
+    def __set_reference_host(self, attacked_host):
         """
         Sets reference host to every comparator in comparator list.
         :return: None
         """
-        for comparator in self.comparator_list:
-            comparator.set_reference_host(self.attacked_host)
+        for comparator in self.__comparators:
+            comparator.set_reference_host(attacked_host)
 
     def __calculate_risk_score(self, compared_host):
         """
@@ -94,12 +96,12 @@ class RiskCalculator:
 
         # Multiply result similarity by partial similarities obtained
         # by applying list of comparators on compared host
-        for comparator in self.comparator_list:
+        for comparator in self.__comparators:
             similarity *= comparator.calc_partial_similarity(compared_host)
 
         # Multiply similarity by path type coefficient
-        if self.config["path"]["apply"]:
-            similarity *= self.path_coefficients[compared_host.path_type]
+        if self.__config["path"]["apply"]:
+            similarity *= self.__path_coefficients[compared_host.path_type]
 
         # Divide similarity by distance
         return similarity / compared_host.distance

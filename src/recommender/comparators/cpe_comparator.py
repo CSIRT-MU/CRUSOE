@@ -4,22 +4,24 @@ from recommender.comparators.base_comparator import BaseComparator
 
 
 class CpeComparator(BaseComparator, ABC):
-
+    """
+    Abstract comparator for comparing based on cpe strings
+    """
     def __init__(self, config):
         super().__init__(config)
-        self.weights = [
+        self.__weights = [
             config["vendor"],
             config["product"],
             config["version"]
         ]
-        self.diff_value = config["diff_value"]
 
     def _compare_sw_components(self, sw1, sw2):
         """
-        Compares two software components and return partial similarity.
+        Compares two software components and returns partial similarity.
         :param sw1: First SW component
         :param sw2: Second SW component
         :return: Partial similarity (float in <0,1>) between sw1 and sw2
+        and information if critical bound was reached
         """
         # Both hosts do not have this SW component
         if sw1 is None and sw2 is None:
@@ -28,13 +30,13 @@ class CpeComparator(BaseComparator, ABC):
         # Only one of the hosts has this SW component, use predefined diff
         # value
         if sw1 is None or sw2 is None:
-            return self.diff_value, False
+            return self._config["diff_value"], False
 
         compare_result = self._compare_cpe(sw1.cpe_list, sw2.cpe_list)
 
         # Zero similarity -> use configured diff value
         if compare_result == 0:
-            return self.config["diff_value"], False
+            return self._config["diff_value"], False
         return compare_result, self._check_critical_bound(compare_result)
 
     def _compare_cpe(self, list1, list2):
@@ -51,7 +53,7 @@ class CpeComparator(BaseComparator, ABC):
         for i in range(min(len(list1), len(list2))):
             if CpeComparator._compare_cpe_parts(list1[i], list2[i]):
                 # Add cpe part weight to result when parts match
-                result_similarity += self.weights[i]
+                result_similarity += self.__weights[i]
             else:
                 break
 
@@ -64,6 +66,6 @@ class CpeComparator(BaseComparator, ABC):
         one of them is * (ANY).
         :param part1: First CPE string part
         :param part2: Second CPE string part
-        :return: Bool
+        :return: True if CPE parts are same, False otherwise
         """
         return part1 == part2 or part1 == "*" or part2 == "*"

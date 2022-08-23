@@ -16,7 +16,7 @@ class CveComparator(CumulativeSimilarityComparator):
         """
 
         partial_similarity, critical = self._calculate_cumulative_similarity(
-            self.reference_host.cve_count,
+            self._reference_host.cve_count,
             host.cve_count,
             self.total_cve_count)
 

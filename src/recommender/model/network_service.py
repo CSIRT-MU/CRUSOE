@@ -15,7 +15,7 @@ class NetworkService:
         return f"{self.service}:{self.protocol}:{self.port}"
 
     def __eq__(self, other):
-        return self.port == other.port and self.protocol == self.protocol
+        return self.port == other.port and self.protocol == other.protocol
 
     def __ne__(self, other):
         return not self == other

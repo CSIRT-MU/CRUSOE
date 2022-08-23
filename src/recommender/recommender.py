@@ -50,10 +50,9 @@ class Recommender:
 
         # Calculate risk scores
         sim_calc = RiskCalculator(self.__db_client,
-                                  self.__config,
-                                  self.attacked_host)
+                                  self.__config)
 
-        sim_calc.calculate_risk_scores(self.host_list)
+        sim_calc.calculate_risk_scores(self.attacked_host, self.host_list)
 
         # Sorts list of host by risk of exploiting (descending)
         self.host_list.sort(key=lambda h: h.risk, reverse=True)
