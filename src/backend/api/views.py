@@ -94,7 +94,7 @@ def attacked_host(request):
     try:
         ip, domain = parse_query_params(request.query_params)
         recommend = initialize_recommender(ip, domain, db_client)
-    except ValueError as e:
+    except (ValueError, IOError) as e:
         return JsonResponse({"error": {"message": str(e)}}, status=400)
 
     db_client.close()
@@ -115,7 +115,7 @@ def recommended_hosts(request):
     try:
         ip, domain = parse_query_params(request.query_params)
         recommend = initialize_recommender(ip, domain, db_client)
-    except ValueError as e:
+    except (ValueError, IOError) as e:
         return JsonResponse({"error": {"message": str(e)}}, status=400)
 
     recommend.recommend_hosts()
