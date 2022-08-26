@@ -99,9 +99,10 @@ class RiskCalculator:
         for comparator in self.__comparators:
             similarity *= comparator.calc_partial_similarity(compared_host)
 
-        # Multiply similarity by path type coefficient
+        # Multiply similarity by path type coefficient(s)
         if self.__config["path"]["apply"]:
-            similarity *= self.__path_coefficients[compared_host.path_type]
+            for path_type in compared_host.path_types:
+                similarity *= self.__path_coefficients[path_type]
 
         # Divide similarity by distance
         return similarity / compared_host.distance

@@ -54,11 +54,11 @@ class HostWithScore(Host):
     """
 
     def __init__(self, ip, domains, contacts, os_cpe, antivirus_cpe, cms_cpe,
-                 cve_count, event_count, distance, path_type):
+                 cve_count, event_count, distance, path_types):
         super().__init__(ip, domains, contacts, os_cpe, antivirus_cpe, cms_cpe,
                          cve_count, event_count)
         self.distance = distance
-        self.path_type = path_type
+        self.path_types = path_types
         self.warnings = []
         self.risk = None
 
@@ -74,8 +74,7 @@ class HostWithScore(Host):
         json = super().to_json()
         json["risk"] = round(self.risk, 4),
         json["distance"] = self.distance
-        json["path_type"] = self.path_type
-        json["path_type"] = self.path_type
+        json["path_types"] = self.path_types
         json["warnings"] = self.warnings
         json["contacts"] = self.contacts
         return json

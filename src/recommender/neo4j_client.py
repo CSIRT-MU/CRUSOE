@@ -81,7 +81,7 @@ class Neo4jClient:
 
         return new_host
 
-    def __get_host_with_score(self, ip, distance, path_type, session):
+    def __get_host_with_score(self, ip, distance, path_types, session):
         """
         Gets information about nearby host which was found during the
         traversal by IP address.
@@ -109,7 +109,7 @@ class Neo4jClient:
                                  result["vulner_count"],
                                  result["event_count"],
                                  distance,
-                                 path_type)
+                                 path_types)
 
         new_host.network_services = self.__get_network_services(
             ip_str, session, result["start"], result["end"])
@@ -145,11 +145,12 @@ class Neo4jClient:
                         f"Found invalid IP address {row['ip']}")
                     continue
 
-                new_host = self.__get_host_with_score(str(ip),
-                                                      row["distance"],
-                                                      path_types[row[
-                                                              "path_type"]],
-                                                      session)
+                # map string path types to enum
+                host_path_types = map(lambda path: path_types[path],
+                                      row["path_types"])
+
+                new_host = self.__get_host_with_score(str(ip), row["distance"],
+                                                      host_path_types, session)
 
                 if new_host is not None:
                     result_list.append(new_host)
@@ -323,8 +324,8 @@ class Neo4jClient:
         query = (
             # Traverse from given IP address node
             "CALL traverse.findCloseHosts($ip, $max_distance) "
-            "YIELD ip, distance, path_type "
-            "RETURN ip.address AS ip, distance, path_type"
+            "YIELD ip, distance, path_types "
+            "RETURN ip.address AS ip, distance, path_types"
         )
         result = tx.run(query, ip=ip, max_distance=max_distance)
         return [row for row in result]

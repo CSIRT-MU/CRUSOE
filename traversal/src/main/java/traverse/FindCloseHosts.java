@@ -4,6 +4,11 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.*;
 import org.neo4j.procedure.*;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -24,10 +29,10 @@ public class FindCloseHosts {
 
     /**
      * Traverse from attacked host's IP and finds IP of close hosts, to maximum depth given as a parameter.
-     * Evaluates traversed path with weight.
-     * @param ip Attacked host's IP
+     *
+     * @param ip       Attacked host's IP
      * @param maxDepth Maximum depth to traverse
-     * @return Stream of FindCloseHostsRecord containing ip node, path weight and distance
+     * @return Stream of FindCloseHostsRecord containing ip node, path types and distance
      */
     @Procedure(value = "traverse.findCloseHosts", mode = Mode.READ)
     @Description("traverse starting from the node with the given IP address and returns all close IPs")
@@ -43,17 +48,21 @@ public class FindCloseHosts {
         // BFS from given host
         final Traverser traverse = tx.traversalDescription()
                 .breadthFirst()
+                .uniqueness(Uniqueness.NONE)
                 .relationships(HAS, Direction.BOTH)
                 .relationships(PART_OF, Direction.BOTH)
                 .evaluator(Evaluators.fromDepth(1))
                 .evaluator(Evaluators.toDepth(maxDepth.intValue()))
-                .evaluator(Evaluators.includeIfAcceptedByAny(new LabelEvaluator(IP)))
+                .evaluator(Evaluators.includeIfAcceptedByAny(new IpEvaluator(ip)))
                 .traverse(attackedHost);
 
-        // Map path to result records.
+        // Map paths to result records.
         return StreamSupport
                 .stream(traverse.spliterator(), true)
-                .map(FindCloseHostsRecord::new);
+                .collect(Collectors.groupingBy(Path::endNode))
+                .entrySet()
+                .stream()
+                .map(e -> new FindCloseHostsRecord(e.getKey(), e.getValue()));
     }
 
 
@@ -64,42 +73,53 @@ public class FindCloseHosts {
 
         public final Node ip;
         public final Long distance;
-        public final String path_type;
+        public final List<String> path_types;
 
-        FindCloseHostsRecord(Path path) {
-            this.ip = path.endNode();
-            this.distance = (long) path.length();
-            this.path_type = EvaluatePath(path.nodes());
+        FindCloseHostsRecord(Node endNode, List<Path> paths) {
+            this.ip = endNode;
+            this.distance = (long) paths.stream().mapToInt(Path::length).min().getAsInt();
+            this.path_types = EvaluatePath(paths);
         }
 
-        // determines type of the path (over contact, subnet...)
-        public String EvaluatePath(Iterable<Node> nodes) {
-            for (Node node : nodes) {
-                if (node.hasLabel(OrganizationUnit)) {
-                    return "organization";
-                } else if (node.hasLabel(Contact)) {
-                    return "contact";
+        // determines type of the path
+        public List<String> EvaluatePath(List<Path> paths) {
+            Set<String> path_types = new HashSet<>();
+
+            for (Path path : paths) {
+                if (path.length() == 2) {
+                    path_types.add("subnet");
+                    return new ArrayList<>(path_types);
+                }
+
+                for (Node node : path.nodes()) {
+                    if (node.hasLabel(OrganizationUnit)) {
+                        path_types.add("organization");
+                    }
+
+                    if (node.hasLabel(Contact)) {
+                        path_types.add("contact");
+                    }
                 }
             }
-
-            return "subnet";
+            return new ArrayList<>(path_types);
         }
     }
 
     /**
-     * Evaluator for node's labels.
+     * Evaluator accepts all IP nodes which address property doesn't equal to source IP address.
      */
-    private static final class LabelEvaluator implements Evaluator {
+    private static final class IpEvaluator implements Evaluator {
 
-        private final Label label;
+        private final String sourceIp;
 
-        private LabelEvaluator(Label label) {
-            this.label = label;
+        private IpEvaluator(String sourceIp) {
+            this.sourceIp = sourceIp;
         }
 
         @Override
         public Evaluation evaluate(Path path) {
-            if (path.endNode().hasLabel(label)) {
+            var endNode = path.endNode();
+            if (endNode.hasLabel(Label.label("IP")) && !endNode.getProperty("address").equals(sourceIp)) {
                 return Evaluation.INCLUDE_AND_CONTINUE;
             } else {
                 return Evaluation.EXCLUDE_AND_CONTINUE;
