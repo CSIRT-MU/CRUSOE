@@ -45,13 +45,13 @@ With following options:
     At least domain or ip is reuqired.
 
 Connection information to the Neo4j database (NEO4J_URL, NEO4J_USER and NEO4J_PASSWORD) 
-must be set in environment variables.
+must be set as environment variables.
 
 Recommender can also be used as a REST API:
 
     python src/backend/manage.py runserver {port}
 
-Connection information to the Neo4j database must be specified in Django's settings.py file:
+In this case, connection information to the Neo4j database must be specified in the Django's settings.py file:
 
     DATABASES = {
         "default": {

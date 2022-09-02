@@ -30,7 +30,8 @@ class Host:
                f"CMS: {self.cms}\n" \
                f"CVE: {self.cve_count}\n" \
                f"EVENTS: {self.event_count}\n" \
-               f"NS: {[ns.__str__() for ns in self.network_services]}"
+               f"NET SERVICES: " \
+               f"{[ns.__str__() for ns in self.network_services]}"
 
     def to_json(self):
         domains = \

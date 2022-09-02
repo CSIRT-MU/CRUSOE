@@ -27,7 +27,7 @@ class CmsComparator(CpeComparator):
         :param host: Host object (host to be compared with reference host)
         :return: Partial similarity of cms software
         """
-        if self._config["require_open_http"]:
+        if self._config["require_open_ports"]:
             # Check if both hosts have opened HTTP(S) ports
             if self.__check_http_ports(host) != self.__ref_host_open_ports:
                 return self._config["diff_value"]
@@ -42,7 +42,7 @@ class CmsComparator(CpeComparator):
         if critical:
             message = "Similar CMS component between hosts"
             # Add information about open http(s) ports to the output
-            if self._config["require_open_http"]:
+            if self._config["require_open_ports"]:
                 message += ", both hosts have open HTTP(S) ports"
 
             self._add_warning_message(host, message, partial_similarity)

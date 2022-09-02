@@ -19,7 +19,7 @@ class SoftwareComponent:
         return self.cpe_list[2] if len(self.cpe_list) > 2 else None
 
     def __str__(self):
-        return f"{self.tag}({self.vendor}:{self.product}:{self.version})"
+        return f"{self.vendor}:{self.product}:{self.version}"
 
     def to_json(self):
         return {

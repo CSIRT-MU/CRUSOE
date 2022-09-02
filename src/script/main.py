@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import logging
+import sys
 from os import getenv
 
 from recommender.neo4j_client import Neo4jClient
@@ -82,7 +83,7 @@ class RecommenderScript:
         # Get options and configs
         if not self.__get_input_and_config():
             # Error occurred in options or config files
-            return
+            sys.exit(1)
 
         # Connect to database and create recommender object
         db_client = Neo4jClient(getenv("NEO4J_URL"),

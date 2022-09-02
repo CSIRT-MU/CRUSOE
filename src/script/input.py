@@ -57,11 +57,13 @@ class InputParser:
         for opt, arg in opts:
             if opt in ("-i", "--ip"):
                 if not Validator.validate_ip(arg):
+                    self.__logger.critical("Invalid IP address.")
                     return False
                 self.ip = arg
                 result = True
             elif opt in ("-d", "--domain"):
                 if not Validator.validate_domain(arg):
+                    self.__logger.critical("Invalid domain name.")
                     return False
                 self.domain = arg
                 result = True
@@ -69,6 +71,7 @@ class InputParser:
                 self.__config_path = arg
             elif opt in ("-l", "--limit"):
                 if not Validator.validate_positive_integer(arg):
+                    self.__logger.critical("Invalid limit option.")
                     return False
                 self.limit = int(arg)
             elif opt in ("-c", "--csv"):

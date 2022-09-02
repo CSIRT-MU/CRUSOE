@@ -32,7 +32,7 @@
     "vendor": 0.5,
     "product": 0.3,
     "version": 0.2,
-    "require_open_http": false,
+    "require_open_ports": false,
     "diff_value": 0.8
   },
   "net_service":
