@@ -30,53 +30,54 @@ public class FindCloseHosts {
     /**
      * Traverse from attacked host's IP and finds IP of close hosts, to maximum depth given as a parameter.
      *
-     * @param ip       Attacked host's IP
+     * @param initIp       Attacked host's IP
      * @param maxDepth Maximum depth to traverse
      * @return Stream of FindCloseHostsRecord containing ip node, path types and distance
      */
     @Procedure(value = "traverse.findCloseHosts", mode = Mode.READ)
     @Description("traverse starting from the node with the given IP address and returns all close IPs")
-    public Stream<FindCloseHostsRecord> findCloseHosts(@Name("ipAddress") String ip,
+    public Stream<CloseHostRecord> findCloseHosts(@Name("ipAddress") String initIp,
                                                        @Name("maxDepth") Long maxDepth) {
 
-        // find attacked host IP node
-        Node attackedHost = tx.findNodes(IP, "address", ip)
+        // Find attacked host IP node
+        Node attackedHost = tx.findNodes(IP, "address", initIp)
                 .stream()
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
 
         // BFS from given host
-        final Traverser traverse = tx.traversalDescription()
+        Traverser traverse = tx.traversalDescription()
                 .breadthFirst()
                 .uniqueness(Uniqueness.NONE)
                 .relationships(HAS, Direction.BOTH)
                 .relationships(PART_OF, Direction.BOTH)
                 .evaluator(Evaluators.fromDepth(1))
                 .evaluator(Evaluators.toDepth(maxDepth.intValue()))
-                .evaluator(Evaluators.includeIfAcceptedByAny(new IpEvaluator(ip)))
+                .evaluator(Evaluators.includeIfAcceptedByAny(new IpEvaluator(initIp)))
                 .traverse(attackedHost);
 
-        // Map paths to result records.
+        // Group paths by IP and map them to result records containing IP,
+        // path types and distance
         return StreamSupport
                 .stream(traverse.spliterator(), true)
                 .collect(Collectors.groupingBy(Path::endNode))
                 .entrySet()
                 .stream()
-                .map(e -> new FindCloseHostsRecord(e.getKey(), e.getValue()));
+                .map(e -> new CloseHostRecord(e.getKey(), e.getValue()));
     }
 
 
     /**
      * Result record
      */
-    public static final class FindCloseHostsRecord {
+    public static final class CloseHostRecord {
 
-        public final Node ip;
+        public final String ip;
         public final Long distance;
         public final List<String> path_types;
 
-        FindCloseHostsRecord(Node endNode, List<Path> paths) {
-            this.ip = endNode;
+        CloseHostRecord(Node endNode, List<Path> paths) {
+            this.ip = endNode.getProperty("address").toString();
             this.distance = (long) paths.stream().mapToInt(Path::length).min().getAsInt();
             this.path_types = EvaluatePath(paths);
         }
