@@ -61,7 +61,7 @@ class Neo4jClient:
                 raise ValueError(msg)
 
             # Create new host
-            new_host = Host(ip, result["domains"], result["contact"],
+            new_host = Host(ip, result["domains"], result["contacts"],
                             result["os"], result["antivirus"], result["cms"],
                             result["vulner_count"], result["event_count"])
 
@@ -89,7 +89,7 @@ class Neo4jClient:
                 f"Given IP ({str(ip)}) is not assigned to any host.")
             return None
 
-        new_host = HostWithScore(ip, result["domains"], result["contact"],
+        new_host = HostWithScore(ip, result["domains"], result["contacts"],
                                  result["os"], result["antivirus"],
                                  result["cms"], result["vulner_count"],
                                  result["event_count"], distance, path_types)
@@ -227,8 +227,10 @@ class Neo4jClient:
             "MATCH (host:Host)<-[:IS_A]-(:Node)-[:HAS_ASSIGNED]->(ip:IP) "
             "WHERE ip.address = $ip "
 
-            # Get operating system running on host + optional antivirus
-            f"{Neo4jClient.__get_host_os_and_antivirus_subquery()}"
+            # Get operating system running on host + optional antivirus and cms
+            f"{Neo4jClient.__get_os_subquery()}"
+            f"{Neo4jClient.__get_antivirus_subquery()}"
+            f"{Neo4jClient.__get_cms_subquery()}"
 
             # Get number of security events
             f"{Neo4jClient.__get_host_event_count_subquery()}"
@@ -236,18 +238,15 @@ class Neo4jClient:
             # Get number of cve in software running on host
             f"{Neo4jClient.__get_host_cve_count_subquery()}"
 
-            # Get CMS software
-            f"{Neo4jClient.__get_cms_subquery()}"
-
-            # Get contact(s) to people responsible for given host
+            # Get contact(s) on people responsible for given host
             f"{Neo4jClient.__get_contacts_subquery()}"
 
-            # Get domains that resolves to given IP address
+            # Get domains that resolve to given IP address
             f"{Neo4jClient.__get_domains_subquery()}"
 
             # Return found components + timestamp of OS for finding network 
             # services
-            "RETURN domains, os, contact, antivirus, cms, event_count, "
+            "RETURN domains, os, contacts, antivirus, cms, event_count, "
             "vulner_count, start, end"
         )
 
@@ -310,25 +309,32 @@ class Neo4jClient:
         )
 
     @staticmethod
-    def __get_host_os_and_antivirus_subquery():
+    def __get_os_subquery():
         return (
             "CALL { "
             "   WITH host "
             "   OPTIONAL MATCH (sw:SoftwareVersion)-[r:ON]->(host) "
             # Get last OS running on host.
             "   WHERE sw.tag = 'os_component' "
-            "   WITH sw, r, host "
+            "   RETURN sw.version AS os, r.start AS start, r.end AS end"
             "   ORDER BY r.end DESC "
             "   LIMIT 1 "
-            "   OPTIONAL MATCH (sw2:SoftwareVersion)-[r2:ON]->(host) "
-            "   WHERE sw2.tag = 'services_component' "
+            "} "
+        )
+
+    @staticmethod
+    def __get_antivirus_subquery():
+        return (
+            "CALL { "
+            "   WITH host, start, end "
+            "   OPTIONAL MATCH (sw:SoftwareVersion)-[r:ON]->(host) "
+            "   WHERE sw.tag = 'services_component' "
             # Assure that antivirus runs on the same computer (host might be 
             # a DHCP client).
             # negation of not overlapping condition
             # => time intervals are overlapping
-            "   AND NOT (r.end < r2.start OR r.start > r2.end) "
-            "   RETURN sw.version AS os, sw2.version AS antivirus, "
-            "   r.start AS start, r.end AS end"
+            "   AND NOT (end < r.start OR start > r.end) "
+            "   RETURN sw.version AS antivirus "
             "   LIMIT 1 "
             "} "
         )
@@ -340,7 +346,7 @@ class Neo4jClient:
             "    WITH ip "
             "    OPTIONAL MATCH (ip:IP)-[:PART_OF]-(:Subnet)-[:HAS]->"
             "    (c:Contact) "
-            "    RETURN collect(c.name) AS contact "
+            "    RETURN collect(c.name) AS contacts "
             "} "
         )
 
