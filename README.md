@@ -33,7 +33,10 @@ Special thanks goes to Jana Komárková for designing the data model and Daniel 
 
 ### References
 
-The developments of the CRUSOE framework resulted in numerous publications. Their list can be found at: https://www.muni.cz/en/research/projects/35444
+The developments of the CRUSOE framework resulted in numerous publications. The project summary was published in Computers & Security journal:
+https://www.sciencedirect.com/science/article/pii/S0167404822000086
+
+Their list of other publications can be found at: https://www.muni.cz/en/research/projects/35444
 
 ### Acknowledgement
 
