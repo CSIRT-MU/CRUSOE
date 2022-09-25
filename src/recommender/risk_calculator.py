@@ -51,28 +51,26 @@ class RiskCalculator:
 
         for comparator in self.__available_comparators:
             if self.__config[comparator]["apply"]:
+                config = self.__config[comparator]
+                comp = None
                 match comparator:
                     case "os":
-                        self.__comparators.append(
-                            OsComparator(self.__config["os"]))
+                        comp = OsComparator(config)
                     case "antivirus":
-                        self.__comparators.append(
-                            AntivirusComparator(self.__config["antivirus"]))
+                        comp = AntivirusComparator(config)
                     case "cms":
-                        self.__comparators.append(
-                            CmsComparator(self.__config["cms"]))
+                        comp = CmsComparator(config)
                     case "cve_cumulative":
-                        self.__comparators.append(CveComparator(
-                            self.__config["cve_cumulative"],
-                            self.__db_client.get_total_cve_count()))
+                        comp = CveComparator(
+                            config, self.__db_client.get_total_cve_count())
                     case "event_cumulative":
-                        self.__comparators.append(EventComparator(
-                            self.__config["event_cumulative"],
-                            self.__db_client.get_total_event_count()))
+                        comp = EventComparator(
+                            config, self.__db_client.get_total_event_count())
                     case "net_service":
-                        self.__comparators.append(
-                            NetServicesComparator(
-                                self.__config["net_service"]))
+                        comp = NetServicesComparator(config)
+
+                if comp is not None:
+                    self.__comparators.append(comp)
 
     def __set_reference_host(self, attacked_host):
         """

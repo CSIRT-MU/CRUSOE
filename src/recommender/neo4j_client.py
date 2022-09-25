@@ -191,6 +191,51 @@ class Neo4jClient:
             services.append(service)
         return services
 
+    def get_all_os_versions(self):
+        """
+        Returns all OS versions from the database.
+        :return: List of CPE strings.
+        """
+        with self.__driver.session() as session:
+            return session.read_transaction(self.__get_all_software_query,
+                                            "os_component")
+
+    def get_all_cms_versions(self):
+        """
+        Returns all CMS versions from the database.
+        :return: List of CPE strings.
+        """
+        with self.__driver.session() as session:
+            return session.read_transaction(self.__get_all_software_query,
+                                            "cms_client")
+
+    def get_all_antivirus_versions(self):
+        """
+        Returns all antivirus versions from the database.
+        :return: List of CPE strings.
+        """
+        with self.__driver.session() as session:
+            return session.read_transaction(self.__get_all_software_query,
+                                            "services_component")
+
+    def get_average_event_count(self):
+        """
+        Gets average number of events on a host.
+        :return: Average number of events
+        """
+        with self.__driver.session() as session:
+            return session.read_transaction(
+                self.__get_average_event_count_query)["avg_event"]
+
+    def get_average_cve_count(self):
+        """
+        Gets average number of vulnerabilities on a host.
+        :return: Average number of CVEs
+        """
+        with self.__driver.session() as session:
+            return session.read_transaction(
+                self.__get_average_vulner_count_query)["avg_vulner"]
+
     # CYPHER queries
 
     @staticmethod
@@ -274,6 +319,40 @@ class Neo4jClient:
         query = (
             "MATCH (v:Vulnerability) "
             "RETURN count(DISTINCT v) AS cve_count"
+        )
+
+        result = tx.run(query)
+        return result.single()
+
+    @staticmethod
+    def __get_all_software_query(tx, tag):
+        query = (
+            "MATCH (sw:SoftwareVersion) "
+            "WHERE sw.tag = $tag "
+            "RETURN DISTINCT sw.version"
+        )
+        result = tx.run(query, tag=tag)
+        return [row["sw.version"] for row in result]
+
+    @staticmethod
+    def __get_average_event_count_query(tx):
+        query = (
+            "MATCH (ip:IP)-[:SOURCE_OF]->(event:SecurityEvent) "
+            "WITH ip, count(event) AS event_count "
+            "RETURN avg(event_count) AS avg_event"
+        )
+
+        result = tx.run(query)
+        return result.single()
+
+    @staticmethod
+    def __get_average_vulner_count_query(tx):
+        query = (
+            "MATCH (sw:SoftwareVersion)-[:ON]->(host:Host) "
+            "WITH DISTINCT sw, host "
+            "MATCH (vulner:Vulnerability)-[:IN]->(sw) "
+            "WITH host, count(DISTINCT vulner) AS vulner_count "
+            "RETURN avg(vulner_count) AS avg_vulner"
         )
 
         result = tx.run(query)

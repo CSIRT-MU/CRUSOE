@@ -12,7 +12,7 @@ Recommender needs at least Python 3.10 with following packages:
 In case of using only as a console script, Django and rest framework can 
 be omitted.
 
-To run the Neo4j 4.0.0+ database , Java in version 11 must be installed.
+To run the Neo4j 4.0.0+ database, Java in version 11 must be installed.
 
 ## Install 
 Recommender can be easily installed as a Python packages with pip. 
@@ -75,4 +75,17 @@ GET: Returns recommended hosts. Requires "ip" or "domain" in a query parameter.
  
 GET: Returns currently used recommender configuration (if there is any).
 
-PUT: Sets new configuration, requires new configuration as a JSON in body of the request.
+PUT: Sets a new configuration, requires new configuration as a JSON in body of the request.
+
+PATCH: Calculates mean critical bounds where possible and updates configuration
+
+## Help utilities
+Package utils contains calculator, which can calculate critical bounds (if partial similarity is
+higher than this bound, warning message is created). For CPE similarities, it uses mean of 
+all CPE combinations found in the database. For cumulative similarities, it calculates mean number
+of events/vulnerabilities found on the hosts and divides it by total number of events/vulnerabilities
+in the database. It can be run as a script:
+
+    python src/utils/mean_bound_calculator.py path_to_config_json
+
+Or via API as the PATCH method of configuration endpoint.

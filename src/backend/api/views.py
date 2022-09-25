@@ -10,6 +10,7 @@ from rest_framework.decorators import api_view
 from recommender.neo4j_client import Neo4jClient
 from recommender.recommender import Recommender
 from utils.json_encoder import Encoder
+from utils.mean_bound_calculator import MeanBoundCalculator
 from utils.validator import Validator
 
 
@@ -119,12 +120,13 @@ def recommended_hosts(request):
     return JsonResponse(recommend.host_list, safe=False, encoder=Encoder)
 
 
-@api_view(["GET", "PUT"])
+@api_view(["GET", "PUT", "PATCH"])
 def configuration(request):
     """
-    View for setting and updating recommender configuration file.
+    View for getting and updating recommender configuration file.
     :param request: REST framework request
-    :return: Response or JsonResponse for GET method, Response for PUT method
+    :return: Response or JsonResponse for GET method, Response for PUT method,
+    Response for PATCH method
     """
     if request.method == "GET":
         if not exists(settings.CONFIG):
@@ -141,6 +143,21 @@ def configuration(request):
         with open(settings.CONFIG, "w") as writer:
             writer.write(dumps(request.data, indent=4))
 
-        return Response(status=status_code)
+        return JsonResponse(status=status_code)
+
+    if request.method == "PATCH":
+        if not exists(settings.CONFIG):
+            return Response(status=404)
+
+        with open(settings.CONFIG, 'r') as config_stream:
+            config = load(config_stream)
+
+        with get_db_client() as db_client:
+            MeanBoundCalculator.calculate_mean_bounds(db_client, config)
+
+        with open(settings.CONFIG, "w") as writer:
+            writer.write(dumps(config, indent=4))
+
+        return JsonResponse(config, status=200)
 
     return Response(status=500)
