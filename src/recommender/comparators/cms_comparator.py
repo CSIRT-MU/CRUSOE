@@ -40,7 +40,7 @@ class CmsComparator(CpeComparator):
             self._reference_host.cms, host.cms)
 
         if critical:
-            message = "Similar CMS component between hosts"
+            message = "Similar CMS between hosts"
             # Add information about open http(s) ports to the output
             if self._config["require_open_ports"]:
                 message += ", both hosts have open HTTP(S) ports"

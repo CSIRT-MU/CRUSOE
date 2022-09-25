@@ -2,9 +2,9 @@ from recommender.comparators.cpe_comparator import CpeComparator
 
 
 class OsComparator(CpeComparator):
-
-    def __init__(self, config):
-        super().__init__(config)
+    """
+    Operating system comparator
+    """
 
     def calc_partial_similarity(self, host):
         """
