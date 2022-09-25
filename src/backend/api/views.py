@@ -89,15 +89,12 @@ def attacked_host(request):
     :param request: REST framework request
     :return:
     """
-    db_client = get_db_client()
-
-    try:
-        ip, domain = parse_query_params(request.query_params)
-        recommend = initialize_recommender(ip, domain, db_client)
-    except (ValueError, IOError) as e:
-        return JsonResponse({"error": {"message": str(e)}}, status=400)
-
-    db_client.close()
+    with get_db_client() as db_client:
+        try:
+            ip, domain = parse_query_params(request.query_params)
+            recommend = initialize_recommender(ip, domain, db_client)
+        except (ValueError, IOError) as e:
+            return JsonResponse({"error": {"message": str(e)}}, status=400)
 
     return JsonResponse(recommend.attacked_host, safe=False, encoder=Encoder)
 
@@ -110,16 +107,14 @@ def recommended_hosts(request):
     :param request: REST framework request
     :return: JsonResponse containing recommended hosts in JSON
     """
-    db_client = get_db_client()
+    with get_db_client() as db_client:
+        try:
+            ip, domain = parse_query_params(request.query_params)
+            recommend = initialize_recommender(ip, domain, db_client)
+        except (ValueError, IOError) as e:
+            return JsonResponse({"error": {"message": str(e)}}, status=400)
 
-    try:
-        ip, domain = parse_query_params(request.query_params)
-        recommend = initialize_recommender(ip, domain, db_client)
-    except (ValueError, IOError) as e:
-        return JsonResponse({"error": {"message": str(e)}}, status=400)
-
-    recommend.recommend_hosts()
-    db_client.close()
+        recommend.recommend_hosts()
 
     return JsonResponse(recommend.host_list, safe=False, encoder=Encoder)
 

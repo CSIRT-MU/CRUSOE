@@ -15,6 +15,12 @@ class Neo4jClient:
         self.__driver = GraphDatabase.driver(url, auth=(user, password))
         self.__logger = logger
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+
     def close(self):
         """
         Closes connection with the Neo4j database.

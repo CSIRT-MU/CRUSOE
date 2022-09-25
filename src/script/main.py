@@ -86,32 +86,27 @@ class RecommenderScript:
             sys.exit(1)
 
         # Connect to database and create recommender object
-        db_client = Neo4jClient(getenv("NEO4J_URL"),
-                                getenv("NEO4J_USER"),
-                                getenv("NEO4J_PASSWORD"),
-                                self.__logger)
+        with Neo4jClient(getenv("NEO4J_URL"), getenv("NEO4J_USER"),
+                         getenv("NEO4J_PASSWORD"), self.__logger) as db_client:
 
-        self.__recommender = Recommender(self.__config, db_client,
-                                         self.__logger)
+            self.__recommender = Recommender(self.__config, db_client,
+                                             self.__logger)
 
-        # Find given host and recommend similar hosts
-        if self.__input.ip is not None:
-            self.__recommender.get_attacked_host_by_ip(self.__input.ip)
-        elif self.__input.domain is not None:
-            self.__recommender.get_attacked_host_by_domain(self.__input.domain)
+            # Find given host and recommend similar hosts
+            if self.__input.ip is not None:
+                self.__recommender.get_attacked_host_by_ip(self.__input.ip)
+            elif self.__input.domain is not None:
+                self.__recommender.get_attacked_host_by_domain(
+                    self.__input.domain)
 
-        stdout = StdoutPrinter(self.__input.limit, self.__input.verbose)
+            stdout = StdoutPrinter(self.__input.limit, self.__input.verbose)
+            stdout.print_attacked_host(self.__recommender.attacked_host)
 
-        stdout.print_attacked_host(self.__recommender.attacked_host)
+            self.__recommender.recommend_hosts()
 
-        self.__recommender.recommend_hosts()
-
-        # Print result to screen and export in file (if set in input)
-        stdout.print_host_list(self.__recommender.host_list)
-        self.__export_result()
-
-        # Close connection with Neo4J database
-        db_client.close()
+            # Print result to screen and export in file (if set in input)
+            stdout.print_host_list(self.__recommender.host_list)
+            self.__export_result()
 
 
 if __name__ == "__main__":
