@@ -1,4 +1,5 @@
 from abc import ABC
+
 from recommender.comparators.base_comparator import BaseComparator
 
 
@@ -21,9 +22,6 @@ class CumulativeSimilarityComparator(BaseComparator, ABC):
         if n1 == 0 or n2 == 0 or total == 0:
             return self._config["zero_value"], False
 
-        sh1 = n1 / total
-        sh2 = n2 / total
+        result = ((n1 + n2) / 2) / total
 
-        result_similarity = min(sh1, sh2) / max(sh1, sh2)
-
-        return result_similarity, self._check_critical_bound(result_similarity)
+        return result, self._check_critical_bound(result)
