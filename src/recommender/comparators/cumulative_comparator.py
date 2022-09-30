@@ -17,11 +17,15 @@ class CumulativeSimilarityComparator(BaseComparator, ABC):
         :return: Cumulative partial similarity
         """
 
-        # Check zero values to avoid dividing by zero / returning zero
-        # similarity, predefined value from config is used in this case
-        if n1 == 0 or n2 == 0 or total == 0:
-            return self._config["zero_value"], False
+        avg = (n1 + n2) / 2.0
 
-        result = ((n1 + n2) / 2) / total
+        # Check zero values to avoid dividing by zero / returning zero
+        if avg == 0:
+            return 1 / total, False
+
+        if total == 0:
+            return 1, False
+
+        result = avg / total
 
         return result, self._check_critical_bound(result)
