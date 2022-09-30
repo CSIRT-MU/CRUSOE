@@ -14,7 +14,7 @@ class OsComparator(CpeComparator):
         :return: Partial similarity of OS components.
         """
 
-        partial_similarity, critical = self._compare_sw_components(
+        partial_similarity, critical = self.compare_sw_components(
             self._reference_host.os_component, host.os_component)
 
         if critical:

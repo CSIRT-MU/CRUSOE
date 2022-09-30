@@ -36,7 +36,7 @@ class CmsComparator(CpeComparator):
                 return 1
 
         # Calculate partial similarity
-        partial_similarity, critical = self._compare_sw_components(
+        partial_similarity, critical = self.compare_sw_components(
             self._reference_host.cms, host.cms)
 
         if critical:

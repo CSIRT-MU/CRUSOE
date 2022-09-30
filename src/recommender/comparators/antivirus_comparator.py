@@ -11,7 +11,7 @@ class AntivirusComparator(CpeComparator):
         :return: Partial similarity of antivirus software
         """
 
-        partial_similarity, critical = self._compare_sw_components(
+        partial_similarity, critical = self.compare_sw_components(
             self._reference_host.antivirus_component, host.antivirus_component)
 
         if critical:

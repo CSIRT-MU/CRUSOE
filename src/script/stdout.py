@@ -96,23 +96,23 @@ class StdoutPrinter:
         len_warning = 0
 
         for host in host_list:
+            current_longest = 1
             # Domain
-            current_longest = len(max(host.domains, key=lambda x: len(x)))
-            if current_longest > len_domain:
-                len_domain = current_longest
+            if len(host.domains) > 0:
+                current_longest = len(max(host.domains, key=lambda x: len(x)))
+                len_domain = max(current_longest, len_domain)
 
             # Contact
-            current_longest = len(max(host.contacts, key=lambda x: len(x)))
-            if current_longest > len_contact:
-                len_contact = current_longest
+            if len(host.contacts) > 0:
+                current_longest = len(max(host.contacts, key=lambda x: len(x)))
+                len_contact = max(current_longest, len_contact)
 
             # Warnings
             if self.verbose:
-                if host.warnings:
+                if len(host.warnings) > 0:
                     current_longest = \
                         len(str(max(host.warnings, key=lambda x: len(str(x)))))
-                    if current_longest > len_warning:
-                        len_warning = current_longest
+                    len_warning = max(current_longest, len_warning)
 
         # Set widths (+ 2 -> margin from a table, looks better)
         self.__widths[1] = len_domain + 2
@@ -153,7 +153,7 @@ class StdoutPrinter:
         print(color + "|", end="")
 
         print_items = [str(host.ip), host.domains[0], host.contacts[0],
-                       str(round(host.risk, 4))]
+                       str(round(host.risk, 6))]
 
         if self.verbose and host.warnings:
             print_items.append(str(host.warnings[0]))

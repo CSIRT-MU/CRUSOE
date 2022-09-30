@@ -15,7 +15,7 @@ class RiskCalculator:
 
         self.__path_coefficients = {
             PathType.Subnet: self.__config["path"]["subnet"],
-            PathType.Organization: self.__config["path"]["organization"],
+            PathType.Organization: self.__config["path"]["organization_unit"],
             PathType.Contact: self.__config["path"]["contact"],
         }
 
@@ -50,8 +50,8 @@ class RiskCalculator:
         self.__comparators = []
 
         for comparator in self.__available_comparators:
-            if self.__config[comparator]["apply"]:
-                config = self.__config[comparator]
+            if self.__config["comparators"][comparator]["apply"]:
+                config = self.__config["comparators"][comparator]
                 comp = None
                 match comparator:
                     case "os":

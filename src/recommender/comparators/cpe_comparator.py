@@ -1,5 +1,4 @@
 from abc import ABC
-from statistics import mean
 
 from recommender.comparators.base_comparator import BaseComparator
 
@@ -16,7 +15,7 @@ class CpeComparator(BaseComparator, ABC):
             config["version"]
         ]
 
-    def _compare_sw_components(self, sw1, sw2):
+    def compare_sw_components(self, sw1, sw2):
         """
         Compares two software components and returns partial similarity.
         :param sw1: First SW component
@@ -33,14 +32,14 @@ class CpeComparator(BaseComparator, ABC):
         if sw1 is None or sw2 is None:
             return self._config["diff_value"], False
 
-        compare_result = self.compare_cpe(sw1.cpe_list, sw2.cpe_list)
+        compare_result = self._compare_cpe(sw1.cpe_list, sw2.cpe_list)
 
         # Zero similarity -> use configured diff value
         if compare_result == 0:
             return self._config["diff_value"], False
         return compare_result, self._check_critical_bound(compare_result)
 
-    def compare_cpe(self, list1, list2):
+    def _compare_cpe(self, list1, list2):
         """
         Compares two cpe string in form of list of CPE parts and evaluates
         similarity with list of weights for each part.

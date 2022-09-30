@@ -1,6 +1,7 @@
 from neo4j import GraphDatabase
 from ipaddress import ip_address
 
+from recommender.model import SoftwareComponent
 from recommender.model.host import Host, HostWithScore
 from recommender.model.network_service import NetworkService
 from recommender.model.path_type import PathType
@@ -135,8 +136,8 @@ class Neo4jClient:
                     continue
 
                 # map string path types to enum
-                host_path_types = map(lambda path: path_types[path],
-                                      row["path_types"])
+                host_path_types = list(map(lambda path: path_types[path],
+                                           row["path_types"]))
 
                 new_host = self.__get_host_with_score(ip, row["distance"],
                                                       host_path_types, session)
@@ -194,7 +195,7 @@ class Neo4jClient:
     def get_all_os_versions(self):
         """
         Returns all OS versions from the database.
-        :return: List of CPE strings.
+        :return: List of SoftwareComponent.
         """
         with self.__driver.session() as session:
             return session.read_transaction(self.__get_all_software_query,
@@ -203,7 +204,7 @@ class Neo4jClient:
     def get_all_cms_versions(self):
         """
         Returns all CMS versions from the database.
-        :return: List of CPE strings.
+        :return: List of SoftwareComponent.
         """
         with self.__driver.session() as session:
             return session.read_transaction(self.__get_all_software_query,
@@ -212,7 +213,7 @@ class Neo4jClient:
     def get_all_antivirus_versions(self):
         """
         Returns all antivirus versions from the database.
-        :return: List of CPE strings.
+        :return: List of SoftwareComponent.
         """
         with self.__driver.session() as session:
             return session.read_transaction(self.__get_all_software_query,
@@ -332,7 +333,7 @@ class Neo4jClient:
             "RETURN DISTINCT sw.version"
         )
         result = tx.run(query, tag=tag)
-        return [row["sw.version"] for row in result]
+        return [SoftwareComponent(tag, row["sw.version"]) for row in result]
 
     @staticmethod
     def __get_average_event_count_query(tx):
