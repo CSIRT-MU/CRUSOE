@@ -18,17 +18,17 @@ class MeanBoundCalculator:
         """
         Calculates similarity for all software version combinations possible
         and sets critical bound as a mean of all similarities.
-        :param versions: CPE strings of all distinct software version found
+        :param versions: SoftwareComponent objects of all distinct software
+        version found
         :return: mean similarity of all combinations
         """
         similarities = []
         for i in range(len(versions)):
             for j in range(i, len(versions)):
                 similarities.append(
-                    comparator.compare_cpe(versions[i].split(":"),
-                                           versions[j].split(":")))
+                    comparator.compare_sw_components(versions[i], versions[j]))
 
-        return mean(similarities)
+        return mean(map(lambda x: x[0], similarities))
 
     @staticmethod
     def calculate_mean_bounds(db_client, config):
@@ -41,36 +41,37 @@ class MeanBoundCalculator:
         :param config: Recommender configuration (dictionary)
         :return:
         """
-        os = OsComparator(config["os"])
+        os = OsComparator(config["comparators"]["os"])
         all_os = db_client.get_all_os_versions()
         avg_os = MeanBoundCalculator.__calc_cpe_mean_bound(os, all_os)
 
-        config["os"]["critical_bound"] = round(avg_os, 8)
+        config["comparators"]["os"]["critical_bound"] = round(avg_os, 8)
 
-        cms = OsComparator(config["cms"])
+        cms = OsComparator(config["comparators"]["cms"])
         all_cms = db_client.get_all_cms_versions()
         avg_cms = MeanBoundCalculator.__calc_cpe_mean_bound(cms, all_cms)
 
-        config["cms"]["critical_bound"] = round(avg_cms, 8)
+        config["comparators"]["cms"]["critical_bound"] = round(avg_cms, 8)
 
-        antivirus = OsComparator(config["antivirus"])
+        antivirus = OsComparator(config["comparators"]["antivirus"])
         all_antivirus = db_client.get_all_antivirus_versions()
         avg_anti = MeanBoundCalculator.__calc_cpe_mean_bound(antivirus,
                                                              all_antivirus)
 
-        config["antivirus"]["critical_bound"] = round(avg_anti, 8)
+        config["comparators"]["antivirus"]["critical_bound"] = round(avg_anti,
+                                                                     8)
 
         # For cumulative similarities, mean bound is calculated as mean of
         # number of events/vulnerabilities found on hosts divided by total
         # number of them found in the network.
         avg_cve = db_client.get_average_cve_count()
         total_cve = db_client.get_total_cve_count()
-        config["cve_cumulative"]["critical_bound"] = \
+        config["comparators"]["cve_cumulative"]["critical_bound"] = \
             round(avg_cve / total_cve, 8)
 
         avg_event = db_client.get_average_event_count()
         total_event = db_client.get_total_event_count()
-        config["event_cumulative"]["critical_bound"] = \
+        config["comparators"]["event_cumulative"]["critical_bound"] = \
             round(avg_event / total_event, 8)
 
     @staticmethod
