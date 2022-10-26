@@ -70,7 +70,7 @@ class Neo4jClient:
             # Create new host
             new_host = Host(ip, result["domains"], result["contacts"],
                             result["os"], result["antivirus"], result["cms"],
-                            result["vulner_count"], result["event_count"])
+                            result["cve_count"], result["event_count"])
 
             # Get network services
             new_host.network_services = self.__get_network_services(
@@ -78,72 +78,41 @@ class Neo4jClient:
 
         return new_host
 
-    def __get_host_with_score(self, ip, distance, path_types, session):
-        """
-        Gets information about nearby host which was found during the
-        traversal.
-        :param ip: Host's IP address object
-        :param distance: Distance to the attacked host
-        :param path_types: Path type(s) found to the attacked host
-        :param session: Database session
-        :return: HostWithScore object or None if host with given IP does not
-        exist
-        """
-        result = session.read_transaction(self.__get_host_by_ip_query, str(ip))
-
-        if not result:
-            self.__logger.info(
-                f"Given IP ({str(ip)}) is not assigned to any host.")
-            return None
-
-        new_host = HostWithScore(ip, result["domains"], result["contacts"],
-                                 result["os"], result["antivirus"],
-                                 result["cms"], result["vulner_count"],
-                                 result["event_count"], distance, path_types)
-
-        new_host.network_services = self.__get_network_services(
-            str(ip), session, result["start"], result["end"])
-
-        return new_host
-
     def find_close_hosts(self, ip, max_distance):
         """
         Starts BFS traversal (uses Java traversal API) from given IP node and
-        finds nearby hosts to the maximum distance given as an argument. Type
-        of a path is stored as an enum.
+        finds nearby hosts to the maximum distance given as an argument.
         :param ip: IP address object of a host where BFS should start
         :param max_distance: Maximum distance search from initial host
         :return: List of found HostWithScore objects
         """
         with self.__driver.session() as session:
-            result = session.read_transaction(self.__find_close_hosts_query,
-                                              ip, max_distance)
-
-            # Initialization of a result list of hosts
-            result_list = []
-
             # Dictionary for converting string to enum
             path_types = {"subnet": PathType.Subnet,
                           "organization": PathType.Organization,
                           "contact": PathType.Contact}
 
-            for row in result:
-                try:
-                    ip = ip_address(row["ip"])
-                except ValueError:
-                    self.__logger.error(
-                        f"Found invalid IP address {row['ip']}")
-                    continue
+            # Initialize result list
+            result_list = []
 
-                # map string path types to enum
+            for row in session.read_transaction(self.__find_close_hosts_query,
+                                                ip, max_distance):
+                # Map string path types to enum
                 host_path_types = list(map(lambda path: path_types[path],
                                            row["path_types"]))
 
-                new_host = self.__get_host_with_score(ip, row["distance"],
-                                                      host_path_types, session)
+                new_host = HostWithScore(row["ip"], row["domains"],
+                                         row["contacts"],
+                                         row["os"], row["antivirus"],
+                                         row["cms"], row["cve_count"],
+                                         row["event_count"],
+                                         row["distance"],
+                                         host_path_types)
 
-                if new_host is not None:
-                    result_list.append(new_host)
+                new_host.network_services = self.__get_network_services(
+                    row["ip"], session, row["start"], row["end"])
+
+                result_list.append(new_host)
 
             return result_list
 
@@ -235,7 +204,7 @@ class Neo4jClient:
         """
         with self.__driver.session() as session:
             return session.read_transaction(
-                self.__get_average_vulner_count_query)["avg_vulner"]
+                self.__get_average_cve_count_query)["avg_cve"]
 
     # CYPHER queries
 
@@ -267,8 +236,22 @@ class Neo4jClient:
         query = (
             # Traverse from given IP address node
             "CALL traverse.findCloseHosts($ip, $max_distance) "
-            "YIELD ip, distance, path_types "
-            "RETURN ip, distance, path_types"
+            "YIELD ip AS ip_string, distance, path_types "
+
+            # Obtain information about found hosts
+            "MATCH (host:Host)<-[:IS_A]-(:Node)-[:HAS_ASSIGNED]->(ip:IP) "
+            "WHERE ip.address = ip_string "
+
+            f"{Neo4jClient.__get_os_subquery()}"
+            f"{Neo4jClient.__get_antivirus_subquery()}"
+            f"{Neo4jClient.__get_cms_subquery()}"
+            f"{Neo4jClient.__get_host_event_count_subquery()}"
+            f"{Neo4jClient.__get_host_cve_count_subquery()}"
+            f"{Neo4jClient.__get_contacts_subquery()}"
+            f"{Neo4jClient.__get_domains_subquery()}"
+
+            "RETURN ip.address AS ip, domains, os, contacts, antivirus, cms, "
+            "event_count, cve_count, start, end, distance, path_types"
         )
         result = tx.run(query, ip=ip, max_distance=max_distance)
         return [row for row in result]
@@ -283,23 +266,15 @@ class Neo4jClient:
             f"{Neo4jClient.__get_os_subquery()}"
             f"{Neo4jClient.__get_antivirus_subquery()}"
             f"{Neo4jClient.__get_cms_subquery()}"
-
-            # Get number of security events
             f"{Neo4jClient.__get_host_event_count_subquery()}"
-
-            # Get number of cve in software running on host
             f"{Neo4jClient.__get_host_cve_count_subquery()}"
-
-            # Get contact(s) on people responsible for given host
             f"{Neo4jClient.__get_contacts_subquery()}"
-
-            # Get domains that resolve to given IP address
             f"{Neo4jClient.__get_domains_subquery()}"
 
             # Return found components + timestamp of OS for finding network 
             # services
             "RETURN domains, os, contacts, antivirus, cms, event_count, "
-            "vulner_count, start, end"
+            "cve_count, start, end"
         )
 
         result = tx.run(query, ip=ip)
@@ -318,8 +293,8 @@ class Neo4jClient:
     @staticmethod
     def __get_total_cve_count_query(tx):
         query = (
-            "MATCH (v:Vulnerability) "
-            "RETURN count(DISTINCT v) AS cve_count"
+            "MATCH (cve:Vulnerability) "
+            "RETURN count(DISTINCT cve) AS cve_count"
         )
 
         result = tx.run(query)
@@ -347,13 +322,13 @@ class Neo4jClient:
         return result.single()
 
     @staticmethod
-    def __get_average_vulner_count_query(tx):
+    def __get_average_cve_count_query(tx):
         query = (
             "MATCH (sw:SoftwareVersion)-[:ON]->(host:Host) "
             "WITH DISTINCT sw, host "
-            "MATCH (vulner:Vulnerability)-[:IN]->(sw) "
-            "WITH host, count(DISTINCT vulner) AS vulner_count "
-            "RETURN avg(vulner_count) AS avg_vulner"
+            "MATCH (cve:Vulnerability)-[:IN]->(sw) "
+            "WITH host, count(DISTINCT cve) AS cve_count "
+            "RETURN avg(cve_count) AS avg_cve"
         )
 
         result = tx.run(query)
@@ -376,8 +351,8 @@ class Neo4jClient:
             "    WITH host "
             "    MATCH (sw:SoftwareVersion)-[:ON]->(host) "
             "    WITH DISTINCT sw "
-            "    MATCH (vulner:Vulnerability)-[:IN]->(sw:SoftwareVersion) "
-            "    RETURN count(DISTINCT vulner) AS vulner_count "
+            "    MATCH (cve:Vulnerability)-[:IN]->(sw:SoftwareVersion) "
+            "    RETURN count(DISTINCT cve) AS cve_count "
             "} "
         )
 

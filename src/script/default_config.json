@@ -1,5 +1,5 @@
 {
-    "max_distance": 2,
+    "max_distance": 4,
     "path": {
         "apply": true,
         "subnet": 1,

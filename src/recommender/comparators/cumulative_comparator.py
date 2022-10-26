@@ -21,7 +21,7 @@ class CumulativeSimilarityComparator(BaseComparator, ABC):
 
         # Check zero values to avoid dividing by zero / returning zero
         if avg == 0:
-            return 1 / total, False
+            return 1.0 / total, False
 
         if total == 0:
             return 1, False
