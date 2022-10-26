@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import logging
+import os
 import sys
 from os import getenv
 
@@ -83,6 +84,13 @@ class RecommenderScript:
         # Get options and configs
         if not self.__get_input_and_config():
             # Error occurred in options or config files
+            sys.exit(1)
+
+        if "NEO4J_URL" not in os.environ or "NEO4J_USER" not in os.environ \
+                or "NEO4J_PASSWORD" not in os.environ:
+            self.__logger.critical("Script requires NEO4J_URL, NEO4J_USER "
+                                   "and NEO4J_PASSWORD environment variables"
+                                   " to be set.")
             sys.exit(1)
 
         # Connect to database and create recommender object
