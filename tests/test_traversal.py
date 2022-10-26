@@ -59,7 +59,7 @@ def traverse(driver, max_distance):
     return ip_set_1, ip_set_2
 
 
-class MyTestCase(unittest.TestCase):
+class TestTraversal(unittest.TestCase):
     driver = GraphDatabase.driver(getenv("NEO4J_URL"),
                                   auth=(getenv("NEO4J_USER"),
                                         getenv("NEO4J_PASSWORD")))

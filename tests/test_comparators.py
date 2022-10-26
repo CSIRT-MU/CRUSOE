@@ -1,7 +1,7 @@
 import unittest
 
 from recommender.comparators import OsComparator, CveComparator, \
-    NetServicesComparator, CmsComparator, AntivirusComparator
+    NetServicesComparator, CmsComparator, AntivirusComparator, EventComparator
 from recommender.model import HostWithScore, NetworkService
 
 
@@ -12,9 +12,9 @@ class TestComparators(unittest.TestCase):
 
         # Initialize test data
         self.test_hosts = [
-            HostWithScore("123.123.123.123", ["test.cz"], ["test@email.cz"], "microsoft:windows:10", None, "apache:http_server:2.4.10", 54, 0, 0, 0),
-            HostWithScore("123.123.123.123", ["test.cz"], ["test@email.cz"], "apple:macOS:monterey", "*:*:*", "apache:http_server:2.4.18", 23, 0, 0, 0),
-            HostWithScore("123.123.123.123", ["test.cz"], ["test@email.cz"], "microsoft:windows:xp", "eset:nod32:1.2", "microsoft:iis:8.5", 120, 0, 0, 0),
+            HostWithScore("123.123.123.123", ["test.cz"], ["test@email.cz"], "microsoft:windows:10", None, "apache:http_server:2.4.10", 54, 24, 0, 0),
+            HostWithScore("123.123.123.123", ["test.cz"], ["test@email.cz"], "apple:macOS:monterey", "*:*:*", "apache:http_server:2.4.18", 23, 90, 0, 0),
+            HostWithScore("123.123.123.123", ["test.cz"], ["test@email.cz"], "microsoft:windows:xp", "eset:nod32:1.2", "microsoft:iis:8.5", 0, 0, 0, 0),
             HostWithScore("123.123.123.123", ["test.cz"], ["test@email.cz"], "apple:ios:12.1", "eset:*:*", "apache:http_server:*", 0, 0, 0, 0),
             HostWithScore("123.123.123.123", ["test.cz"], ["test@email.cz"], "google:android:8.1", "avast:free_antivirus:4.2", "nginx:n:12", 142, 0, 0, 0),
             HostWithScore("123.123.123.123", ["test.cz"], ["test@email.cz"], "microsoft:windows:10", "eset:nod32:1.5", "nginx:nginx:1.5.8", 90, 0, 0, 0),
@@ -150,7 +150,7 @@ class TestComparators(unittest.TestCase):
             "version": 0.25,
             "diff_value": 0.8,
             "critical_bound": 0.7,
-            "require_open_http": False
+            "require_open_ports": False
         }
 
         comparator = CmsComparator(test_config)
@@ -190,7 +190,7 @@ class TestComparators(unittest.TestCase):
         self.assertEqual(warn_count, len(self.test_hosts[4].warnings))
 
         # With http required
-        test_config["require_open_http"] = True
+        test_config["require_open_ports"] = True
         http = NetworkService(80, "TCP", "http")
         https = NetworkService(443, "TCP", "https")
         self.test_hosts[0].network_services = [http]
@@ -300,8 +300,7 @@ class TestComparators(unittest.TestCase):
 
     def test_cve_comparator(self):
         test_config = {
-            "diff_value": 0.3,
-            "critical_bound": 0.7
+            "critical_bound": 0.5
         }
 
         total_cve = 120
@@ -309,14 +308,38 @@ class TestComparators(unittest.TestCase):
 
         comparator.set_reference_host(self.test_hosts[0])
 
-    def test_event_comparator(self):
+        self.assertAlmostEqual(comparator.calc_partial_similarity(
+            self.test_hosts[1]), 38.5 / 120)
 
+        self.assertAlmostEqual(comparator.calc_partial_similarity(
+            self.test_hosts[2]), 27.0 / 120)
+
+        comparator.set_reference_host(self.test_hosts[2])
+
+        self.assertAlmostEqual(comparator.calc_partial_similarity(
+            self.test_hosts[3]), 1.0 / 120)
+
+    def test_event_comparator(self):
         test_config = {
-            "diff_value": 0.3,
             "critical_bound": 0.7
         }
 
-        total_events = 154
+        total_cve = 153
+
+        comparator = EventComparator(test_config, total_cve)
+
+        comparator.set_reference_host(self.test_hosts[0])
+
+        self.assertAlmostEqual(comparator.calc_partial_similarity(
+            self.test_hosts[1]), 57.0 / 153)
+
+        self.assertAlmostEqual(comparator.calc_partial_similarity(
+            self.test_hosts[2]), 12.0 / 153)
+
+        comparator.set_reference_host(self.test_hosts[2])
+
+        self.assertAlmostEqual(comparator.calc_partial_similarity(
+            self.test_hosts[3]), 1.0 / 153)
 
 
 if __name__ == '__main__':
