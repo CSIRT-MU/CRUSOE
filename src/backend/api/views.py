@@ -12,6 +12,7 @@ from recommender.recommender import Recommender
 from utils.json_encoder import Encoder
 from utils.mean_bound_calculator import MeanBoundCalculator
 from utils.validator import Validator
+from django.core.files.storage import default_storage
 
 
 def get_logger():
@@ -21,7 +22,7 @@ def get_logger():
     """
     logger = logging.getLogger("neo4j")
     logger.setLevel(20)
-    file_handler = logging.FileHandler("recommender.log")
+    file_handler = logging.FileHandler(settings.LOG)
     log_format = "[%(levelname)s] - %(asctime)s - %(name)s - : %(message)s"
     file_handler.setFormatter(logging.Formatter(log_format))
     file_handler.setLevel(logging.INFO)
@@ -31,8 +32,8 @@ def get_logger():
 
 def get_db_client():
     """
-    Returns new Neo4j client initialized with connection details from Django's
-    settings.
+    Returns a new Neo4j client initialized with connection details from
+    Django settings file.
     :return: Neo4j client
     """
     return Neo4jClient(settings.DATABASES['default']['URL'],
@@ -43,22 +44,23 @@ def get_db_client():
 
 def initialize_recommender(ip, domain, db_client):
     """
-    Initializes recommender object for use in views. IP or domain must be
-    given.
-    :param ip: IP of attacked host
-    :param domain: Domain of attacked host
+    Initializes recommender object for views. IP or domain must be given.
+    :param ip: IP of the attacked host
+    :param domain: Domain of the attacked host
     :param db_client: Neo4j database client
-    :return: Initialized recommender
+    :return: Initialized recommender or None if IP or domain is not given
     """
-    with open(settings.CONFIG, 'r') as config_stream:
+    with default_storage.open(settings.CONFIG) as config_stream:
         config = load(config_stream)
 
     recommend = Recommender(config, db_client, get_logger())
 
     if ip is not None:
         recommend.get_attacked_host_by_ip(ip)
-    else:
+    elif domain is not None:
         recommend.get_attacked_host_by_ip(domain)
+    else:
+        return None
 
     return recommend
 
@@ -66,8 +68,8 @@ def initialize_recommender(ip, domain, db_client):
 def parse_query_params(query_params):
     """
     Parses query parameters for recommender endpoints (IP or domain name).
-    :param query_params: Dict of query params from REST framework Request
-    :return: Tuple of IP and domain (one can be None).
+    :param query_params: Dictionary of query params from REST framework Request
+    :return: Tuple of IP and domain (one can be None)
     """
     if "ip" not in query_params and "domain" not in query_params:
         raise ValueError("IP or domain parameter is required.")
@@ -85,8 +87,8 @@ def parse_query_params(query_params):
 @api_view(["GET"])
 def attacked_host(request):
     """
-    View for obtaining information about attacked host. Requires IP or domain
-    of attacked host as a query parameter.
+    View for obtaining information about the attacked host. Requires IP or domain
+    of the attacked host as a query parameter.
     :param request: REST framework request
     :return:
     """
@@ -103,7 +105,7 @@ def attacked_host(request):
 @api_view(["GET"])
 def recommended_hosts(request):
     """
-    View for recommending similar hosts. Requires IP or domain of attacked
+    View for recommending similar hosts. Requires IP or domain of the attacked
     host as a query parameter.
     :param request: REST framework request
     :return: JsonResponse containing recommended hosts in JSON
@@ -123,16 +125,19 @@ def recommended_hosts(request):
 @api_view(["GET", "PUT", "PATCH"])
 def configuration(request):
     """
-    View for getting and updating recommender configuration file.
+    View for getting and updating the recommender configuration file. Supports
+    three methods: GET for getting saved config, PUT for setting a new config
+    and PATCH for calculating mean bounds in configuration.
     :param request: REST framework request
-    :return: Response or JsonResponse for GET method, Response for PUT method,
-    Response for PATCH method
+    :return: JsonResponse or Response
     """
     if request.method == "GET":
-        if not exists(settings.CONFIG):
-            return Response(status=404)
+        if not default_storage.exists(settings.CONFIG):
+            return JsonResponse(
+                {"error": {"message": "Config file doesn't exist"}},
+                status=404)
 
-        with open(settings.CONFIG, 'r') as config_stream:
+        with default_storage.open(settings.CONFIG, mode="r") as config_stream:
             config = load(config_stream)
 
         return JsonResponse(config, status=200)
@@ -140,23 +145,25 @@ def configuration(request):
     if request.method == "PUT":
         status_code = 201 if not exists(settings.CONFIG) else 200
 
-        with open(settings.CONFIG, "w") as writer:
-            writer.write(dumps(request.data, indent=4))
+        with default_storage.open(settings.CONFIG, mode="w") as config_stream:
+            config_stream.write(dumps(request.data, indent=4))
 
-        return JsonResponse(status=status_code)
+        return JsonResponse(request.data, status=status_code)
 
     if request.method == "PATCH":
         if not exists(settings.CONFIG):
-            return Response(status=404)
+            return JsonResponse(
+                {"error": {"message": "Config file doesn't exist"}},
+                status=404)
 
-        with open(settings.CONFIG, 'r') as config_stream:
+        with default_storage.open(settings.CONFIG, mode="r") as config_stream:
             config = load(config_stream)
 
         with get_db_client() as db_client:
             MeanBoundCalculator.calculate_mean_bounds(db_client, config)
 
-        with open(settings.CONFIG, "w") as writer:
-            writer.write(dumps(config, indent=4))
+        with default_storage.open(settings.CONFIG, mode="w") as config_stream:
+            config_stream.write(dumps(config, indent=4))
 
         return JsonResponse(config, status=200)
 
