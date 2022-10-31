@@ -1,7 +1,7 @@
 class StdoutPrinter:
     """
-    Prints results of a recommender script to standard output in a formatted
-    way.
+    Prints result of the recommender script to the standard output in a
+    formatted way.
     """
 
     # ASCII text edit symbols
@@ -33,21 +33,19 @@ class StdoutPrinter:
         print(color + str(host) + self.END)
         print()
 
-    def print_number_of_hosts(self, number_of_hosts, max_distance, color=BLUE):
+    def print_number_of_hosts(self, number_of_hosts, color=END):
         """
         Prints information about number of nearby hosts find and number
         of hosts actually given to stdout (in case limit option is used.
         :param number_of_hosts: Number of hosts found
-        :param max_distance: Maximum distance in graph used during BFS search
         :param color: Color of the result string
         :return: None
         """
 
         print(color +
-              f"Found {number_of_hosts} hosts to maximum distance of "
-              f"{max_distance}:" + self.END)
+              f"Found {number_of_hosts} hosts:" + self.END)
 
-        # Show how much hosts is actually being printed (defined by limit
+        # Show how many hosts is actually being printed (defined by limit
         # given as a option)
         if self.limit is not None and self.limit < number_of_hosts:
             print(color + f"Displaying {self.limit} hosts." + self.END)

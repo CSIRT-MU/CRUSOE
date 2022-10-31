@@ -3,8 +3,9 @@ from recommender.comparators.cpe_comparator import CpeComparator
 
 class CmsComparator(CpeComparator):
     """
-    Content management system comparator
+    Content management system comparator.
     """
+
     def __init__(self, config):
         super().__init__(config)
         self.__ref_host_open_ports = None
@@ -23,7 +24,7 @@ class CmsComparator(CpeComparator):
         """
         Calculates partial similarity by comparing content management systems
         (CMS) running on compared hosts. Open HTTP(S) ports might be required
-        for this compare, depending on config file.
+        for this comparison, depending on the config file.
         :param host: Host object (host to be compared with reference host)
         :return: Partial similarity of cms software
         """

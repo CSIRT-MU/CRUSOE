@@ -1,6 +1,6 @@
 class SoftwareComponent:
     """
-    Represents software component running on a host.
+    Represents software components running on a host.
     """
     def __init__(self, tag, cpe):
         self.tag = tag

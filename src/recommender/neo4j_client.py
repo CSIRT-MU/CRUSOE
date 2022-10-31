@@ -9,7 +9,7 @@ from recommender.model.path_type import PathType
 
 class Neo4jClient:
     """
-    Manages connection with Neo4j database
+    Manages connection with the Neo4j database.
     """
 
     def __init__(self, url, user, password, logger):
@@ -31,9 +31,9 @@ class Neo4jClient:
 
     def get_host_by_domain(self, domain):
         """
-        Finds host in the database by its domain address and initialize its
-        properties. Throws ValueError when given domain doesn't exist in the
-        database.
+        Finds the host in the database by its domain address and initialize its
+        properties. Throws ValueError when the given domain doesn't exist in
+        the database.
         :param domain: Domain name string
         :return: Host object
         """
@@ -51,10 +51,11 @@ class Neo4jClient:
 
     def get_host_by_ip(self, ip):
         """
-        Finds host in the database by its IP address and initialize its
-        properties. Throws ValueError when given IP doesn't exist in database.
+        Finds the host in the database by its IP address and initialize its
+        properties. Throws ValueError when given IP doesn't exist in
+        the database.
         :param ip: IP address object
-        :return: Host object or none if host with given IP does not exist
+        :return: Host object or None if a host with given IP does not exist
         """
 
         with self.__driver.session() as session:
@@ -80,10 +81,10 @@ class Neo4jClient:
 
     def find_close_hosts(self, ip, max_distance):
         """
-        Starts BFS traversal (uses Java traversal API) from given IP node and
+        Starts BFS traversal (uses Java traversal API) from a given IP node and
         finds nearby hosts to the maximum distance given as an argument.
         :param ip: IP address object of a host where BFS should start
-        :param max_distance: Maximum distance search from initial host
+        :param max_distance: Maximum distance search from the initial host
         :return: List of found HostWithScore objects
         """
         with self.__driver.session() as session:
@@ -118,9 +119,9 @@ class Neo4jClient:
 
     def get_total_cve_count(self):
         """
-        Counts total number of CVE that were identified in software running
-        on devices in network
-        :return: Total number of CVE
+        Counts the total number of CVEs that were identified in the software
+        running on devices in the network.
+        :return: Total number of CVEs
         """
 
         with self.__driver.session() as session:
@@ -130,7 +131,8 @@ class Neo4jClient:
 
     def get_total_event_count(self):
         """
-        Counts total number of security events that happened in network.
+        Counts the total number of security events that happened in the
+        network.
         :return: Total number of security events
         """
 
@@ -142,7 +144,8 @@ class Neo4jClient:
 
     def __get_network_services(self, ip, session, start, end):
         """
-        Finds network services in database which runs on a host with given IP.
+        Finds network services in the database which runs on a host with
+        given IP.
         :param ip: IP address of a host
         :param session: Database session
         :param start: Start of latest OS runtime
@@ -172,8 +175,8 @@ class Neo4jClient:
 
     def get_all_cms_versions(self):
         """
-        Returns all CMS versions from the database.
-        :return: List of SoftwareComponent.
+        Gets the average number of events that occurred on a host.
+        :return: Average number of events
         """
         with self.__driver.session() as session:
             return session.read_transaction(self.__get_all_software_query,
@@ -190,7 +193,7 @@ class Neo4jClient:
 
     def get_average_event_count(self):
         """
-        Gets average number of events on a host.
+        Gets the average number of events on a host.
         :return: Average number of events
         """
         with self.__driver.session() as session:
@@ -199,7 +202,7 @@ class Neo4jClient:
 
     def get_average_cve_count(self):
         """
-        Gets average number of vulnerabilities on a host.
+        Gets the average number of vulnerabilities on a host.
         :return: Average number of CVEs
         """
         with self.__driver.session() as session:

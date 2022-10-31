@@ -2,6 +2,7 @@ class CsvOutput:
     """
     Exports recommender script output in CSV file.
     """
+
     @staticmethod
     def csv_export(host_list, file_path):
         """

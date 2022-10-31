@@ -1,7 +1,7 @@
 class WarningMessage:
     """
-    Represents partial similarity with high score that should be displayed
-    on output with reason what is causing the similarity.
+    Represents partial similarity with a high score that should be displayed
+    on output with a reason what is causing the similarity.
     """
     def __init__(self, message, similarity_score):
         self.message = message

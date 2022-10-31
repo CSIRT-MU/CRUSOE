@@ -5,8 +5,9 @@ from recommender.comparators.base_comparator import BaseComparator
 
 class CpeComparator(BaseComparator, ABC):
     """
-    Abstract comparator for comparing based on cpe strings
+    Abstract comparator for comparing based on CPE strings.
     """
+
     def __init__(self, config):
         super().__init__(config)
         self.__weights = [
@@ -41,8 +42,8 @@ class CpeComparator(BaseComparator, ABC):
 
     def _compare_cpe(self, list1, list2):
         """
-        Compares two cpe string in form of list of CPE parts and evaluates
-        similarity with list of weights for each part.
+        Compares two CPE strings in form of a list of CPE parts and evaluates
+        similarity with a list of weights for each part.
         :param list1: First CPE list
         :param list2: Second CPE list
         :return: Result similarity (float in range <0,1>)

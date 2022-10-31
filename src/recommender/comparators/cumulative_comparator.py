@@ -5,14 +5,15 @@ from recommender.comparators.base_comparator import BaseComparator
 
 class CumulativeSimilarityComparator(BaseComparator, ABC):
     """
-    Abstract comparator for comparing based on history of hosts
+    Abstract comparator for comparing based on the cumulative history of hosts.
     """
+
     def _calculate_cumulative_similarity(self, n1, n2, total):
         """
         Calculates cumulative partial similarity of some attribute, e.g.
-        number of CVE.
-        :param n1: Number of occurrences on first host
-        :param n2: Number of occurrences on second host
+        number of CVEs.
+        :param n1: Number of occurrences on the first host
+        :param n2: Number of occurrences on the second host
         :param total: Total number of occurrences in the network
         :return: Cumulative partial similarity
         """

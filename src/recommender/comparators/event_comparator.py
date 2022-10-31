@@ -3,6 +3,10 @@ from recommender.comparators.cumulative_comparator \
 
 
 class EventComparator(CumulativeSimilarityComparator):
+    """
+    Compares the history of security incidents.
+    """
+
     def __init__(self, config, total_event_count):
         super().__init__(config)
         self.total_event_count = total_event_count

@@ -4,7 +4,7 @@ from recommender.model.path_type import PathType
 
 class RiskCalculator:
     """
-    Calculates risk scores between attacked host and found hosts in close
+    Calculates risk scores between attacked host and host found in close
     proximity.
     """
 
@@ -33,7 +33,7 @@ class RiskCalculator:
     def calculate_risk_scores(self, attacked_host, compared_hosts):
         """
         Calculates and sets risk score for every host in compared_hosts list.
-        :param attacked_host: Attacked host to which hosts are compared
+        :param attacked_host: Attacked host to which hosts are compared to
         :param compared_hosts: List of hosts which risk should be calculated
         :return: None
         """
@@ -74,7 +74,7 @@ class RiskCalculator:
 
     def __set_reference_host(self, attacked_host):
         """
-        Sets reference host to every comparator in comparator list.
+        Sets reference host to every comparator in the comparator list.
         :return: None
         """
         for comparator in self.__comparators:
@@ -82,11 +82,12 @@ class RiskCalculator:
 
     def __calculate_risk_score(self, compared_host):
         """
-        Compares attacked host with given host by applying list of comparators.
-        Result similarity is divided by distance between hosts and multiplied
-        by path coefficient.
+        Compares attacked host with given host by applying the list
+        of comparators. Result similarity is divided by distance between hosts
+        and multiplied by path coefficient.
         :param compared_host: Host to be compared with attacked host
-        :return: Risk score between attacked host and compared host.
+        :return: Risk score between attacked host and compared host
+        Sets reference host to every comparator in the comparator list
         """
 
         # Default similarity is 1

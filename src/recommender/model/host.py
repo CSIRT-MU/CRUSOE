@@ -65,8 +65,8 @@ class HostWithScore(Host):
 
     def add_warning_message(self, warning_message):
         """
-        Adds warning message to the list of warnings of a host.
-        :param warning_message: WarningMessage object for adding
+        Adds warning message to the list of warnings of the host.
+        :param warning_message: WarningMessage object which should be added
         :return: None
         """
         self.warnings.append(warning_message)

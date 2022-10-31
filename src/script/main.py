@@ -15,7 +15,7 @@ from script.json_output import JsonOutput
 
 class RecommenderScript:
     """
-    Main recommender script
+    Main recommender script.
     """
 
     def __init__(self):
@@ -28,8 +28,8 @@ class RecommenderScript:
     @staticmethod
     def __initialize_logger():
         """
-        Initialize logging for recommender. Two loggers are used (stderr and
-        in file "recommender.log").
+        Initialize logging for the recommender. Two loggers are used (stderr
+        and in file "recommender.log").
         :return: Initialized logger
         """
         logger = logging.getLogger("neo4j")
@@ -111,6 +111,8 @@ class RecommenderScript:
             stdout.print_attacked_host(self.__recommender.attacked_host)
 
             self.__recommender.recommend_hosts()
+
+            stdout.print_number_of_hosts(len(self.__recommender.host_list))
 
             # Print result to screen and export in file (if set in input)
             stdout.print_host_list(self.__recommender.host_list)

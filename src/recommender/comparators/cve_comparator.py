@@ -3,13 +3,17 @@ from recommender.comparators.cumulative_comparator \
 
 
 class CveComparator(CumulativeSimilarityComparator):
+    """
+    Compares the history of CVEs.
+    """
+
     def __init__(self, config, total_cve_count):
         super().__init__(config)
         self.total_cve_count = total_cve_count
 
     def calc_partial_similarity(self, host):
         """
-        Calculates cumulative similarity of number of vulnerabilities (CVE)
+        Calculates cumulative similarity of the number of vulnerabilities (CVE)
         on hosts
         :param host: Host object (host to be compared with reference host)
         :return: Cumulative partial similarity

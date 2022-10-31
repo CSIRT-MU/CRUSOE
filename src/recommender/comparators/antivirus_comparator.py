@@ -2,6 +2,9 @@ from recommender.comparators.cpe_comparator import CpeComparator
 
 
 class AntivirusComparator(CpeComparator):
+    """
+    Compares antivirus software between hosts.
+    """
 
     def calc_partial_similarity(self, host):
         """

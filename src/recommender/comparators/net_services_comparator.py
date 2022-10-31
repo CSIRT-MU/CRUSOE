@@ -2,6 +2,9 @@ from recommender.comparators.base_comparator import BaseComparator
 
 
 class NetServicesComparator(BaseComparator):
+    """
+    Compares network services between hosts.
+    """
 
     def __init__(self, config):
         super().__init__(config)
@@ -18,10 +21,10 @@ class NetServicesComparator(BaseComparator):
 
     def calc_partial_similarity(self, host):
         """
-        Calculates partial similarity by summing number of services running on
-        both hosts divided by total number of distinct services found on these
-        two host. When similarity is zero (no similar net services),
-        predefined value from configuration is returned.
+        Calculates partial similarity by summing the number of services running
+        on both hosts divided by the total number of distinct services found
+        on these two hosts. When similarity is zero (no similar net services),
+        the predefined value from the configuration is returned.
         :param host: Host object (host to be compared with reference host)
         :return: Partial similarity (number in <0,1>)
         """

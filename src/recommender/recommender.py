@@ -3,8 +3,9 @@ from recommender.risk_calculator import RiskCalculator
 
 class Recommender:
     """
-    Main recommender class, uses db client to find attacked host and hosts in
-    proximity. Then calculates scores and sort them appropriately.
+    The main recommender class. Uses Neo4j client to find the attacked host
+    and hosts in proximity. Then calculates scores and sorts them
+    appropriately.
     """
 
     def __init__(self, config, db_client, logger):
@@ -18,32 +19,33 @@ class Recommender:
     def get_attacked_host_by_ip(self, ip):
         """
         Finds attacked host in the database by its IP address and loads it
-        in attacked_host attribute.
+        in the attacked_host attribute.
         :param ip: IP address of the attacked host
         :return: None
-        :except ValueError - if given ip doesn't exist in the database.
+        :except ValueError - if the given IP doesn't exist in the database.
         """
         self.attacked_host = self.__db_client.get_host_by_ip(ip)
 
     def get_attacked_host_by_domain(self, domain):
         """
-        Finds attacked host in the database by one of its domains and loads it
+        Finds attacked host in the database by its domain name and loads it
         in attacked_host attribute.
 
         :param domain: Domain name of the attacked host
         :return: None
-        :except ValueError - if given domain doesn't exist in the database.
+        :except ValueError - if the given domain doesn't exist in the database.
         """
         self.attacked_host = self.__db_client.get_host_by_domain(domain)
 
     def recommend_hosts(self):
         """
-        Finds close hosts and calculates risk for them. Attacked host must be
-        found before search. Saves recommended hosts in host_list attribute.
+        Finds close hosts and calculates risk for them. The attacked host must
+        be found before the search. Saves recommended hosts in the host_list
+        attribute.
         :return: None
         """
 
-        # Start BFS from attacked host IP and find hosts in close proximity
+        # Start BFS from attacked host IP and find hosts in proximity
         self.host_list = self.__db_client.find_close_hosts(
             self.attacked_host.ip,
             self.__config["max_distance"])

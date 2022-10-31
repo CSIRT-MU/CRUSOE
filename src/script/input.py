@@ -7,7 +7,7 @@ from utils.validator import Validator
 
 class InputParser:
     """
-    Parses all input needed for recommender script.
+    Parses all input needed for the recommender script.
     """
 
     def __init__(self, logger):
@@ -23,10 +23,11 @@ class InputParser:
 
     def parse_options(self):
         """
-        Parses input from options. Sets ip or domain attribute of attacked
-        host. Password parameter is necessary. Optional parameters are limit
-        - number of hosts with highest risk to print and config path
-        (if no config path is given, default config is used.
+        Parses input from options. Sets the IP or domain attribute of the
+        attacked host. Optional parameters are limit - number of hosts with
+        the highest risk to print, verbose and config path (if no config path
+        is given, the default config is used. The result can also be exported
+        in CSV and JSON.
         :return: True if options were obtained correctly, False otherwise
         """
 
@@ -85,7 +86,8 @@ class InputParser:
 
     def load_config(self):
         """
-        Loads config from path in config_path. If None, default config is used.
+        Loads config from the path in config_path. If None, the default config
+        is used.
         :return: True if config was successfully parsed, False otherwise.
         """
         if self.__config_path is None:
