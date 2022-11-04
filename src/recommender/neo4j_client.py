@@ -46,15 +46,14 @@ class Neo4jClient:
                 self.__logger.critical(
                     "Given domain doesn't resolve to any IP")
                 raise ValueError("Given domain doesn't resolve to any IP")
-
-        return self.get_host_by_ip(ip_address(result["ip"]["address"]))
+        return self.get_host_by_ip(result["ip"]["address"])
 
     def get_host_by_ip(self, ip):
         """
         Finds the host in the database by its IP address and initialize its
         properties. Throws ValueError when given IP doesn't exist in
         the database.
-        :param ip: IP address object
+        :param ip: IP string
         :return: Host object or None if a host with given IP does not exist
         """
 
@@ -242,9 +241,7 @@ class Neo4jClient:
             "YIELD ip AS ip_string, distance, path_types "
 
             # Obtain information about found hosts
-            "MATCH (host:Host)<-[:IS_A]-(:Node)-[:HAS_ASSIGNED]->(ip:IP) "
-            "WHERE ip.address = ip_string "
-
+            f"{Neo4jClient.__get_host_and_ip_subquery()}"
             f"{Neo4jClient.__get_os_subquery()}"
             f"{Neo4jClient.__get_antivirus_subquery()}"
             f"{Neo4jClient.__get_cms_subquery()}"
@@ -262,10 +259,9 @@ class Neo4jClient:
     @staticmethod
     def __get_host_by_ip_query(tx, ip):
         query = (
-            "MATCH (host:Host)<-[:IS_A]-(:Node)-[:HAS_ASSIGNED]->(ip:IP) "
-            "WHERE ip.address = $ip "
-
+            "WITH $ip AS ip_string "
             # Get operating system running on host + optional antivirus and cms
+            f"{Neo4jClient.__get_host_and_ip_subquery()}"       
             f"{Neo4jClient.__get_os_subquery()}"
             f"{Neo4jClient.__get_antivirus_subquery()}"
             f"{Neo4jClient.__get_cms_subquery()}"
@@ -342,7 +338,7 @@ class Neo4jClient:
         return (
             "CALL { "
             "   WITH ip "
-            "   OPTIONAL MATCH (ip:IP)-[:SOURCE_OF]->(event:SecurityEvent) "
+            "   OPTIONAL MATCH (ip)-[:SOURCE_OF]->(event:SecurityEvent) "
             "   RETURN count(event) AS event_count "
             "} "
         )
@@ -408,7 +404,7 @@ class Neo4jClient:
         return (
             "CALL { "
             "    WITH ip "
-            "    OPTIONAL MATCH (ip:IP)-[:PART_OF]-(:Subnet)-[:HAS]->"
+            "    OPTIONAL MATCH (ip)-[:PART_OF]-(:Subnet)-[:HAS]->"
             "    (c:Contact) "
             "    RETURN collect(c.name) AS contacts "
             "} "
@@ -419,9 +415,20 @@ class Neo4jClient:
         return (
             "CALL { "
             "   WITH ip "
-            "   OPTIONAL MATCH (ip:IP)-[:RESOLVES_TO]->(domain:DomainName) "
+            "   OPTIONAL MATCH (ip)-[:RESOLVES_TO]->(domain:DomainName) "
             # Reduce all found domain names in one list
             "   RETURN REDUCE(s = [], domain_name IN "
-            "   COLLECT(domain.domain_name) | s + domain_name) AS domains "
+            "   collect(domain.domain_name) | s + domain_name) AS domains "
             "} "
+        )
+
+    @staticmethod
+    def __get_host_and_ip_subquery():
+        return (
+            "CALL { "
+            "   WITH ip_string "
+            "   MATCH (host:Host)<-[:IS_A]-(:Node)-[:HAS_ASSIGNED]->(ip:IP) "
+            "   WHERE ip.address = ip_string "
+            "   RETURN host, ip "
+            "}"
         )

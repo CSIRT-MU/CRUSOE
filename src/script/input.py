@@ -36,7 +36,7 @@ class InputParser:
         try:
             # -i | --ip      -> IP input
             # -d | --domain  -> domain input
-            # -c | --config  –> config path
+            # -c | --config  –> conrfig path
             # -l | --limit   –> number of hosts to print on output
             # -v | --verbose -> use verbose output
             # -s | --csv     -> export in csv

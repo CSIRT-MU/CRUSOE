@@ -19,7 +19,7 @@ class StdoutPrinter:
         self.limit = limit
         self.verbose = verbose
         self.__headers = ["IP ADDRESS", "DOMAIN(S)", "CONTACT(S)", "RISK"]
-        self.__widths = [20, 0, 0, 10]
+        self.__widths = [20, 0, 0, 24]
 
     def print_attacked_host(self, host, header_color=BLUE, color=END):
         """
@@ -43,7 +43,7 @@ class StdoutPrinter:
         """
 
         print(color +
-              f"Found {number_of_hosts} hosts:" + self.END)
+              f"Found {number_of_hosts} hosts." + self.END)
 
         # Show how many hosts is actually being printed (defined by limit
         # given as a option)
@@ -59,6 +59,9 @@ class StdoutPrinter:
         :param color: Color of the header
         :return: None
         """
+
+        if not host_list:
+            return
 
         # Get shortened list if limit is given
         list_slice = host_list[:self.limit]
@@ -150,8 +153,11 @@ class StdoutPrinter:
 
         print(color + "|", end="")
 
-        print_items = [str(host.ip), host.domains[0], host.contacts[0],
-                       str(round(host.risk, 6))]
+        domain = host.domains[0] if len(host.domains) > 1 else "Not found"
+        contact = host.contacts[0] if len(host.contacts) > 1 else "Not found"
+
+        print_items = [str(host.ip), domain, contact,
+                       '{:.20f}'.format(host.risk)]
 
         if self.verbose and host.warnings:
             print_items.append(str(host.warnings[0]))

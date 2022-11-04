@@ -35,7 +35,8 @@ class Host:
 
     def to_json(self):
         domains = \
-            [] if self.domains[0] == 'Domain name not found' else self.domains
+            [] if not self.domains or self.domains[
+                0] == 'Domain name not found' else self.domains
         return {
             "ip": str(self.ip),
             "domains": domains,
@@ -73,7 +74,7 @@ class HostWithScore(Host):
 
     def to_json(self):
         json = super().to_json()
-        json["risk"] = round(self.risk, 6),
+        json["risk"] = round(self.risk, 20),
         json["distance"] = self.distance
         json["path_types"] = self.path_types
         json["warnings"] = self.warnings
@@ -83,7 +84,7 @@ class HostWithScore(Host):
     def to_csv(self):
         domains = '' if self.domains[0] \
                         == 'Domain name not found' else ','.join(self.domains)
-        csv = f"{self.ip};{domains};{self.contacts};{round(self.risk, 6)}"
+        csv = f"{self.ip};{domains};{self.contacts};{round(self.risk, 20)}"
         csv += f";{','.join(str(warning) for warning in self.warnings)}"
 
         return csv

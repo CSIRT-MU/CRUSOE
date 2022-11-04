@@ -101,11 +101,14 @@ class RecommenderScript:
                                              self.__logger)
 
             # Find given host and recommend similar hosts
-            if self.__input.ip is not None:
-                self.__recommender.get_attacked_host_by_ip(self.__input.ip)
-            elif self.__input.domain is not None:
-                self.__recommender.get_attacked_host_by_domain(
-                    self.__input.domain)
+            try:
+                if self.__input.ip is not None:
+                    self.__recommender.get_attacked_host_by_ip(self.__input.ip)
+                elif self.__input.domain is not None:
+                    self.__recommender.get_attacked_host_by_domain(
+                        self.__input.domain)
+            except ValueError:
+                sys.exit(1)
 
             stdout = StdoutPrinter(self.__input.limit, self.__input.verbose)
             stdout.print_attacked_host(self.__recommender.attacked_host)
