@@ -26,7 +26,7 @@ class CveComparator(CumulativeSimilarityComparator):
 
         if critical:
             self._add_warning_message(host,
-                                      "High cumulative vulnerability count",
+                                      "High cumulative vulnerability count.",
                                       partial_similarity)
 
         return partial_similarity

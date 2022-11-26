@@ -24,7 +24,7 @@ class EventComparator(CumulativeSimilarityComparator):
             self.total_event_count)
 
         if critical:
-            message = "High cumulative security incident count"
+            message = "High cumulative security incident count."
             self._add_warning_message(host, message, partial_similarity)
 
         return partial_similarity

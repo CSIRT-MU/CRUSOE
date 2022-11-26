@@ -62,7 +62,7 @@ class NetServicesComparator(BaseComparator):
             same_service_count / (len1 + len2 - same_service_count)
 
         if self._check_critical_bound(partial_similarity):
-            message = "High number of common net services between hosts"
+            message = "High number of common net services between hosts."
             self._add_warning_message(host, message, partial_similarity)
 
         return partial_similarity

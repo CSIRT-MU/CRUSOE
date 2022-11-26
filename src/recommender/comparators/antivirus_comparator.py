@@ -18,7 +18,7 @@ class AntivirusComparator(CpeComparator):
             self._reference_host.antivirus_component, host.antivirus_component)
 
         if critical:
-            self._add_warning_message(host, "Similar antivirus between hosts",
+            self._add_warning_message(host, "Similar antivirus between hosts.",
                                       partial_similarity)
 
         return partial_similarity
