@@ -1,5 +1,4 @@
 from neo4j import GraphDatabase
-from ipaddress import ip_address
 
 from recommender.model import SoftwareComponent
 from recommender.model.host import Host, HostWithScore
@@ -261,7 +260,7 @@ class Neo4jClient:
         query = (
             "WITH $ip AS ip_string "
             # Get operating system running on host + optional antivirus and cms
-            f"{Neo4jClient.__get_host_and_ip_subquery()}"       
+            f"{Neo4jClient.__get_host_and_ip_subquery()}"
             f"{Neo4jClient.__get_os_subquery()}"
             f"{Neo4jClient.__get_antivirus_subquery()}"
             f"{Neo4jClient.__get_cms_subquery()}"

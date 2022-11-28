@@ -40,10 +40,13 @@ class Recommender:
     def recommend_hosts(self):
         """
         Finds close hosts and calculates risk for them. The attacked host must
-        be found before the search. Saves recommended hosts in the host_list
-        attribute.
+        be found before the search (throws ValueError exception otherwise.
+        Saves recommended hosts in the host_list attribute.
         :return: None
         """
+
+        if self.attacked_host is None:
+            raise ValueError("Attacked host is None.")
 
         # Start BFS from attacked host IP and find hosts in proximity
         self.host_list = self.__db_client.find_close_hosts(
