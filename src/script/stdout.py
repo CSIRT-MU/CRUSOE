@@ -153,8 +153,8 @@ class StdoutPrinter:
 
         print(color + "|", end="")
 
-        domain = host.domains[0] if len(host.domains) > 1 else "Not found"
-        contact = host.contacts[0] if len(host.contacts) > 1 else "Not found"
+        domain = host.domains[0] if len(host.domains) >= 1 else "Not found"
+        contact = host.contacts[0] if len(host.contacts) >= 1 else "Not found"
 
         print_items = [str(host.ip), domain, contact,
                        '{:.20f}'.format(host.risk)]
