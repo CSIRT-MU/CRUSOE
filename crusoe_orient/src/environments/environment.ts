@@ -9,8 +9,8 @@ export const environment = {
   applicationName: 'CRUSOE Dashboard',
   production: false,
   version: packageData.version,
-  apiUrl: 'https://crusoe.csirt.muni.cz/redirect-api/redirect/',
-  tmpActApi: 'https://crusoe.csirt.muni.cz/act/',
-  graphqlApi: 'https://crusoe.csirt.muni.cz/graphql-api/graphql',
-  firewallApi: 'https://crusoe-worker.csirt.muni.cz/firewall',
+  apiUrl: 'https://localhost/redirect-api/redirect/',
+  tmpActApi: 'https://localhost/act/',
+  graphqlApi: 'https://localhost:4001/graphql',
+  firewallApi: 'https://localhost/firewall',
 };

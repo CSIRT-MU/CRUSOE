@@ -5,11 +5,11 @@ export const environment = {
   production: true,
   version: packageData.version,
   /* Redirect API URL */
-  apiUrl: 'https://crusoe.csirt.muni.cz/redirect-api/redirect/',
+  apiUrl: 'https://localhost/redirect-api/redirect/',
   /* Act API URL */
-  tmpActApi: 'https://crusoe.csirt.muni.cz/act/',
+  tmpActApi: 'https://localhost/act/',
   /* GraphQL API URL */
-  graphqlApi: 'https://crusoe.csirt.muni.cz/graphql-api/graphql',
+  graphqlApi: 'https://localhost:4001/graphql',
   /* Firewall API URL */
-  firewallApi: 'https://crusoe-worker.csirt.muni.cz/firewall',
+  firewallApi: 'https://localhost/firewall',
 };
