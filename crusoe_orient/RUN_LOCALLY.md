@@ -9,6 +9,10 @@ Angular requires Node.js (at least v10) to be installed.
 - To check your version, run `node -v` in a terminal/console window.
 - To get Node.js, go to [nodejs.org](https://nodejs.org/en/download/).
 
+If your Node.js version is 16 or higher, then set this environment variable:
+
+$ export NODE_OPTIONS=--openssl-legacy-provider
+
 ### npm package manager
 
 NPM client command line interface is installed with Node.js by default.
