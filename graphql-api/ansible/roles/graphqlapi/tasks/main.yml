@@ -1,0 +1,37 @@
+# Copy environment file where REST API urls are defined
+- name: Copy environment file
+  template:
+    src: db_config.js.j2
+    dest: "{{ graphqlapi_folder }}/src/db_config.js"
+
+# Install node.js
+- name: Install Node.js
+  apt:
+    name: nodejs
+    state: present
+    update_cache: yes
+  become: yes
+
+# Install npm
+- name: Install npm
+  apt:
+    name: npm
+    state: present
+  become: yes
+
+  # Update node.js
+- name: Update npm
+  command: "npm install npm@latest -g"
+  become: yes
+
+# Install Graphql-api dependencies
+- name: Install Graphql-api  dependencies
+  npm:
+    path: "{{ graphqlapi_folder }}"
+
+# Build application using Angular-CLI
+- name: Build and start application
+  command: "npm run start:background"
+  args:
+    chdir: "{{ graphqlapi_folder }}"
+    creates: "{{ graphqlapi_folder }}/build"

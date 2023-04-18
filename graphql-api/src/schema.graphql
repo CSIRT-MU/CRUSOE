@@ -1,0 +1,212 @@
+scalar JSON
+scalar JSONObject
+
+type SoftwareVersion {
+  _id: Long!
+  tag: String!
+  version: String!
+  on: [Host] @relation(name: "ON", direction: "OUT")
+  ON_rel: [ON]
+  vulnerabilitys: [Vulnerability] @relation(name: "IN", direction: "IN")
+}
+
+type Node {
+  _id: Long!
+  dependency_degree: Float
+  topology_betweenness: Float
+  topology_degree: Float
+  has_assigned: [IP] @relation(name: "HAS_ASSIGNED", direction: "OUT")
+  is_a: [Host] @relation(name: "IS_A", direction: "OUT")
+  is_dependent_on: [Node] @relation(name: "IS_DEPENDENT_ON", direction: "OUT")
+  IS_DEPENDENT_ON_rel: [IS_DEPENDENT_ON]
+  is_connected_to: [Node] @relation(name: "IS_CONNECTED_TO", direction: "OUT")
+  IS_CONNECTED_TO_rel: [IS_CONNECTED_TO]
+}
+
+type Host {
+  _id: Long!
+  hostname: String
+  nodes: [Node] @relation(name: "IS_A", direction: "IN")
+  softwareversions: [SoftwareVersion] @relation(name: "ON", direction: "IN")
+  components: [Component] @relation(name: "PROVIDED_BY", direction: "IN")
+  configurations: [Configuration] @relation(name: "CONTAINS", direction: "IN")
+}
+
+type Contact {
+  _id: Long!
+  name: String!
+}
+
+type DetectionSystem {
+  _id: Long!
+  name: String!
+  raises: [SecurityEvent] @relation(name: "RAISES", direction: "OUT")
+}
+
+type OrganizationUnit {
+  _id: Long!
+  name: String!
+  subnets: [Subnet] @relation(name: "PART_OF", direction: "IN")
+}
+
+type Subnet {
+  _id: Long!
+  note: String!
+  range: String!
+  part_of: [OrganizationUnit] @relation(name: "PART_OF", direction: "OUT")
+  PART_OF_rel: [PART_OF]
+}
+
+type CVE {
+  _id: Long!
+  CVE_id: String!
+  access_complexity: String!
+  access_vector: String!
+  attack_complexity: String!
+  attack_vector: String!
+  authentication: String!
+  availability_impact_v2: String!
+  availability_impact_v3: String!
+  base_score_v2: Float!
+  base_score_v3: Float!
+  confidentiality_impact_v2: String!
+  confidentiality_impact_v3: String!
+  description: String!
+  impact: [String]!
+  integrity_impact_v2: String!
+  integrity_impact_v3: String!
+  obtain_all_privilege: Boolean!
+  obtain_other_privilege: Boolean!
+  obtain_user_privilege: Boolean!
+  patched: String
+  privileges_required: String!
+  published_date: String!
+  scope: String!
+  user_interaction: String!
+  vendor_description: String
+  vulnerabilitys: [Vulnerability] @relation(name: "REFERS_TO", direction: "IN")
+}
+
+type Vulnerability {
+  _id: Long!
+  description: String!
+  in: [SoftwareVersion] @relation(name: "IN", direction: "OUT")
+  refers_to: [CVE] @relation(name: "REFERS_TO", direction: "OUT")
+}
+
+type DomainName {
+  _id: Long!
+  domain_name: JSON
+  tag: String!
+  ips: [IP] @relation(name: "RESOLVES_TO", direction: "IN")
+}
+
+type SecurityEvent {
+  _id: Long!
+  confirmed: String
+  description: String!
+  detection_time: DateTime!
+  hostname: String
+  id: String
+  type: String!
+  ips: [IP] @relation(name: "SOURCE_OF", direction: "IN")
+  detectionsystems: [DetectionSystem] @relation(name: "RAISES", direction: "IN")
+}
+
+type NetworkService {
+  _id: Long!
+  port: Int!
+  protocol: String!
+  service: String!
+  tag: String!
+}
+
+type Component {
+  _id: Long!
+  name: String!
+  supports: [Mission] @relation(name: "SUPPORTS", direction: "OUT")
+  provided_by: [Host] @relation(name: "PROVIDED_BY", direction: "OUT")
+}
+
+type Mission {
+  _id: Long!
+  criticality: Int!
+  description: String!
+  name: String!
+  structure: String!
+  components: [Component] @relation(name: "SUPPORTS", direction: "IN")
+}
+
+type Configuration {
+  _id: Long!
+  availability: Int!
+  confidentiality: Int!
+  config_id: Int!
+  integrity: Int!
+  time: String!
+  contains: [Host] @relation(name: "CONTAINS", direction: "OUT")
+  CONTAINS_rel: [CONTAINS]
+}
+
+type PAO {
+  _id: Long!
+  capacity_status: String!
+  freeCapacity: Int!
+  lastContact: DateTime!
+  liveliness_status: String!
+  maxCapacity: Int!
+  pao: String!
+  port: Int!
+  usedCapacity: Int!
+}
+
+type IP {
+  _id: Long!
+  address: String!
+  resolves_to: [DomainName] @relation(name: "RESOLVES_TO", direction: "OUT")
+  RESOLVES_TO_rel: [RESOLVES_TO]
+  source_of: [SecurityEvent] @relation(name: "SOURCE_OF", direction: "OUT")
+  nodes: [Node] @relation(name: "HAS_ASSIGNED", direction: "IN")
+  part_of: [Subnet] @relation(name: "PART_OF", direction: "OUT")
+}
+
+type ON @relation(name: "ON") {
+  from: SoftwareVersion!
+  to: Host!
+  end: DateTime
+  start: DateTime
+}
+
+type IS_DEPENDENT_ON @relation(name: "IS_DEPENDENT_ON") {
+  from: Node!
+  to: Node!
+  last_detected: DateTime!
+  service: String!
+}
+
+type RESOLVES_TO @relation(name: "RESOLVES_TO") {
+  from: IP!
+  to: DomainName!
+  last_detected: DateTime
+}
+
+type IS_CONNECTED_TO @relation(name: "IS_CONNECTED_TO") {
+  from: Node!
+  to: Node!
+  hops: Int!
+  last_detection: DateTime!
+}
+
+type PART_OF @relation(name: "PART_OF") {
+  from: Subnet!
+  to: OrganizationUnit!
+  bestFit: Boolean
+}
+
+type CONTAINS @relation(name: "CONTAINS") {
+  from: Configuration!
+  to: Host!
+  availability: Float!
+  confidentiality: Float!
+  integrity: Float!
+}

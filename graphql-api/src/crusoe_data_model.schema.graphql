@@ -1,0 +1,263 @@
+type VirtualHost {
+  _id: Long!
+  name: String!
+}
+
+type Vulnerability {
+  _id: Long!
+  name: String!
+  refersTo: [CVE] @relation(name: "refersTo", direction: OUT)
+  in: [SoftwareVersion] @relation(name: "in", direction: OUT)
+}
+
+type SoftwareVersion {
+  _id: Long!
+  version: String!
+  vulnerabilitys: [Vulnerability] @relation(name: "in", direction: IN)
+}
+
+type Contact {
+  _id: Long!
+  mail: String
+  telephoneNumber: String
+  responsibleFor: [Node] @relation(name: "hasContact", direction: IN)
+}
+
+type CVE {
+  _id: Long!
+  cve: String!
+  cvss: String!
+  cwe: String!
+  description: String!
+}
+
+type PhysicalHost {
+  _id: Long!
+  name: String!
+  entrypoint: [HostCluster] @relation(name: "entryPoint", direction: OUT)
+  hasassigned: [IP] @relation(name: "hasAssigned", direction: OUT)
+  connected: [Node] @relation(name: "connected", direction: OUT)
+  observationpoints: [ObservationPoint] @relation(name: "isA", direction: IN)
+}
+
+interface Node {
+  _id: ID!
+  name: String!
+}
+
+type Host {
+  _id: Long!
+  filteringRules: String
+  name: String!
+  routingRules: String
+  entrypoint: [HostCluster] @relation(name: "entryPoint", direction: OUT)
+  hasassigned: [IP] @relation(name: "hasAssigned", direction: OUT)
+  connected: [Node] @relation(name: "connected", direction: OUT)
+  observationpoints: [ObservationPoint] @relation(name: "isA", direction: IN)
+  partOf: [HostCluster] @relation(name: "partOf", direction: OUT)
+  software: [SoftwareResource] @relation(name: "on", direction: IN)
+  hasContact: [Contact] @relation(name: "hasContact", direction: OUT)
+}
+
+type HostCluster {
+  _id: Long!
+  clusterName: String!
+  hosts: [Node] @relation(name: "partOf", direction: IN)
+}
+
+type SoftwareResource {
+  _id: Long!
+  name: String!
+  provides: [NetworkService] @relation(name: "provides", direction: OUT)
+  redundancynodes_primaryinstance: [RedundancyNode]
+  @relation(name: "primaryInstance", direction: IN)
+  redundancynodes_redundancy: [RedundancyNode]
+  @relation(name: "redundancy", direction: IN)
+  vulnerabilitys_in: [Vulnerability] @relation(name: "in", direction: IN)
+  on: [Node] @relation(name: "on", direction: OUT)
+  has: [SoftwareVersion] @relation(name: "has", direction: OUT)
+}
+
+type NetworkService {
+  _id: Long!
+  port: String!
+  protocol: String!
+  softwareresources: [SoftwareResource]
+  @relation(name: "provides", direction: IN)
+}
+
+type Component {
+  _id: Long!
+  name: String!
+  dependson: [DependencyNode] @relation(name: "dependsOn", direction: OUT)
+  providedby: [RedundancyNode] @relation(name: "providedBy", direction: OUT)
+  dependencynodes: [DependencyNode] @relation(name: "dependency", direction: IN)
+  datas: [Data] @relation(name: "presentOn", direction: IN)
+  missions: [Mission] @relation(name: "supports", direction: IN)
+}
+
+type RedundancyNode {
+  _id: Long!
+  name: String!
+  primaryinstance: [SoftwareResource]
+  @relation(name: "primaryInstance", direction: OUT)
+  redundancy: [SoftwareResource] @relation(name: "redundancy", direction: OUT)
+  components: [Component] @relation(name: "providedBy", direction: IN)
+}
+
+type DependencyNode {
+  _id: Long!
+  Type: String!
+  name: String!
+  dependency: [Component] @relation(name: "dependency", direction: OUT)
+  components: [Component] @relation(name: "dependsOn", direction: IN)
+}
+
+type Data {
+  _id: Long!
+  data: String!
+  presenton: [Component] @relation(name: "presentOn", direction: OUT)
+}
+
+type IP {
+  _id: Long!
+  ipAddress: String!
+  resolvesTo: [ResolvesTo]
+  securityevents: [SecurityEvent] @relation(name: "target", direction: IN)
+}
+
+type DomainName {
+  _id: Long!
+  name: String!
+  ips: [ResolvesTo]
+}
+
+type Subnet {
+  _id: Long!
+  contact: String!
+  range: String!
+  subnet: String!
+  vlan: String!
+}
+
+type SecurityEvent {
+  _id: Long!
+  ceaseTime: String!
+  confirmed: String!
+  description: String!
+  detectedTimes: String!
+  detectionTime: String!
+  relatesto: [Incident] @relation(name: "relatesTo", direction: OUT)
+  target: [IP] @relation(name: "target", direction: OUT)
+  detectionsystems: [DetectionSystem] @relation(name: "raises", direction: IN)
+}
+
+type DetectionSystem {
+  _id: Long!
+  name: String!
+  raises: [SecurityEvent] @relation(name: "raises", direction: OUT)
+  observationpoints: [ObservationPoint]
+  @relation(name: "dataInput", direction: IN)
+}
+
+type ObservationPoint {
+  _id: Long!
+  name: String!
+  datainput: [DetectionSystem] @relation(name: "dataInput", direction: OUT)
+}
+
+type Incident {
+  _id: Long!
+  incidentEnd: String!
+  severity: String!
+  startTime: String!
+  securityevents: [SecurityEvent] @relation(name: "relatesTo", direction: IN)
+  responses: [Response] @relation(name: "responseTo", direction: IN)
+}
+
+type Response {
+  _id: Long!
+  end: String!
+  parameters: String!
+  responseType: String!
+  start: String!
+  responseto: [Incident] @relation(name: "responseTo", direction: OUT)
+}
+
+type Application {
+  _id: Long!
+  name: String!
+  permissions: [Permission] @relation(name: "to", direction: IN)
+}
+
+type Device {
+  _id: Long!
+  name: String!
+  permissions: [Permission] @relation(name: "to", direction: IN)
+}
+
+type Permission {
+  _id: Long!
+  name: String!
+}
+
+type Role {
+  _id: Long!
+  name: String!
+}
+
+type User {
+  _id: Long!
+  name: String!
+  assignedto: [Role] @relation(name: "assignedTo", direction: OUT)
+  memberof: [Group] @relation(name: "memberOf", direction: OUT)
+}
+
+type Group {
+  _id: Long!
+  name: String!
+  assignedto: [Role] @relation(name: "assignedTo", direction: OUT)
+  users: [User] @relation(name: "memberOf", direction: IN)
+}
+
+type OrganizationUnit {
+  _id: Long!
+  name: String!
+  availabilityrequirements: [AvailabilityRequirement]
+  @relation(name: "for", direction: IN)
+}
+
+type Mission {
+  _id: Long!
+  criticality: String!
+  mission: String!
+}
+
+type AvailabilityRequirement {
+  _id: Long!
+  description: String!
+  importanceLevel: String!
+  for: [OrganizationUnit] @relation(name: "for", direction: OUT)
+  missions: [Mission] @relation(name: "imposes", direction: IN)
+}
+
+type ConfidentialityRequirement {
+  _id: Long!
+  description: String!
+  importanceLevel: String!
+  missions: [Mission] @relation(name: "imposes", direction: IN)
+}
+
+type IntegrityRequirement {
+  _id: Long!
+  description: String!
+  importanceLevel: String!
+  missions: [Mission] @relation(name: "imposes", direction: IN)
+}
+
+type ResolvesTo @relation(name: "resolvesTo") {
+  from: IP!
+  to: DomainName!
+  end: String!
+  start: String!
+}

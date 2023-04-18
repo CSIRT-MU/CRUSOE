@@ -1,0 +1,24 @@
+Vagrant.configure("2") do |config|
+    config.vm.define "graphqlapi" do |graphqlapi|
+        # Template for virtualbox to be used
+        graphqlapi.vm.box = "debian/buster64"
+        # Check for updates regularly
+        graphqlapi.vm.box_check_update = true
+        graphqlapi.vm.network "forwarded_port", guest: 4001, host: 4001
+
+        # Tell vagrant to run ansible as a provisioner
+        graphqlapi.vm.provision "ansible" do |ansible|
+            # make verbose output
+	          ansible.verbose = "v"
+	          # where is the playbook located
+            ansible.playbook = "ansible/playbook.yml"
+        end
+        graphqlapi.vm.synced_folder ".", "/home/vagrant/graphqlapi", create: true, type: "rsync", rsync__exclude: ['node_modules/', 'build/']
+    end
+
+    config.vm.provider "virtualbox" do |vb|
+      # Customize the amount of memory on the VM:
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+end
