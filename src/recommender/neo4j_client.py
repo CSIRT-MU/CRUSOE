@@ -140,6 +140,18 @@ class Neo4jClient:
 
         return result["event_count"]
 
+    def get_distance(self, ip1, ip2, max_distance):
+        """
+        Returns distance between two ip addresses.
+        :param ip1: First IP address
+        :param ip2: Second IP address
+        :param max_distance: Upper bound for distance searching
+        :return: Distance
+        """
+        with self.__driver.session() as session:
+            return session.read_transaction(
+                self.__get_distance_query, ip1, ip2, max_distance)["length"]
+
     def __get_network_services(self, ip, session, start, end):
         """
         Finds network services in the database which runs on a host with
@@ -330,6 +342,17 @@ class Neo4jClient:
         )
 
         result = tx.run(query)
+        return result.single()
+
+    @staticmethod
+    def __get_distance_query(tx, ip1, ip2, max_distance):
+        query = (
+            f"MATCH path = shortestPath( (ip1:IP)-[*..{max_distance}]-(ip2:IP )) "
+            "WHERE ip1.address = $ip1 and ip2.address = $ip2 "
+            "RETURN length(path) as length"
+        )
+
+        result = tx.run(query, ip1=ip1, ip2=ip2)
         return result.single()
 
     @staticmethod
