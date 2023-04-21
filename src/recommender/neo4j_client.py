@@ -142,15 +142,21 @@ class Neo4jClient:
 
     def get_distance(self, ip1, ip2, max_distance):
         """
-        Returns distance between two ip addresses.
+        Returns distance between two ip addresses. Throws exception, if no path shorter or equal than max_distance
+        exists.
         :param ip1: First IP address
         :param ip2: Second IP address
         :param max_distance: Upper bound for distance searching
         :return: Distance
         """
         with self.__driver.session() as session:
-            return session.read_transaction(
-                self.__get_distance_query, ip1, ip2, max_distance)["length"]
+            result = session.read_transaction(
+                self.__get_distance_query, ip1, ip2, max_distance)
+
+            if result is None:
+                raise ValueError(f"No path shorter or equal to {max_distance} exists between {ip1} and {ip2}.")
+
+            return result["length"]
 
     def __get_network_services(self, ip, session, start, end):
         """
