@@ -15,8 +15,8 @@ class HostComparer:
     @staticmethod
     def main():
         """
-        Compares two hosts in the database and returns a JSON to stdout containing distance, similarity and all
-        partial similarities.
+        Compares two hosts in the database and prints a JSON to stdout containing distance, similarity and all
+        partial similarities. Requires four args - comparators config path, IP addresses and maximum distance.
         :return: None
         """
         if len(sys.argv) != 5:
