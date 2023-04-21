@@ -42,6 +42,25 @@ class RiskCalculator:
         for host in compared_hosts:
             host.risk = self.__calculate_risk_score(host)
 
+    def calculate_similarities(self, host1, host2):
+        """
+        Calculates similarity of two hosts. Returns result similarity and dictionary of all partial similarities.
+        :param host1: First host
+        :param host2: Second host
+        :return: Similarity and dictionary of partial similarities
+        """
+        self.__set_reference_host(host1)
+
+        similarity = 1
+        partial_similarity_vector = dict()
+
+        for comparator in self.__comparators:
+            partial_similarity = comparator.calc_partial_similarity(host2)
+            partial_similarity_vector[comparator.get_name()] = partial_similarity
+            similarity *= partial_similarity
+
+        return similarity, partial_similarity_vector
+
     def __initialize_comparators(self):
         """
         Initialize comparators that should be applied by config.

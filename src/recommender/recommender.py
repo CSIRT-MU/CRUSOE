@@ -54,10 +54,38 @@ class Recommender:
             self.__config["max_distance"])
 
         # Calculate risk scores
-        sim_calc = RiskCalculator(self.__db_client,
-                                  self.__config)
+        risk_calc = RiskCalculator(self.__db_client, self.__config)
 
-        sim_calc.calculate_risk_scores(self.attacked_host, self.host_list)
+        risk_calc.calculate_risk_scores(self.attacked_host, self.host_list)
 
         # Sorts list of host by risk of exploiting (descending)
         self.host_list.sort(key=lambda h: h.risk, reverse=True)
+
+    def compare_hosts(self, ip1, ip2, max_distance=4):
+        """
+        Compares two hosts in the databases and returns a dictionary containing distance between them,
+        their similarity and all partial similarities.
+        :param ip1: IP address of the first host
+        :param ip2: IP address of the second host
+        :param max_distance: Maximum distance to consider
+        :return: Dictionary with similarity, distance and partial similarities
+        """
+        host1 = self.__db_client.get_host_by_ip(ip1)
+        host2 = self.__db_client.get_host_by_ip(ip2)
+
+        if host1 is None:
+            raise ValueError(f"IP address {ip1} was not found in the database.")
+
+        if host2 is None:
+            raise ValueError(f"IP address {ip2} was not found in the database.")
+
+        distance = self.__db_client.get_distance(ip1, ip2, max_distance)
+
+        risk_calc = RiskCalculator(self.__db_client, self.__config)
+
+        similarity, partial_sim_vector = risk_calc.calculate_similarities(host1, host2)
+
+        partial_sim_vector["similarity"] = similarity
+        partial_sim_vector["distance"] = distance
+
+        return partial_sim_vector
