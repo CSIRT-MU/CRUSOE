@@ -16,6 +16,9 @@ class CpeComparator(BaseComparator, ABC):
             config["version"]
         ]
 
+    def get_name(self):
+        return "CPE"
+
     def compare_sw_components(self, sw1, sw2):
         """
         Compares two software components and returns partial similarity.

@@ -10,6 +10,9 @@ class CmsComparator(CpeComparator):
         super().__init__(config)
         self.__ref_host_open_ports = None
 
+    def get_name(self):
+        return "CMS"
+
     def set_reference_host(self, host):
         """
         Sets reference host for comparing and checks if it has opened

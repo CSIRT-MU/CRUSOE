@@ -6,6 +6,9 @@ class OsComparator(CpeComparator):
     Operating system comparator
     """
 
+    def get_name(self):
+        return "OS"
+
     def calc_partial_similarity(self, host):
         """
         Calculates partial similarity of operating systems running on

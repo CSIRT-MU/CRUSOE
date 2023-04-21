@@ -11,6 +11,9 @@ class CveComparator(CumulativeSimilarityComparator):
         super().__init__(config)
         self.total_cve_count = total_cve_count
 
+    def get_name(self):
+        return "CVE"
+
     def calc_partial_similarity(self, host):
         """
         Calculates cumulative similarity of the number of vulnerabilities (CVE)

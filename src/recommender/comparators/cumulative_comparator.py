@@ -7,6 +7,9 @@ class CumulativeSimilarityComparator(BaseComparator, ABC):
     """
     Abstract comparator for comparing based on the cumulative history of hosts.
     """
+    
+    def get_name(self):
+        return "cumulative"
 
     def _calculate_cumulative_similarity(self, n1, n2, total):
         """

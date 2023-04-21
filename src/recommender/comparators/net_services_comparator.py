@@ -8,6 +8,9 @@ class NetServicesComparator(BaseComparator):
 
     def __init__(self, config):
         super().__init__(config)
+        
+    def get_name(self):
+        return "NetService"
 
     def set_reference_host(self, host):
         """

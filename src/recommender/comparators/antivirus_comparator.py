@@ -5,6 +5,9 @@ class AntivirusComparator(CpeComparator):
     """
     Compares antivirus software between hosts.
     """
+    
+    def get_name(self):
+        return "Antivirus"
 
     def calc_partial_similarity(self, host):
         """

@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+
+from recommender.model import HostWithScore
 from recommender.model.warning_message import WarningMessage
 
 
@@ -10,6 +12,9 @@ class BaseComparator(ABC):
     def __init__(self, config):
         self._config = config
         self._reference_host = None
+
+    def get_name(self):
+        return "Base"
 
     @abstractmethod
     def calc_partial_similarity(self, host):
@@ -38,8 +43,9 @@ class BaseComparator(ABC):
         :param partial_similarity: Partial similarity in <0,1>
         :return: None
         """
-        warning = WarningMessage(message, partial_similarity)
-        host.add_warning_message(warning)
+        if host is HostWithScore:
+            warning = WarningMessage(message, partial_similarity)
+            host.add_warning_message(warning)
 
     def set_reference_host(self, host):
         """

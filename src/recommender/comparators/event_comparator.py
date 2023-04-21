@@ -11,6 +11,9 @@ class EventComparator(CumulativeSimilarityComparator):
         super().__init__(config)
         self.total_event_count = total_event_count
 
+    def get_name(self):
+        return "Event"
+
     def calc_partial_similarity(self, host):
         """
         Calculates cumulative similarity of number of events on hosts
