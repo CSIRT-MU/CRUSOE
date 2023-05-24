@@ -32,6 +32,8 @@ To start the database, run (inside neo4j root directory):
     
     ./bin/neo4j console
 
+Database is not provided with the tool (creating a dataset is planned for future work). So far, you can use CRUSOE toolset by CSIRT-MU to populate your own database or consult the developers of this tool about the status of publicly available dataset or artificial data.
+
 ## Usage
 Recommender can be used as a console script:
 
@@ -98,3 +100,13 @@ in the database. It can be run as a script:
     python src/utils/mean_bound_calculator.py path_to_config_json
 
 Or via API as the PATCH method of configuration endpoint.
+
+## References and Acknowledgements
+
+The tool was originally implemented by Vladimír Bouček in his bachelor's thesis under the supervision of Martin Husák.
+
+The original idea for this tool was proposed by Martin Husák in the paper "Towards a Data-Driven Recommender System for Handling Ransomware and Similar Incidents" presented at IEEE ISI 2021 conference.
+
+The tool design and development is presented in paper "Recommending Similar Devices in Close Proximity
+for Network Security Management" (to appear in proceedings of WiMob 2023 conference)
+
