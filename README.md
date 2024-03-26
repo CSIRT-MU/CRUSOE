@@ -103,7 +103,7 @@ Or via API as the PATCH method of configuration endpoint.
 
 ## References and Acknowledgements
 
-The tool was originally implemented by Vladimír Bouček in his bachelor's thesis under the supervision of Martin Husák.
+The tool was originally implemented by Vladimír Bouček in his bachelor's thesis under the supervision of Martin Husák. The thesis (in Czech language) can be found at: https://is.muni.cz/th/vl4k7/
 
 The original idea for this tool was proposed by Martin Husák in the paper "Towards a Data-Driven Recommender System for Handling Ransomware and Similar Incidents" presented at IEEE ISI 2021 conference. Check the paper and slides at:
 https://www.muni.cz/en/research/publications/1800767
