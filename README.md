@@ -105,8 +105,8 @@ Or via API as the PATCH method of configuration endpoint.
 
 The tool was originally implemented by Vladimír Bouček in his bachelor's thesis under the supervision of Martin Husák.
 
-The original idea for this tool was proposed by Martin Husák in the paper "Towards a Data-Driven Recommender System for Handling Ransomware and Similar Incidents" presented at IEEE ISI 2021 conference.
+The original idea for this tool was proposed by Martin Husák in the paper "Towards a Data-Driven Recommender System for Handling Ransomware and Similar Incidents" presented at IEEE ISI 2021 conference. Check the paper and slides at:
+https://www.muni.cz/en/research/publications/1800767
 
-The tool design and development is presented in paper "Recommending Similar Devices in Close Proximity
-for Network Security Management" (to appear in proceedings of WiMob 2023 conference)
-
+The tool design and development were described by Vladimír Bouček and Martin Husák in the paper "Recommending Similar Devices in Close Proximity for Network Security Management" presented at the WiMob 2023 conference. Check the paper and slides at:
+https://www.muni.cz/en/research/publications/2287837
