@@ -12,4 +12,6 @@ export const environment = {
   graphqlApi: 'https://localhost:4001/graphql',
   /* Firewall API URL */
   firewallApi: 'https://localhost/firewall',
+  /* Recommended system API URL */
+  recommenderApi: 'http://127.0.0.1:16005/',
 };

@@ -1,0 +1,167 @@
+<div class="search-filter">
+  <mat-form-field appearance="outline">
+    <mat-label>Search network node</mat-label>
+    <input matInput placeholder="" [(ngModel)]="ipSearch" />
+    <mat-hint>Only search by IP address is supported</mat-hint>
+  </mat-form-field>
+  <button [disabled]="!ipSearch" mat-raised-button color="primary" (click)="loadGraphData()">
+    <mat-icon>search</mat-icon>
+    Search
+  </button>
+</div>
+<div class="content-container">
+  <div class="graph-wrapper">
+    <ng-container *ngIf="graphLoading">
+      <div class="loader">
+        <mat-spinner></mat-spinner>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="!graphLoading && nodes && nodes.length > 0">
+      <ngx-graph class="chart-container" [links]="edges" [nodes]="nodes" layout="dagre">
+        <ng-template #defsTemplate>
+          <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4" markerHeight="4" orient="auto">
+            <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
+          </svg:marker>
+        </ng-template>
+
+        <ng-template #clusterTemplate let-cluster>
+          <svg:g
+            class="node cluster"
+            ngx-tooltip
+            [tooltipPlacement]="'top'"
+            [tooltipType]="'tooltip'"
+            [tooltipTitle]="cluster.label"
+          >
+            <svg:rect
+              rx="5"
+              ry="5"
+              [attr.width]="cluster.dimension.width"
+              [attr.height]="cluster.dimension.height"
+              [attr.fill]="cluster.data.color"
+            />
+          </svg:g>
+        </ng-template>
+
+        <ng-template #nodeTemplate let-node>
+          <svg:g
+            class="node"
+            ngx-tooltip
+            [tooltipPlacement]="'top'"
+            [tooltipType]="'tooltip'"
+            [tooltipTitle]="node.label"
+            (dblclick)="expandNode(node)"
+            (click)="selectNode(node)"
+          >
+            <svg:rect
+              [attr.width]="node.dimension.width"
+              [attr.height]="node.dimension.height"
+              [attr.fill]="node.id === selectedNode.id ? '#fff' : node.data.customColor"
+              [attr.stroke]="node.id === selectedNode.id ? node.data.customColor : 'transparent'"
+            />
+            <svg:text alignment-baseline="central" [attr.x]="10" [attr.y]="node.dimension.height / 2">
+              {{ node.label }}
+            </svg:text>
+          </svg:g>
+        </ng-template>
+
+        <ng-template #linkTemplate let-link>
+          <svg:g class="edge">
+            <svg:path class="line" stroke-width="2" marker-end="url(#arrow)"></svg:path>
+            <svg:text class="edge-label" text-anchor="middle">
+              <textPath
+                class="text-path"
+                [attr.href]="'#' + link.id"
+                [style.dominant-baseline]="link.dominantBaseline"
+                startOffset="50%"
+              >
+                {{ link.label }}
+              </textPath>
+            </svg:text>
+          </svg:g>
+        </ng-template>
+      </ngx-graph>
+    </ng-container>
+    <ng-container *ngIf="!graphLoading && errorMessage">
+      <p class="error-message">{{ errorMessage }}</p>
+    </ng-container>
+  </div>
+  <div class="node-wrapper">
+    <ng-container *ngIf="selectedNode.id !== ''; else noNodeSelected">
+      <div class="node-card">
+        <p [style.color]="selectedNode.data.customColor" class="type-name">IP</p>
+        <h2 [style.color]="selectedNode.data.customColor">{{ selectedNode.label }}</h2>
+        <hr />
+        <p class="heading">Attributes:</p>
+        <ul>
+          <li *ngFor="let item of getNodeAttributes(selectedNode)">
+            <strong>{{ item[0] }}:</strong>
+            <ul>
+              <li *ngFor="let entry of item[1]">{{ entry }}</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </ng-container>
+    <ng-template #noNodeSelected>
+      <p class="vertical-center">No node selected.</p>
+    </ng-template>
+  </div>
+</div>
+<ng-container *ngIf="!graphLoading && nodes && nodes.length > 0">
+  <table mat-table [dataSource]="nodes" class="mat-elevation-z8">
+    <ng-container matColumnDef="ip">
+      <th mat-header-cell *matHeaderCellDef>IP</th>
+      <td mat-cell *matCellDef="let element">{{ element.data.ip }}</td>
+    </ng-container>
+    <ng-container matColumnDef="domains">
+      <th mat-header-cell *matHeaderCellDef>Domains</th>
+      <td mat-cell *matCellDef="let element">
+        <ul>
+          <li *ngFor="let domain of element.data.domains">{{ domain }}</li>
+        </ul>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="contacts">
+      <th mat-header-cell *matHeaderCellDef>Contacts</th>
+      <td mat-cell *matCellDef="let element">
+        <ul>
+          <li *ngFor="let contact of element.data.contacts">{{ contact }}</li>
+        </ul>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="os">
+      <th mat-header-cell *matHeaderCellDef>OS</th>
+      <td mat-cell *matCellDef="let element">{{ joinDict(element.data.os) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="antivirus">
+      <th mat-header-cell *matHeaderCellDef>Antivirus</th>
+      <td mat-cell *matCellDef="let element">{{ joinDict(element.data.antivirus) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="cve_count">
+      <th mat-header-cell *matHeaderCellDef>CVE Count</th>
+      <td mat-cell *matCellDef="let element">{{ element.data.cve_count }}</td>
+    </ng-container>
+    <ng-container matColumnDef="event_count">
+      <th mat-header-cell *matHeaderCellDef>Security Event Count</th>
+      <td mat-cell *matCellDef="let element">{{ element.data.security_event_count }}</td>
+    </ng-container>
+    <ng-container matColumnDef="risk">
+      <th mat-header-cell *matHeaderCellDef>Risk</th>
+      <td mat-cell *matCellDef="let element">{{ handleUndefined(element.data.risk) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="distance">
+      <th mat-header-cell *matHeaderCellDef>Distance</th>
+      <td mat-cell *matCellDef="let element">{{ handleUndefined(element.data.distance) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="path_types">
+      <th mat-header-cell *matHeaderCellDef>Path Types</th>
+      <td mat-cell *matCellDef="let element">
+        <ul>
+          <li *ngFor="let path of element.data.path_types">{{ path }}</li>
+        </ul>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</ng-container>

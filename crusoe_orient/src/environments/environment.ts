@@ -11,6 +11,7 @@ export const environment = {
   version: packageData.version,
   apiUrl: 'https://localhost/redirect-api/redirect/',
   tmpActApi: 'https://localhost/act/',
-  graphqlApi: 'https://localhost:4001/graphql',
+  graphqlApi: 'http://127.0.0.1:4001/graphql/',
   firewallApi: 'https://localhost/firewall',
+  recommenderApi: 'http://localhost:16005/',
 };

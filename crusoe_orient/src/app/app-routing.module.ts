@@ -13,6 +13,8 @@ import { TaskComponent } from 'src/app/panels/task-manager/task/task.component';
 import { PaoComponent } from 'src/app/panels/decide-act/pao/pao/pao.component';
 import { MissionComponent } from 'src/app/panels/decide-act/mission/mission.component';
 import { NetworkVisualizationComponent } from './panels/network-visualization/network-visualization.component';
+import { RecommenderSystemVisualizationComponent } from './panels/recommender-system-visualization/recommender-system-visualization.component';
+import { SpreadProjectionVisualizationComponent } from './panels/spread-projection-visualization/spread-projection-visualization.component';
 import { VulnerabilityComponent } from './panels/vulnerability/vulnerability.component';
 import { ConfigurationComponent } from 'src/app/panels/decide-act/configuration/configuration.component';
 import { MyAccountComponent } from './panels/my-account/my-account.component';
@@ -46,6 +48,18 @@ export const panels = [
     data: { name: 'Network Visualization', panelGroup: panelGroups[0] },
     path: 'network-visualization',
     component: NetworkVisualizationComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    data: { name: 'Recommender Visualization', panelGroup: panelGroups[0] },
+    path: 'recommender-system-visualization',
+    component: RecommenderSystemVisualizationComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    data: { name: 'Spread Projection Visualization', panelGroup: panelGroups[0] },
+    path: 'spread-projection-visualization',
+    component: SpreadProjectionVisualizationComponent,
     canActivate: [AuthGuard],
   },
   {
@@ -113,6 +127,18 @@ const routes: Routes = [
             data: { name: 'Network Visualization', panelGroup: panelGroups[0] },
             path: 'network-visualization/:ip',
             component: NetworkVisualizationComponent,
+            canActivate: [AuthGuard],
+          },
+          {
+            data: { name: 'Recommender Visualization', panelGroup: panelGroups[0] },
+            path: 'recommender-system-visualization/:ip',
+            component: RecommenderSystemVisualizationComponent,
+            canActivate: [AuthGuard],
+          },
+          {
+            data: { name: 'Recommender Visualization', panelGroup: panelGroups[0] },
+            path: 'spread-projection-visualization/:ip',
+            component: SpreadProjectionVisualizationComponent,
             canActivate: [AuthGuard],
           },
         ],
