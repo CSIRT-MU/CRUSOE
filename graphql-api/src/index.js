@@ -84,13 +84,13 @@ const server = new ApolloServer({
 // Specify host, port and path for GraphQL endpoint
 const port = process.env.GRAPHQL_SERVER_PORT || 4001;
 const path = process.env.GRAPHQL_SERVER_PATH || "/graphql";
-const host = process.env.GRAPHQL_SERVER_HOST || "0.0.0.0";
+const host = process.env.GRAPHQL_SERVER_HOST || "127.0.0.1";
 
 /*
  * Optionally, apply Express middleware for authentication, etc
  * This also also allows us to specify a path for the GraphQL endpoint
  */
-server.applyMiddleware({ app, path, cors: false });
+server.applyMiddleware({ app, path, cors: true });
 
 app.listen({ host, port, path }, () => {
   console.log(`GraphQL server ready at http://${host}:${port}${path}`);

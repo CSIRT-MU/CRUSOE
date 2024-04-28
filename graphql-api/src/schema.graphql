@@ -30,6 +30,10 @@ type Host {
   softwareversions: [SoftwareVersion] @relation(name: "ON", direction: "IN")
   components: [Component] @relation(name: "PROVIDED_BY", direction: "IN")
   configurations: [Configuration] @relation(name: "CONTAINS", direction: "IN")
+  networkservices: [NetworkService] @relation(name: "ON", direction: "IN")
+  os: [SoftwareVersion] @relation(name: "ON", direction: "IN")
+  antivirus: [SoftwareVersion] @relation(name: "ON", direction: "IN")
+  cms: [SoftwareVersion] @relation(name: "ON", direction: "IN")
 }
 
 type Contact {
@@ -119,6 +123,7 @@ type NetworkService {
   protocol: String!
   service: String!
   tag: String!
+  hosts: [Host] @relation(name: "ON", direction: "OUT")
 }
 
 type Component {
@@ -209,4 +214,15 @@ type CONTAINS @relation(name: "CONTAINS") {
   availability: Float!
   confidentiality: Float!
   integrity: Float!
+}
+
+type Query {
+  total_event_count: Int!
+    @cypher(
+      statement:" MATCH (e:SecurityEvent) RETURN count(e)"
+    )
+  total_cve_count: Int!
+    @cypher(
+      statement: "MATCH (cve:Vulnerability) RETURN count(DISTINCT cve)"
+    )
 }
