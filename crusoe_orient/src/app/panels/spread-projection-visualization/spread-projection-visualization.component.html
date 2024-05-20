@@ -71,7 +71,6 @@
             [tooltipPlacement]="'top'"
             [tooltipType]="'tooltip'"
             [tooltipTitle]="node.label"
-            (dblclick)="expandNode(node)"
             (click)="selectNode(node)"
           >
             <svg:rect
@@ -110,12 +109,12 @@
   <div class="node-wrapper">
     <ng-container *ngIf="selectedNode.id !== ''; else noNodeSelected">
       <div class="node-card">
-        <p [style.color]="selectedNode.data.customColor" class="type-name">{{ selectedNode.data.type }}</p>
-        <h2 [style.color]="selectedNode.data.customColor">{{ getLabel(selectedNode) }}</h2>
+        <p [style.color]="selectedNode.data.customColor" class="type-name">IP</p>
+        <h2 [style.color]="selectedNode.data.customColor">{{ selectedNode.label }}</h2>
         <hr />
-        <p class="heading">Attributes:</p>
+        <p class="heading">ID: {{ selectedNode.id }}</p>
+        <p class="heading">Risk factors:</p>
         <ul>
-          <li><strong>ID:</strong> {{ selectedNode.id }}</li>
           <li *ngFor="let item of getNodeAttributes(selectedNode)">
             <strong>{{ item[0] }}:</strong>
             {{ item[1] }}

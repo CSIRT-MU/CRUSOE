@@ -17,7 +17,7 @@
       </div>
     </ng-container>
     <ng-container *ngIf="!graphLoading && nodes && nodes.length > 0">
-      <ngx-graph class="chart-container" [links]="edges" [nodes]="nodes" layout="dagre">
+      <ngx-graph class="chart-container" [links]="edges" [nodes]="nodes" layout="colaForceDirected">
         <ng-template #defsTemplate>
           <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4" markerHeight="4" orient="auto">
             <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
@@ -137,6 +137,10 @@
       <th mat-header-cell *matHeaderCellDef>Antivirus</th>
       <td mat-cell *matCellDef="let element">{{ joinDict(element.data.antivirus) }}</td>
     </ng-container>
+    <ng-container matColumnDef="cms">
+      <th mat-header-cell *matHeaderCellDef>CMS</th>
+      <td mat-cell *matCellDef="let element">{{ joinDict(element.data.cms) }}</td>
+    </ng-container>
     <ng-container matColumnDef="cve_count">
       <th mat-header-cell *matHeaderCellDef>CVE Count</th>
       <td mat-cell *matCellDef="let element">{{ element.data.cve_count }}</td>
@@ -158,6 +162,14 @@
       <td mat-cell *matCellDef="let element">
         <ul>
           <li *ngFor="let path of element.data.path_types">{{ path }}</li>
+        </ul>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="warnings">
+      <th mat-header-cell *matHeaderCellDef>Warnings</th>
+      <td mat-cell *matCellDef="let element">
+        <ul>
+          <li *ngFor="let warning of element.data.warnings">{{ warning.message }}</li>
         </ul>
       </td>
     </ng-container>

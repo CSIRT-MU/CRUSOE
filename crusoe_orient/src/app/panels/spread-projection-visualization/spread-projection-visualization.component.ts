@@ -72,6 +72,7 @@ export class SpreadProjectionVisualizationComponent implements OnInit {
     }
     this.dataService.getTraversalBase(this.ipSearch, this.selectedSubnet || ipSubnet, this.selectedMission).subscribe(
       (res) => {
+        console.log(res);
         this.edges = res.edges;
         this.nodes = res.nodes;
 
@@ -104,38 +105,11 @@ export class SpreadProjectionVisualizationComponent implements OnInit {
    * @param node
    */
   public getNodeAttributes(node: Node) {
-    const attr = { ...node.data };
-    delete attr.color;
-    delete attr.customColor;
-    delete attr.type;
-    delete attr.labelName;
-    return Object.entries(attr).filter((a) => typeof a[1] === 'string' || typeof a[1] === 'number');
+    return Object.entries(node.data.similarity);
   }
 
   public getLabel(node: Node) {
     return this.dataService.getLabelOfGraphNode(node);
-  }
-
-  public expandNode(node: Node) {
-    this.dataService.getNodeNeighbours(node).subscribe(
-      (res) => {
-        this.edges = _.unionBy(this.edges, res.edges, (e) => [e.source, e.target, e.label].join());
-        this.nodes = _.unionBy(this.nodes, res.nodes, (n) => n.id);
-
-        if (this.nodes.length === 0 && this.edges.length === 0) {
-          this.errorMessage = 'Empty result.';
-        }
-
-        this.graphLoading = false;
-      },
-      (error) => {
-        this.edges = [];
-        this.nodes = [];
-        this.errorMessage = error;
-        this.updateChart();
-        this.graphLoading = false;
-      }
-    );
   }
 
   updateChart() {
