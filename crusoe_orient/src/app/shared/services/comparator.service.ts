@@ -13,15 +13,11 @@ export class ComparatorService {
   private networkServicesConfig;
   private cmsConfig;
   private cmsWeights;
-  private fromLatestOs;
-  private fromLatestAntivirus;
-  private fromLatestCms;
-  private toLatestOs;
-  private toLatestAntivirus;
-  private toLatestCms;
+  private total_cve_count;
+  private total_event_count;
 
-  public treshold = 0;
-  constructor() {
+  public threshold = 0;
+  constructor(cve_count: number, event_count: number) {
     this.config = comparator_config.comparators;
     this.osConfig = this.config.os;
     this.osWeights = [this.osConfig.vendor, this.osConfig.product, this.osConfig.version];
@@ -30,10 +26,12 @@ export class ComparatorService {
     this.cmsConfig = this.config.cms;
     this.cmsWeights = [this.cmsConfig.vendor, this.cmsConfig.product, this.cmsConfig.version];
     this.networkServicesConfig = this.config.net_service;
-    this.treshold = this.calculateTreshold();
+    this.threshold = this.calculateThreshold();
+    this.total_cve_count = cve_count;
+    this.total_event_count = event_count;
   }
 
-  private calculateTreshold(): number {
+  private calculateThreshold(): number {
     let result = 1;
     for (const comparator in this.config) {
       if (this.config[comparator].apply) {
@@ -43,7 +41,7 @@ export class ComparatorService {
     return result;
   }
 
-  public calculateRiskScore(from: any, to: any, total_cve_count: number, total_event_count: number) {
+  public calculateRiskScore(from: any, to: any) {
     let similarity = 1.0;
 
     if (this.osConfig.apply) {
@@ -55,11 +53,11 @@ export class ComparatorService {
     }
 
     if (this.config.cve_cumulative.apply) {
-      similarity *= this.CveComparator(from.nodes[0]?.is_a[0], to.nodes[0]?.is_a[0], total_cve_count);
+      similarity *= this.CveComparator(from.nodes[0]?.is_a[0], to.nodes[0]?.is_a[0]);
     }
 
     if (this.config.event_cumulative.apply) {
-      similarity *= this.EventComparator(from.source_of, to.source_of, total_event_count);
+      similarity *= this.EventComparator(from.source_of, to.source_of);
     }
 
     if (this.networkServicesConfig.apply) {
@@ -77,6 +75,8 @@ export class ComparatorService {
   }
 
   private OsComparator(from: any, to: any): number {
+    if (from === undefined && to === undefined) return 1;
+    if (from === undefined || to === undefined) return this.osConfig.diff_value;
     if (from.length === 0 && to.length === 0) return 1;
     if (from.length === 0 || to.length === 0) return this.osConfig.diff_value;
 
@@ -93,6 +93,8 @@ export class ComparatorService {
   }
 
   private AntivirusComparator(from: any, to: any): number {
+    if (from === undefined && to === undefined) return 1;
+    if (from === undefined || to === undefined) return this.antivirusConfig.diff_value;
     if (from.length === 0 && to.length === 0) return 1;
     if (from.length === 0 || to.length === 0) return this.antivirusConfig.diff_value;
 
@@ -108,11 +110,11 @@ export class ComparatorService {
     return result_similarity;
   }
 
-  private CveComparator(from: any, to: any, total_cve_count: number): number {
+  private CveComparator(from: any, to: any): number {
     const fromCount = this.getHostCveCount(from);
     const toCount = this.getHostCveCount(to);
 
-    return this.calculateCumulativeSimilarity(fromCount, toCount, total_cve_count);
+    return this.calculateCumulativeSimilarity(fromCount, toCount, this.total_cve_count);
   }
 
   private getHostCveCount(host: any): number {
@@ -124,11 +126,11 @@ export class ComparatorService {
     return total;
   }
 
-  private EventComparator(from: any, to: any, total_event_count: number): number {
+  private EventComparator(from: any, to: any): number {
     const fromCount = from.length;
     const toCount = to.length;
 
-    return this.calculateCumulativeSimilarity(fromCount, toCount, total_event_count);
+    return this.calculateCumulativeSimilarity(fromCount, toCount, this.total_event_count);
   }
 
   private calculateCumulativeSimilarity(n1: number, n2: number, total: number): number {
@@ -172,15 +174,15 @@ export class ComparatorService {
 
   private NetServicesComparator(from: any, to: any): number {
     if (from === undefined && to === undefined) return 1;
-    if (from.length === 0 && to.length === 0) return 1;
     if (from === undefined || to === undefined) return this.networkServicesConfig.diff_value;
+    if (from.length === 0 && to.length === 0) return 1;
 
     let i1 = 0;
     let i2 = 0;
     let same_service_count = 0;
 
-    this.sortNetworkServices(from);
-    this.sortNetworkServices(to);
+    from = this.sortNetworkServices(from);
+    to = this.sortNetworkServices(to);
 
     while (i1 < from.length && i2 < to.length) {
       if (from[i1].port === to[i2].port && from[i1].protocol === to[i2].protocol) {
@@ -202,7 +204,7 @@ export class ComparatorService {
   }
 
   private sortNetworkServices(services: any): any {
-    return services.sort((serviceA, serviceB) => {
+    return services.slice().sort((serviceA, serviceB) => {
       return serviceA.protocol.localeCompare(serviceB.protocol) || serviceA.port - serviceB.port;
     });
   }

@@ -138,7 +138,7 @@ export class DataService {
           // Check if matching IP is found
           if (!matchingIp) throw new Error(`No IP found with address: ${ip}`);
 
-          const { nodes, edges } = this.constructDAG(
+          const { nodes, edges } = this.constructBN(
             matchingIp,
             data.data.IP,
             data.data.total_cve_count,
@@ -250,30 +250,29 @@ export class DataService {
    * @param cve_count
    * @param event_count
    */
-  public constructDAG(root_ip: any, data: any[], cve_count: number, event_count: number): GraphInput {
-    let hosts: Node[] = [];
+  public constructBN(root_ip: any, data: any[], cve_count: number, event_count: number): GraphInput {
+    let nodes: Node[] = [];
+    let edges: Edge[] = [];
+
+    console.log(data);
 
     data.forEach((item) => {
-      if (hosts.findIndex((n) => n.id === item._id) === -1) {
-        hosts.push({
+      if (nodes.findIndex((n) => n.id === item._id) === -1) {
+        nodes.push({
           id: item._id,
           label: this.getLabel(item),
           data: {
+            similarity: {},
             customColor: this.getColor(item),
-            type: item.__typename,
-            labelName: this.getLabelName(item),
           },
         });
       }
     });
 
-    const root_node = hosts.find((ipData) => ipData.label === root_ip.address);
-    root_node.data.customColor = 'red';
-
-    let previous_iter: Node[] = [root_node];
-    let nodes: Node[] = [root_node];
-    let edges: Edge[] = [];
-    const comparator = new ComparatorService();
+    const root_index = nodes.findIndex((node) => node.label === root_ip.address);
+    nodes[root_index].data.customColor = 'red';
+    let previous_iter: Node[] = [nodes[root_index]];
+    const comparator = new ComparatorService(cve_count, event_count);
 
     let addedNewEdge = true;
     while (addedNewEdge) {
@@ -281,24 +280,30 @@ export class DataService {
       let current_processed: Node[] = [];
 
       for (const source of previous_iter) {
-        for (const target of hosts) {
+        for (const target of nodes) {
           if (this.canAddEdge(source, target, edges)) {
             const sourceData = data.find((item) => item._id === source.id);
             const targetData = data.find((item) => item._id === target.id);
-            if (comparator.calculateRiskScore(sourceData, targetData, cve_count, event_count) > comparator.treshold) {
-              if (!nodes.find((node) => node.id === target.id)) {
-                nodes.push(target);
-              }
+            const riskScore = comparator.calculateRiskScore(sourceData, targetData);
+            if (riskScore > comparator.threshold) {
               if (!current_processed.find((node) => node.id === target.id)) {
                 current_processed.push(target);
               }
               edges.push({ source: source.id, target: target.id });
+              target.data.similarity[source.label] = riskScore;
               addedNewEdge = true;
             }
           }
         }
       }
       previous_iter = [...current_processed];
+    }
+    // Change the ID of the root node to 0 so it's on top in the graph
+    // Only if there isn't 0 already present
+    if (!nodes.some((node) => node.id === '0')) {
+      const root_id = nodes[root_index].id;
+      nodes[root_index].id = '0';
+      edges.forEach((edge) => (edge.source === root_id ? (edge.source = '0') : null));
     }
     return { nodes, edges };
   }
