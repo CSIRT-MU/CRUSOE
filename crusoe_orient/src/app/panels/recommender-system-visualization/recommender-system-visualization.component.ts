@@ -5,8 +5,6 @@ import { Cluster } from 'cluster';
 import { Subject } from 'rxjs';
 import _ from 'lodash';
 import { RecommenderService } from 'src/app/shared/services/recommender.service';
-import { NoDeprecatedCustomRule } from 'graphql';
-import { MatTableModule } from '@angular/material/table';
 
 @Component({
   selector: 'app-recommender-system-visualization-component',
@@ -30,10 +28,12 @@ export class RecommenderSystemVisualizationComponent implements OnInit {
     'contacts',
     'os',
     'antivirus',
+    'cms',
     'cve_count',
     'event_count',
     'risk',
     'distance',
+    'warnings',
   ];
 
   constructor(private recommenderService: RecommenderService, private route: ActivatedRoute) {
@@ -50,7 +50,7 @@ export class RecommenderSystemVisualizationComponent implements OnInit {
   }
 
   /**
-   * Loads graph data from GraphQL API
+   * Loads graph data from the recommender system
    */
   loadGraphData() {
     this.graphLoading = true;
@@ -100,7 +100,10 @@ export class RecommenderSystemVisualizationComponent implements OnInit {
       domains: node.data.domains,
       os: this.joinDict(node.data.os),
       antivirus: this.joinDict(node.data.antivirus),
+      cms: this.joinDict(node.data.cms),
       security_event_count: [node.data.security_event_count],
+      cve_count: [node.data.cve_count],
+      warnings: node.data.warnings?.map((item) => item.message),
     };
     return Object.entries(attr);
   }
@@ -112,37 +115,10 @@ export class RecommenderSystemVisualizationComponent implements OnInit {
     const values = Object.values(dict);
     return [values.join(':')];
   }
-
   private handleUndefined(value: any): string {
     return value !== undefined ? value : ' ';
   }
-  /*
-  public getLabel(node: Node) {
-    return this.recommenderService.getLabelOfGraphNode(node);
-  }
 
-  public expandNode(node: Node) {
-    this.recommenderService.getNodeNeighbours(node).subscribe(
-      (res) => {
-        this.edges = _.unionBy(this.edges, res.edges, (e) => [e.source, e.target, e.label].join());
-        this.nodes = _.unionBy(this.nodes, res.nodes, (n) => n.id);
-
-        if (this.nodes.length === 0 && this.edges.length === 0) {
-          this.errorMessage = 'Empty result.';
-        }
-
-        this.graphLoading = false;
-      },
-      (error) => {
-        this.edges = [];
-        this.nodes = [];
-        this.errorMessage = error;
-        this.updateChart();
-        this.graphLoading = false;
-      }
-    );
-  }
-*/
   updateChart() {
     this.center$.next(true);
   }

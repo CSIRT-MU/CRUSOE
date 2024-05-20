@@ -52,14 +52,7 @@ export class RecommenderService {
         data: {
           ...current,
           customColor: 'red',
-        } /*{
-          contacts: current.contacts,
-          domains: current.domains,
-          customColor: 'red',
-          os: this.getOsFromIp(current),
-          security_event_count: current.security_event_count,
-          
-        },*/,
+        },
       });
 
       edges.push({ source: '0', target: node_id, label: 'Same ' + current.path_types.join(', ') });
