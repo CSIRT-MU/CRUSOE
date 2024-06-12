@@ -34,7 +34,7 @@ Thanks goes to Lukáš Sadlek for preparing the dataset.
 
 The authors of the CRUSOE toolset are:
 
-Martin Laštovička, Jakub Bartoloměj Košuth, Danei Filakovský, and Martin Husák (Observe tool)  
+Martin Laštovička, Jakub Bartoloměj Košuth, Daniel Filakovský, and Martin Husák (Observe tool)  
 Lukáš Matta and Martin Husák (Orient tool)  
 Lukáš Sadlek, Michal Javorník, and Martin Husák (Decide tool)  
 Stanislav Špaček and Milan Žiaran (Act tool)
