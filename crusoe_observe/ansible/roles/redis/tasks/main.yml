@@ -28,7 +28,7 @@
 
   - name: Download redis
     get_url:
-      url: http://download.redis.io/redis-stable.tar.gz
+      url: https://download.redis.io/redis-stable.tar.gz
       dest: "/tmp/"
 
   - name: Unarchive Redis

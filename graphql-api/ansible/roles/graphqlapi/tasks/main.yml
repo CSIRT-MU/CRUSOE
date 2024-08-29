@@ -1,33 +1,94 @@
+- name: Delete Debian deb-src backports repository URL in sources list - bug with apt update
+  lineinfile:
+    path: /etc/apt/sources.list
+    state: absent
+    backrefs: yes
+    regexp: "^(.*https://deb.debian.org/debian buster-backports main.*)$"
+  become: yes
+  register: deb_archive_changed
+
+- name: Create graphql folder on Vagrant VM
+  file:
+    path: "{{ graphqlapi_folder }}/src/"
+    state: "directory"
+    mode: "0755"
+
 # Copy environment file where REST API urls are defined
 - name: Copy environment file
   template:
     src: db_config.js.j2
     dest: "{{ graphqlapi_folder }}/src/db_config.js"
 
-# Install node.js
-- name: Install Node.js
-  apt:
-    name: nodejs
-    state: present
-    update_cache: yes
-  become: yes
+# Copy source files to the VM
+- name: Copy graphqlapi source files to Vagrant VM
+  copy:
+    src: "../../../"
+    dest: "{{ graphqlapi_folder }}"
 
-# Install npm
-- name: Install npm
-  apt:
-    name: npm
-    state: present
-  become: yes
+- name: Check if node12 is installed
+  stat:
+    path: /usr/bin/node
+  register: var_node_installed_result
 
-  # Update node.js
-- name: Update npm
-  command: "npm install npm@latest -g"
-  become: yes
+- name: Install nvm and node version 12
+  block:
+    - name: install nvm v0.7.0
+      shell: >
+        curl https://raw.githubusercontent.com/creationix/nvm/v0.7.0/install.sh | sh
+        creates={{ ansible_env.HOME }}/.nvm/nvm.sh
+
+    - name: Install node and set version
+      shell: >
+        /bin/bash -c "source ~/.nvm/nvm.sh && nvm install {{ node_version }} && nvm alias default {{ node_version }}"
+        creates={{ ansible_env.HOME }}/.nvm/alias
+
+    - name: Create a symlink to node and npm for ansible
+      file:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        state: link
+      loop:
+        - { src: "{{ nvm_bin }}/node", dest: "/usr/bin/node" }
+        - { src: "{{ nvm_bin }}/npm", dest: "/usr/bin/npm" }
+      become: yes
+  when: var_node_installed_result.stat.exists == false
 
 # Install Graphql-api dependencies
-- name: Install Graphql-api  dependencies
+- name: Install Graphql-api dependencies
   npm:
     path: "{{ graphqlapi_folder }}"
+
+- name: Check if Apache2 is installed
+  stat:
+    path: /usr/sbin/apache2
+  become: yes
+  register: apache_installed
+
+- name: Install Apache2 if not present
+  apt:
+    name: apache2
+    state: present
+  become: yes
+  when: apache_installed.stat.exists == false
+
+- name: run proxy_http to support ProxyPass directive within Apache2 if not already done
+  command:
+    cmd: a2enmod proxy_http
+  become: yes
+
+- name: Add proxypass to default apache site
+  lineinfile:
+    dest: /etc/apache2/sites-available/000-default.conf
+    line: "{{ item.line }}"
+    insertbefore: "</VirtualHost>"
+  become: yes
+  with_items:
+    - { line: "\tProxyPass /graphql http://127.0.0.1:{{ port }}/graphql" }
+    - { line: "\tProxyPassReverse /graphql http://127.0.0.1:{{ port }}/graphql" }
+
+- name: Restart apache2
+  service: name=apache2 state=restarted
+  become: true
 
 # Build application using Angular-CLI
 - name: Build and start application

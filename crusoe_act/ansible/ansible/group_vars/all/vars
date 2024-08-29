@@ -22,4 +22,6 @@ ml_model_path: /var/tmp/crusoe/ # Where to store ML models
 supervisor_path: /etc/supervisor/conf.d/
 mulval_path: /opt/mulval/
 xsb_path: /opt/XSB/
-external_ip: 172.18.1.10
+external_ip: 172.18.1.10 # IP of vagrant box
+vault_act_overseer_password: password
+

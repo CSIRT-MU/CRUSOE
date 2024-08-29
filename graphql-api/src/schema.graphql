@@ -5,9 +5,9 @@ type SoftwareVersion {
   _id: Long!
   tag: String!
   version: String!
-  on: [Host] @relation(name: "ON", direction: "OUT")
+  on: [Host] @relation(name: "ON", direction: OUT)
   ON_rel: [ON]
-  vulnerabilitys: [Vulnerability] @relation(name: "IN", direction: "IN")
+  vulnerabilitys: [Vulnerability] @relation(name: "IN", direction: IN)
 }
 
 type Node {
@@ -15,21 +15,21 @@ type Node {
   dependency_degree: Float
   topology_betweenness: Float
   topology_degree: Float
-  has_assigned: [IP] @relation(name: "HAS_ASSIGNED", direction: "OUT")
-  is_a: [Host] @relation(name: "IS_A", direction: "OUT")
-  is_dependent_on: [Node] @relation(name: "IS_DEPENDENT_ON", direction: "OUT")
+  has_assigned: [IP] @relation(name: "HAS_ASSIGNED", direction: OUT)
+  is_a: [Host] @relation(name: "IS_A", direction: OUT)
+  is_dependent_on: [Node] @relation(name: "IS_DEPENDENT_ON", direction: OUT)
   IS_DEPENDENT_ON_rel: [IS_DEPENDENT_ON]
-  is_connected_to: [Node] @relation(name: "IS_CONNECTED_TO", direction: "OUT")
+  is_connected_to: [Node] @relation(name: "IS_CONNECTED_TO", direction: OUT)
   IS_CONNECTED_TO_rel: [IS_CONNECTED_TO]
 }
 
 type Host {
   _id: Long!
   hostname: String
-  nodes: [Node] @relation(name: "IS_A", direction: "IN")
-  softwareversions: [SoftwareVersion] @relation(name: "ON", direction: "IN")
-  components: [Component] @relation(name: "PROVIDED_BY", direction: "IN")
-  configurations: [Configuration] @relation(name: "CONTAINS", direction: "IN")
+  nodes: [Node] @relation(name: "IS_A", direction: IN)
+  softwareversions: [SoftwareVersion] @relation(name: "ON", direction: IN)
+  components: [Component] @relation(name: "PROVIDED_BY", direction: IN)
+  configurations: [Configuration] @relation(name: "CONTAINS", direction: IN)
 }
 
 type Contact {
@@ -40,20 +40,20 @@ type Contact {
 type DetectionSystem {
   _id: Long!
   name: String!
-  raises: [SecurityEvent] @relation(name: "RAISES", direction: "OUT")
+  raises: [SecurityEvent] @relation(name: "RAISES", direction: OUT)
 }
 
 type OrganizationUnit {
   _id: Long!
   name: String!
-  subnets: [Subnet] @relation(name: "PART_OF", direction: "IN")
+  subnets: [Subnet] @relation(name: "PART_OF", direction: IN)
 }
 
 type Subnet {
   _id: Long!
   note: String!
   range: String!
-  part_of: [OrganizationUnit] @relation(name: "PART_OF", direction: "OUT")
+  part_of: [OrganizationUnit] @relation(name: "PART_OF", direction: OUT)
   PART_OF_rel: [PART_OF]
 }
 
@@ -84,21 +84,21 @@ type CVE {
   scope: String!
   user_interaction: String!
   vendor_description: String
-  vulnerabilitys: [Vulnerability] @relation(name: "REFERS_TO", direction: "IN")
+  vulnerabilitys: [Vulnerability] @relation(name: "REFERS_TO", direction: IN)
 }
 
 type Vulnerability {
   _id: Long!
   description: String!
-  in: [SoftwareVersion] @relation(name: "IN", direction: "OUT")
-  refers_to: [CVE] @relation(name: "REFERS_TO", direction: "OUT")
+  in: [SoftwareVersion] @relation(name: "IN", direction: OUT)
+  refers_to: [CVE] @relation(name: "REFERS_TO", direction: OUT)
 }
 
 type DomainName {
   _id: Long!
   domain_name: JSON
   tag: String!
-  ips: [IP] @relation(name: "RESOLVES_TO", direction: "IN")
+  ips: [IP] @relation(name: "RESOLVES_TO", direction: IN)
 }
 
 type SecurityEvent {
@@ -109,8 +109,8 @@ type SecurityEvent {
   hostname: String
   id: String
   type: String!
-  ips: [IP] @relation(name: "SOURCE_OF", direction: "IN")
-  detectionsystems: [DetectionSystem] @relation(name: "RAISES", direction: "IN")
+  ips: [IP] @relation(name: "SOURCE_OF", direction: IN)
+  detectionsystems: [DetectionSystem] @relation(name: "RAISES", direction: IN)
 }
 
 type NetworkService {
@@ -124,8 +124,8 @@ type NetworkService {
 type Component {
   _id: Long!
   name: String!
-  supports: [Mission] @relation(name: "SUPPORTS", direction: "OUT")
-  provided_by: [Host] @relation(name: "PROVIDED_BY", direction: "OUT")
+  supports: [Mission] @relation(name: "SUPPORTS", direction: OUT)
+  provided_by: [Host] @relation(name: "PROVIDED_BY", direction: OUT)
 }
 
 type Mission {
@@ -134,7 +134,7 @@ type Mission {
   description: String!
   name: String!
   structure: String!
-  components: [Component] @relation(name: "SUPPORTS", direction: "IN")
+  components: [Component] @relation(name: "SUPPORTS", direction: IN)
 }
 
 type Configuration {
@@ -144,7 +144,7 @@ type Configuration {
   config_id: Int!
   integrity: Int!
   time: String!
-  contains: [Host] @relation(name: "CONTAINS", direction: "OUT")
+  contains: [Host] @relation(name: "CONTAINS", direction: OUT)
   CONTAINS_rel: [CONTAINS]
 }
 
@@ -163,11 +163,11 @@ type PAO {
 type IP {
   _id: Long!
   address: String!
-  resolves_to: [DomainName] @relation(name: "RESOLVES_TO", direction: "OUT")
+  resolves_to: [DomainName] @relation(name: "RESOLVES_TO", direction: OUT)
   RESOLVES_TO_rel: [RESOLVES_TO]
-  source_of: [SecurityEvent] @relation(name: "SOURCE_OF", direction: "OUT")
-  nodes: [Node] @relation(name: "HAS_ASSIGNED", direction: "IN")
-  part_of: [Subnet] @relation(name: "PART_OF", direction: "OUT")
+  source_of: [SecurityEvent] @relation(name: "SOURCE_OF", direction: OUT)
+  nodes: [Node] @relation(name: "HAS_ASSIGNED", direction: IN)
+  part_of: [Subnet] @relation(name: "PART_OF", direction: OUT)
 }
 
 type ON @relation(name: "ON") {

@@ -3,6 +3,108 @@
   stat: path=/etc/init.d/neo4j
   register: neo4j_installed
 
+- name: Install Apache2 for neo4j-rest
+  apt:
+    name:
+      - apache2
+      - libapache2-mod-wsgi-py3
+    state: present
+    update_cache: yes # Ensures the cache is updated before installation
+
+- name: run wsgi plugin for neo4j-rest
+  command:
+    cmd: a2enmod wsgi
+  become: yes
+
+- name: run proxy_http to support ProxyPass directive within Apache2 for neo4j-rest
+  command:
+    cmd: a2enmod proxy_http
+  become: yes
+
+# Install depedencies for python packages.
+- name: Install python dependencies
+  apt:
+    name: python3-pip
+    state: present
+    cache_valid_time: 1800
+
+- name: Install django framework
+  pip:
+    name: "{{ item }}"
+    state: latest
+    executable: pip3
+  with_items:
+    - "requests"
+    - "structlog"
+    - "django"
+    - "djangorestframework"
+
+- name: Template a neo4j-rest wrapper to sites-available
+  template:
+    src: neo4j-rest-wrapper.conf
+    dest: "/etc/apache2/sites-available/neo4j-rest-wrapper.conf"
+
+- name: Copy crusoe observe components
+  copy:
+    src: "../neo4j-rest"
+    dest: /tmp/
+
+- name: Copy conf.ini file to neo4j-rest
+  copy:
+    src: conf.ini
+    dest: /tmp/neo4j-rest/django/crusoe_django
+  become: yes # Optional: use if you need root permissions
+
+- name: Copy neo4j-rest directory using command module because remote copy is not working in ansible
+  command:
+    cmd: cp -r /tmp/neo4j-rest/django /var/www/
+  become: yes # Optional: use if you need root permissions
+
+- name: change group for /var/www/django/neo4j-rest
+  file:
+    dest: /var/www/django
+    group: www-data
+    recurse: yes
+
+- name: modify ports configuration
+  lineinfile:
+    path: /etc/apache2/ports.conf
+    line: "LISTEN {{neo4jrest_port}}"
+
+- name: Enable new site neo4j-rest
+  shell: "/usr/sbin/a2ensite neo4j-rest-wrapper.conf"
+
+- name: Add proxypass to default neo4j-rest apache site
+  lineinfile:
+    dest: /etc/apache2/sites-available/000-default.conf
+    line: "{{ item.line }}"
+    insertbefore: "</VirtualHost>"
+  with_items:
+    - { line: "\tProxyPass /rest http://127.0.0.1:{{ neo4jrest_port }}/rest" }
+    - {
+        line: "\tProxyPassReverse /rest http://127.0.0.1:{{ neo4jrest_port }}/rest",
+      }
+
+- name: Reload apache
+  service:
+    name: apache2
+    state: restarted
+
+# https://github.com/geerlingguy/ansible-role-java/issues/64
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=863199#23
+- name: Create some arbitrary dir for install
+  file:
+    path: /usr/share/man/man1
+    state: directory
+    mode: "0755"
+
+- name: Install jre before jdk - for some reason it has to be done
+  apt:
+    name: default-jre
+    state: present
+    cache_valid_time: 1800
+    update_cache: yes
+
 - name: Install java
   apt:
     name: default-jdk
@@ -12,21 +114,23 @@
 
 - name: Install neo4j if not installed
   block:
-  - name: Add an Apt signing key, for Neo4j apt source repository
-    apt_key:
-      url: https://debian.neo4j.org/neotechnology.gpg.key
-      state: present
+    - name: Add gpg key for neo4j repo
+      command: "wget -O /etc/apt/trusted.gpg.d/neotechnology.gpg.key https://debian.neo4j.com/neotechnology.gpg.key"
 
-  - name: Add apt source repository with Neo4j
-    apt_repository:
-      repo: deb http://debian.neo4j.org/repo stable/
-      state: present
-      filename: neo4j
+    - name: Add neo4j repo
+      shell: "{{ item }}"
+      with_items:
+        - "echo 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/neotechnology.gpg.key] https://debian.neo4j.com stable 3.5' > /etc/apt/sources.list.d/neo4j.list"
+      become: yes
 
-  - name: Install Neo4j (in combination with Java 8 if it is not already present)
-    apt:
-      name: neo4j=1:3.5.3
-      state: present
+    - name: update apt
+      apt:
+        update_cache: yes
+
+    - name: Install Neo4j (in combination with Java 8 if it is not already present)
+      apt:
+        name: neo4j=1:3.5.3
+        state: present
 
   when: neo4j_installed.stat.exists == false
 
@@ -41,23 +145,49 @@
     dest: /etc/neo4j/neo4j.conf
     line: "{{ item.line }}"
   with_items:
-    - { line: 'dbms.security.procedures.unrestricted=apoc.load.json, algo.*, apoc.convert.*' }
-    - { line: 'apoc.import.file.use_neo4j_config=true' }
-    - { line: 'apoc.import.file.enabled=true' }
+    - {
+        line: "dbms.security.procedures.unrestricted=apoc.load.json, algo.*, apoc.convert.*",
+      }
+    - { line: "apoc.import.file.use_neo4j_config=true" }
+    - { line: "apoc.import.file.enabled=true" }
 
 - name: connection configuration
   lineinfile:
     dest: /etc/neo4j/neo4j.conf
     line: "{{ item.line }}"
   with_items:
-    - { line: 'dbms.connector.http.listen_address=0.0.0.0:7474'}
-    - { line: 'dbms.connector.bolt.listen_address=0.0.0.0:7687'}
+    - { line: "dbms.connector.http.listen_address=0.0.0.0:7474" }
+    - { line: "dbms.connector.bolt.listen_address=0.0.0.0:7687" }
 
 - name: Copy Graph Algorithms
   copy:
     src: graph-algorithms-algo-3.5.4.0.jar
     dest: /var/lib/neo4j/plugins
     mode: 0644
+
+- name: Create tmp folder for flow data
+  file:
+    path: "{{ flow_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Copy Flow Data
+  copy:
+    src: "{{ item }}"
+    dest: "{{ flow_dir }}"
+    mode: 0644
+  loop:
+    - in_muni.csv
+    - out_muni.csv
+  
+- name: Copy Flow to tmp
+  copy:
+    src: "{{ item }}"
+    dest: "/tmp"
+    mode: 0644
+  loop:
+    - in_muni.csv
+    - out_muni.csv
 
 - name: Restart neo4j
   service:
@@ -79,3 +209,4 @@
     body_format: json
     body:
       password: "{{ neo4j_password }}"
+  # when: 0 > 1

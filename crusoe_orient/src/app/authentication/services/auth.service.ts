@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 export class AuthService {
   private username: string;
   private lastError = '';
-  private oidcEnabled = true;
+  private oidcEnabled = false;
 
   constructor(private oAuthService: OAuthService, private router: Router) {}
 
@@ -52,7 +52,7 @@ export class AuthService {
    * @returns returns true if user is authenticated, false otherwise
    */
   public isAuthenticated(): boolean {
-    return this.oAuthService.hasValidAccessToken();
+    return true;
   }
 
   /**

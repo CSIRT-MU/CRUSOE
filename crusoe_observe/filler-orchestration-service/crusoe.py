@@ -450,6 +450,29 @@ def flowmon(self, param_prefix):
         raise self.retry(countdown=2 ** self.request.retries)
     return f'Processed scan flag: {param_prefix[:-1]}, number of flows: {counter}', path
 
+@APP.task(bind=True, max_retries=6, ignore_result=True, base=BaseTask)
+def flow_import(self, param_prefix):
+    """
+    Import local flows
+    """
+    try:
+        path, counter = flowmon_connector.import_local_flows(
+            param_prefix=param_prefix,
+            local_flows_dir=self.flowmon_conf['local_flows_dir'],
+            nfdump_format=self.flowmon_conf[f'{param_prefix}format'],
+            logger=celery_logger.get_logger("flowmon", f"{self.log_path}flowmon.log"))
+        if counter == 0:
+            logger.error(f"Missing flow data")
+            if self.request.retries == self.max_retries:
+                raise ComponentException("Flowmon local flow import: missing flow data")
+            raise self.retry(countdown=2 ** self.request.retries)
+    except:
+        logger.error(f"Unexpected error: {sys.exc_info()[0]}")
+        if self.request.retries == self.max_retries:
+            raise ComponentException(f"Flowmon: local flow import unexpected error: {sys.exc_info()[0]}")
+        raise self.retry(countdown=2 ** self.request.retries)
+    return f'Processed scan flag: {param_prefix[:-1]}, number of flows: {counter}', path
+
 
 @APP.task(bind=True, base=BaseTask, ignore_result=True)
 def flowmon_chain(self):
@@ -462,6 +485,12 @@ def flowmon_chain(self):
     in_flow_chain = (flowmon.s(param_prefix="in_") | detect_domains.s())
     out_flow_chain()
     in_flow_chain()
+
+    out_import_flow_chain = (flow_import.s(param_prefix="out_") | out_group)
+    in_import_flow_chain = (flow_import.s(param_prefix="in_") | detect_domains.s())
+    out_import_flow_chain()
+    in_import_flow_chain()
+
     logger.info(f'remove {self.flowmon_conf["tmp_dir"]} directory')
 
     now = time()
