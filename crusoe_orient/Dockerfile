@@ -2,7 +2,7 @@
 FROM node:12 AS build
 WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 COPY . .
 
 ARG NEO4J_REST_URL="http://localhost/"

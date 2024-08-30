@@ -39,6 +39,7 @@
   .box {
     width: 23%;
     display: flex;
+    padding-bottom: 20px;
 
     @media screen and (max-width: 1024px) {
       width: 100%;

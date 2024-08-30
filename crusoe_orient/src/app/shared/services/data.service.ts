@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import gql from 'graphql-tag';
 import { GraphInput } from 'src/app/shared/models/graph.model';
 import { Node, Edge } from '@swimlane/ngx-graph';
@@ -10,6 +10,9 @@ import { tap, map } from 'rxjs/operators';
 import { Attributes } from 'src/app/shared/config/attributes';
 import { CVEResponse, CVE } from 'src/app/shared/models/vulnerability.model';
 import { VulnerabilityData } from '../../panels/vulnerability/vulnerability.component';
+import { Subnet } from 'src/app/shared/models/subnet.model';
+import { DocumentNode } from 'graphql';
+import { ComparatorService } from './comparator.service';
 
 @Injectable({
   providedIn: 'root',
@@ -40,6 +43,61 @@ export class DataService {
       );
   }
 
+  public getTraversalParameters(): Observable<{ subnets: Subnet[]; missions: string[] }> {
+    return this.apollo // Assuming 'this' has an Apollo instance
+      .query<any>({
+        query: gql`
+          {
+            Subnet {
+              note
+              range
+            }
+            Mission {
+              name
+            }
+          }
+        `,
+      })
+      .pipe(
+        map((data) => {
+          // Assuming the response structure has a 'Subnet' property
+          const subnetsData = data.data.Subnet;
+          const missions = data.data.Mission.map((mission: any) => mission.name);
+          if (!subnetsData) {
+            return { subnets: [], missions: [] }; // Return an empty array if no subnets found
+          }
+          let subnets: Subnet[] = [];
+          subnetsData.forEach((item) => {
+            subnets.push({
+              note: item.note,
+              range: item.range,
+            });
+          });
+          return { subnets, missions };
+        })
+      );
+  }
+
+  public getIPSubnet(ip: string): Observable<string> {
+    return this.apollo // Assuming 'this' has an Apollo instance
+      .query<any>({
+        query: gql`
+        {
+          IP(address: "${ip}"){
+            part_of {
+              range
+            }
+          }
+        }
+        `,
+      })
+      .pipe(
+        map((data) => {
+          return data.data.IP[0].part_of[0].range;
+        })
+      );
+  }
+
   /**
    * Gets neighbours of given node
    * @param node
@@ -64,6 +122,83 @@ export class DataService {
       );
   }
 
+  /**
+   * Get IP node from database based on IP address
+   * @param ip
+   */
+  public getTraversalBase(ip: string, subnet: string, mission: string): Observable<GraphInput> {
+    const query = this.buildIpQuery(ip, subnet, mission);
+    return this.apollo
+      .query<any>({ query: query })
+      .pipe(
+        map((data) => {
+          // Find the IP with matching address
+          const matchingIp = data.data.IP.find((ipData) => ipData.address === ip);
+
+          // Check if matching IP is found
+          if (!matchingIp) throw new Error(`No IP found with address: ${ip}`);
+
+          const { nodes, edges } = this.constructBN(
+            matchingIp,
+            data.data.IP,
+            data.data.total_cve_count,
+            data.data.total_event_count
+          );
+          return { nodes, edges };
+        })
+      );
+  }
+
+  private buildIpQuery(ip: string, subnet: string, mission: string): DocumentNode {
+    if (mission) {
+      return gql`
+      {
+        IP(filter: {
+          OR: [
+            {
+              nodes_in: {
+                is_a_in: {
+                  components_in: {
+                    supports_some: {
+                      name: "${mission}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              address: "${ip}"
+            }
+          ]
+        }) {
+          ${this.getAttributesOfType('expanded_IP')}
+        }
+        total_event_count,
+        total_cve_count
+      }
+      `;
+    }
+    return gql`
+    {
+      IP(filter: {
+        OR: [
+          {
+            part_of: {
+              range: "${subnet}"
+            }
+          },
+          {
+            address: "${ip}"
+          }
+        ]
+      }) {
+        ${this.getAttributesOfType('expanded_IP')}
+      }
+      total_event_count,
+      total_cve_count
+    }
+    `;
+  }
   getAttributesOfType(type: any): string {
     return Attributes[type].toString();
   }
@@ -106,6 +241,102 @@ export class DataService {
     });
 
     return { nodes, edges };
+  }
+
+  /**
+   * Converts graph data to ngx-graph compliant format
+   * @param root_ip
+   * @param data
+   * @param cve_count
+   * @param event_count
+   */
+  public constructBN(root_ip: any, data: any[], cve_count: number, event_count: number): GraphInput {
+    let nodes: Node[] = [];
+    let edges: Edge[] = [];
+
+    console.log(data);
+
+    data.forEach((item) => {
+      if (nodes.findIndex((n) => n.id === item._id) === -1) {
+        nodes.push({
+          id: item._id,
+          label: this.getLabel(item),
+          data: {
+            similarity: {},
+            customColor: this.getColor(item),
+          },
+        });
+      }
+    });
+
+    const root_index = nodes.findIndex((node) => node.label === root_ip.address);
+    nodes[root_index].data.customColor = 'red';
+    let previous_iter: Node[] = [nodes[root_index]];
+    const comparator = new ComparatorService(cve_count, event_count);
+
+    let addedNewEdge = true;
+    while (addedNewEdge) {
+      addedNewEdge = false;
+      let current_processed: Node[] = [];
+
+      for (const source of previous_iter) {
+        for (const target of nodes) {
+          if (this.canAddEdge(source, target, edges)) {
+            const sourceData = data.find((item) => item._id === source.id);
+            const targetData = data.find((item) => item._id === target.id);
+            const riskScore = comparator.calculateRiskScore(sourceData, targetData);
+            if (riskScore > comparator.threshold) {
+              if (!current_processed.find((node) => node.id === target.id)) {
+                current_processed.push(target);
+              }
+              edges.push({ source: source.id, target: target.id });
+              target.data.similarity[source.label] = riskScore;
+              addedNewEdge = true;
+            }
+          }
+        }
+      }
+      previous_iter = [...current_processed];
+    }
+    // Change the ID of the root node to 0 so it's on top in the graph
+    // Only if there isn't 0 already present
+    if (!nodes.some((node) => node.id === '0')) {
+      const root_id = nodes[root_index].id;
+      nodes[root_index].id = '0';
+      edges.forEach((edge) => (edge.source === root_id ? (edge.source = '0') : null));
+    }
+    return { nodes, edges };
+  }
+
+  private canAddEdge(from: Node, to: Node, edges: Edge[]): boolean {
+    if (from.id === to.id) return false;
+    if (edges.some((edge) => edge.source === from.id && edge.target === to.id)) {
+      return false;
+    }
+
+    const stack: string[] = [to.id];
+    const visited: Set<string> = new Set();
+
+    while (stack.length) {
+      const node = stack.pop()!; // Guaranteed to have a value due to initial push
+
+      if (visited.has(node)) {
+        continue; // Skip already visited nodes
+      }
+
+      if (node === from.id) {
+        return false; // Found the target node
+      }
+
+      visited.add(node);
+
+      const outgoingEdges = edges.filter((edge) => edge.source === node);
+      for (const edge of outgoingEdges) {
+        stack.push(edge.target); // Push neighbors onto the stack
+      }
+    }
+
+    return true; // Not reachable after all neighbors are explored
   }
 
   /**

@@ -41,6 +41,60 @@ export const Attributes = {
     range
     note
   }`,
+  expanded_IP: `
+  _id
+  address
+  resolves_to {
+    _id
+    domain_name
+  }
+  source_of  {
+    _id
+  }
+  nodes   {
+    _id
+    topology_betweenness
+    dependency_degree
+    topology_degree
+    is_a {
+      _id
+      networkservices {
+        port
+        protocol
+        service
+        tag
+      }
+      os(first: 1, filter: { tag: "os_component" }) {
+        _id
+        version
+        vulnerabilitys {
+          _id
+        }
+      }
+      antivirus(
+        first: 1
+        filter: { tag: "services_component" }
+      ) {
+        _id
+        version
+        vulnerabilitys {
+          _id
+        }
+      }
+      cms(
+        first: 1
+        filter: { tag: "cms_client" }
+      ) {
+        _id
+        version
+      }
+    }
+  }
+  part_of  {
+    _id
+    range
+    note
+  }`,
   DomainName: `
       _id
       domain_name

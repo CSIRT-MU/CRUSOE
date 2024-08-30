@@ -3,11 +3,9 @@
     <img src="./assets/images/csirt_logo.png" alt="CSIRT-MU logo" width="50" />
     <h1>{{ appName }}</h1>
   </div>
-  <hr style="margin-top: 0;" />
+  <hr style="margin-top: 0" />
   <li class="nav flex-column">
-    <a routerLink="/auth/panel/overview" class="nav-link" routerLinkActive="active">
-      Overview
-    </a>
+    <a routerLink="/auth/panel/overview" class="nav-link" routerLinkActive="active"> Overview </a>
   </li>
   <div *ngFor="let panelGroup of panelGroups">
     <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-2 mb-1">

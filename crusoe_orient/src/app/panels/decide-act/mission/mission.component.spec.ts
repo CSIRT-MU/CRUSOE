@@ -8,22 +8,24 @@ describe('MissionComponent', () => {
   let component: MissionComponent;
   let fixture: ComponentFixture<MissionComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [MissionComponent],
-      providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: name } } },
-        {
-          provide: DecideService,
-          useValue: {
-            getMission() {
-              return { subscribe: () => {} };
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [MissionComponent],
+        providers: [
+          { provide: ActivatedRoute, useValue: { snapshot: { params: name } } },
+          {
+            provide: DecideService,
+            useValue: {
+              getMission() {
+                return { subscribe: () => {} };
+              },
             },
           },
-        },
-      ],
-    }).compileComponents();
-  }));
+        ],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(MissionComponent);

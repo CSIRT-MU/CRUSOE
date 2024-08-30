@@ -12,6 +12,7 @@ export const environment = {
   baseUrl: 'https://localhost/',
   flowerUrl: 'https://localhost:5555/',
   tmpActApi: 'https://localhost/act/',
-  graphqlApi: 'https://localhost:4001/graphql',
+  graphqlApi: 'http://127.0.0.1:4001/graphql/',
   firewallApi: 'https://localhost/firewall',
+  recommenderApi: 'http://localhost:16005/',
 };
