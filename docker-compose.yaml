@@ -1,0 +1,156 @@
+version: '3.8'
+
+services:
+  crusoe_act_overseer:
+    build:
+      context: ./crusoe_act/act-overseer
+      args:
+        # Password for authentication to neo4j-rest REST API
+        VAULT_ACT_OVERSEER_PASSWORD: "password"
+        # URL of neo4j-rest REST API | we are using Docker internal DNS resolving of each services
+        EXTERNAL_IP: "crusoe_observe"
+        # Form of localhost address - could be "localhost" or ::1, but for simplicity ipv4 loopback
+        LOCALHOST: "127.0.0.1"
+        # Port on which act will start - we will then use apache2 proxy to proxy requests without port
+        PORT_NUMBER: "8080"
+        # Server name of this container
+        SERVER_NAME: "crusoe-act-overseer"
+    depends_on:
+      - crusoe_graphql
+    volumes:
+      - vol_act_overseer:/app
+    ports:
+      - "81:80"
+      - "8080:8080"
+    networks:
+      bridge_crusoe:
+        ipv4_address: 172.28.0.6
+
+  crusoe_act_component:
+    build:
+      context: ./crusoe_act/act-component
+      args:
+        # URL where the act component is active, leave as it is when component is running inside the container
+        PROXY_URL: "http://127.0.0.1"
+        # Port on which component will start, after that we will use apache2 to proxy without port number to endpoint URL
+        PORT_NUMBER: "8086"
+        # Enpoint URL on which the component will accept http requests
+        URL_PATH: "firewall"
+        # Name of the component folder which will be copied to the container and run
+        DST_WRAPPER: "simulated-pao-firewall"
+        # Name of the component project name inside DST_WRAPPER folder
+        WRAPPER: "firewall_wrapper"
+        # Server name of component
+        SERVER_NAME: "simulated-pao-firewall.local"
+        # IP/Hostname of host where neo4j db is running
+        EXTERNAL_IP: "172.28.0.3"
+        # Password to the neo4j database
+        VAULT_NEO4J_PASSWORD: "password"
+        # This PAOs IP address to be written to neo4j db - the same as the docker container
+        PAO_IP: "172.28.0.2"
+        # PAO Name to be written into neo4j db
+        PAO_NAME: "firewall"
+        # Port on which the PAO will accept http requests
+        PORTNUMBER: "8080"
+        # Max capacity of PAO
+        MAXCAPACITY: "0"
+        # Current used capacity of PAO
+        USEDCAPACITY: "0"
+        # Current not used capacity of PAO
+        FREECAPACITY: "0"
+    depends_on:
+      - crusoe_act_overseer
+    volumes:
+      - vol_act_component:/app
+    ports:
+      - "82:80"
+      - "8086:8086"
+    networks:
+      bridge_crusoe:
+        ipv4_address: 172.28.0.2
+
+  crusoe_observe:
+    build:
+      context: ./crusoe_observe
+      args:
+        # Port on which neo4j-rest REST API will start, we will use apache2 proxy to access the REST API without port
+        NEO4J_REST_PORT: "8080"
+        # neo4j-rest server name for apache2
+        SERVER_NAME: "neo4j-rest"
+        # Password to the neo4j db that will be set on the startup of container
+        NEO4J_PASSWORD: "password"
+    environment:
+      # Password to neo4j db is needed to be passed as ENV variable for the docker startup script
+      - NEO4J_PASSWORD=password
+    volumes:
+      - vol_observe:/var/lib/neo4j/data
+    ports:
+      # neo4j-rest debug port
+      - "83:80"
+      # neo4j-rest debug port
+      - "8081:8080"
+      # Flower port
+      - "5555:5555"
+      # NEO4J DB port
+      - "7687:7687"
+      - "7474:7474"
+    networks:
+      bridge_crusoe:
+        ipv4_address: 172.28.0.3
+
+  crusoe_graphql:
+    build:
+      context: ./graphql-api
+      args:
+        # Port on which graphql service will be available
+        GRAPHQL_SERVER_PORT: "4001"
+        # Neo4j database URL
+        NEO4J_URL: "bolt://localhost:7687"
+        NEO4J_USER: "neo4j"
+        NEO4J_PASS: "password"
+    depends_on:
+      - crusoe_observe
+    volumes:
+      - vol_graphql:/app
+    ports:
+      - "4001:4001"
+    networks:
+      bridge_crusoe:
+        ipv4_address: 172.28.0.4
+
+  crusoe_orient:
+    build:
+      context: ./crusoe_orient
+      args:
+
+        NEO4J_REST_URL: "http://172.28.0.3/rest/"
+        # # URL Where Flower backend is available
+        FLOWER_URL: "http://172.28.0.3:5555/"
+        # # URL Where act-overseer is available
+        ACT_API_URL: "http://172.28.0.6/act"
+        # # URL Where graphql is available
+        GRAPHQL_URL: "http://192.168.194.5:4001/graphql"
+        # # URL Where the simulated firewall is available
+        FIREWALL_PAO_URL: "http://192.168.194.5:8086/firewall"
+    ports:
+      - "80:80"
+    volumes:
+      - vol_orient:/app
+    networks:
+      bridge_crusoe:
+        ipv4_address: 172.28.0.5
+
+volumes:
+  vol_act_overseer:
+  vol_act_component:
+  vol_observe:
+  vol_orient:
+  vol_graphql:
+
+networks:
+  bridge_crusoe:
+    driver: bridge
+    ipam:
+      config:
+        # We do not need more than 5 IPs so small /29 subnet is sufficient
+        - subnet: 172.28.0.0/29
