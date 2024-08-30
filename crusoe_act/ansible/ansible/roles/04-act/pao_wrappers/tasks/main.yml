@@ -1,22 +1,33 @@
-# Install & configure the Mail Filter PAO
+- name: Delete Debian deb-src backports repository URL in sources list - bug with apt update
+  lineinfile:
+    path: /etc/apt/sources.list
+    state: absent
+    backrefs: yes
+    regexp: "^(.*https://deb.debian.org/debian buster-backports main.*)$"
+  become: yes
+  register: deb_archive_changed
+
+# Set Python3.7 as default
+- name: Run update-alternatives
+  command: "update-alternatives {{ item }}"
+  with_items:
+    - "--install /usr/bin/python python /usr/bin/python3.7 2"
+    - "--install /usr/bin/python python /usr/bin/python2 1"
+
+- name: Copy act-component components
+  copy:
+    src: "../../../../../../act-component"
+    dest: /tmp/
+
 - name: Template a wrapper to sites-available
   template:
     src: generic_wrapper.conf
     dest: "/etc/apache2/sites-available/{{wrapper}}.conf"
 
-- name: create .ssh directory
-  file:
-    path: "~/.ssh"
-    state: "directory"
-
-- name: set up gitlab.ics.muni.cz as a known host
-  shell: "ssh-keyscan -H gitlab.ics.muni.cz > ~/.ssh/known_hosts"
-
-- name: copy wrapper to /var/www/
-  copy:
-    src: "/crusoe/act-component/{{dst_wrapper}}"
-    dest: /var/www/
-    remote_src: yes
+- name: Copy directory using command module
+  command:
+    cmd: cp -r /tmp/act-component/{{dst_wrapper}} /var/www/
+  become: yes # Optional: use if you need root permissions
 
 - name: change group for /var/www/{dst_wrapper}
   file:
@@ -35,35 +46,32 @@
     mode: 0666
   when: file_details.stat.exists
 
-- name: modify allowed hosts
-  lineinfile:
-    path: "/var/www/{{dst_wrapper}}/{{wrapper}}/settings.py"
-    regexp: "ALLOWED_HOSTS = \\['127.0.0.1'\\]"
-    line: "ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '{{ip}}', '{{server_name}}']"
-    state: present
-
 - name: modify ports configuration
   lineinfile:
     path: /etc/apache2/ports.conf
-    line: "LISTEN {{portnumber}}"
+    line: "LISTEN {{firewall_portnumber}}"
     state: present
 
 - name: Add proxypass to default apache site
   lineinfile:
     dest: /etc/apache2/sites-available/000-default.conf
-    line:  "{{ item.line }}"
-    insertbefore: '</VirtualHost>'
+    line: "{{ item.line }}"
+    insertbefore: "</VirtualHost>"
   with_items:
-    - { line: 'ProxyPass /{{ pao_name }} http://127.0.0.1:{{ portnumber }}/{{ pao_name }}'}
-    - { line: 'ProxyPassReverse /{{ pao_name }} http://127.0.0.1:{{ portnumber }}/{{ pao_name }}'}
-  notify:
-    - reload apache
-
+    - {
+        line: "\tProxyPass /{{ firewall_pao_name }} http://127.0.0.1:{{ firewall_portnumber }}/{{ firewall_pao_name }}",
+      }
+    - {
+        line: "\tProxyPassReverse /{{ firewall_pao_name }} http://127.0.0.1:{{ firewall_portnumber }}/{{ firewall_pao_name }}",
+      }
 
 - name: Enable new site
   shell: "/usr/sbin/a2ensite {{wrapper}}.conf"
-  notify:
-    - reload apache
+
+- name: Reload Apache
+  service:
+    name: apache2
+    state: reloaded
 
 - name: install neo4j package
   pip:
