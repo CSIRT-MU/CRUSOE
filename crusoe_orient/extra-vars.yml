@@ -1,0 +1,16 @@
+# Source files of dashboard
+dashboard_folder: /home/vagrant/dashboard
+# Version of nodejs to install by nvm
+node_version: lts/erbium
+# nvm installation directory
+nvm_bin: /home/vagrant/.nvm/versions/node/v12.22.12/bin
+# NEO4J API URL
+baseUrlApi: 'http://localhost/rest'
+# Flower api
+flowerUrlApi: 'http://localhost:5555/'
+# Act API URL
+actApi: 'http://localhost/act/'
+# GraphQL API URL
+graphqlApi: 'http://localhost/graphql'
+# Firewall API URL
+firewallApi: 'http://localhost/firewall'

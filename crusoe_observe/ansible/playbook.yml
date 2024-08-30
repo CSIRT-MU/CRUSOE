@@ -2,15 +2,15 @@
 - hosts: crusoe
   become: true
   roles:
-## prerequisities
+    ## prerequisities
     - pythonPackages
     - commonTools
-    - neo4j
-## core components
+    ## core components
     - crusoeComponents
-    - warden
-#    - mlData ATLEAST 16Gb Memory required
-## orchestration
+    - neo4j
+    #- warden
+    #- mlData ATLEAST 16Gb Memory required
+    ## orchestration
     - configuration
     - redis
     - supervisor

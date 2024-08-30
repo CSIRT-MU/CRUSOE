@@ -1,21 +1,21 @@
 wrapper:
 dst_wrapper:
-portnumber:
-ip:
-server_name:
-pao_name: 
-maxCapacity:
-usedCapacity:
-freeCapacity: 
+firewall_portnumber:
+firewall_ip:
+firewall_server_name:
+firewall_pao_name: 
+firewall_maxCapacity:
+firewall_usedCapacity:
+firewall_freeCapacity: 
 
 
 pao_required_variables:
     wrapper: '{{ wrapper }}'
     dst_wrapper: '{{ dst_wrapper }}'
-    portnumber: ' {{ portnumber }}'
-    ip: '{{ ip }}'
-    server_name: '{{ server_name }}'
-    pao_name: '{{ pao_name }}'
-    maxCapacity: '{{ maxCapacity }}'
-    usedCapacity: '{{ usedCapacity }}'
-    freeCapacity: '{{ freeCapacity }}'
+    firewall_portnumber: ' {{ firewall_portnumber }}'
+    firewall_ip: '{{ firewall_ip }}'
+    firewall_server_name: '{{ firewall_server_name }}'
+    firewall_pao_name: '{{ firewall_pao_name }}'
+    firewall_maxCapacity: '{{ firewall_maxCapacity }}'
+    firewall_usedCapacity: '{{ firewall_usedCapacity }}'
+    firewall_freeCapacity: '{{ firewall_freeCapacity }}'

@@ -1,0 +1,2 @@
+neo4jrest_port: 8888
+server_name: neo4j-rest

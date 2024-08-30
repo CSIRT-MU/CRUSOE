@@ -1,6 +1,53 @@
+- name: Delete Debian deb-src backports repository URL in sources list - bug with apt update
+  lineinfile:
+    path: /etc/apt/sources.list
+    state: absent
+    backrefs: yes
+    regexp: "^(.*https://deb.debian.org/debian buster-backports main.*)$"
+  become: yes
+  register: deb_archive_changed
+
+- name: Install Apache2
+  apt:
+    name:
+      - apache2
+      - libapache2-mod-wsgi-py3
+    state: present
+    update_cache: yes # Ensures the cache is updated before installation
+
+- name: run wsgi plugin
+  command:
+    cmd: a2enmod wsgi
+  become: yes
+
+- name: run proxy_http to support ProxyPass directive within Apache2
+  command:
+    cmd: a2enmod proxy_http
+  become: yes
+
+# Set Python3.7 as default
+- name: Run update-alternatives
+  command: "update-alternatives {{ item }}"
+  with_items:
+    - "--install /usr/bin/python python /usr/bin/python3.7 2"
+    - "--install /usr/bin/python python /usr/bin/python2 1"
+
+- name: Copy act-overseer component
+  copy:
+    src: "../../../../../../act-overseer"
+    dest: /tmp/
+
+# Install depedencies for python packages.
+- name: Install python dependencies
+  apt:
+    name: python3-pip
+    state: present
+    cache_valid_time: 1800
+    update_cache: yes
+
 - name: Install overseer
   pip:
-    name: "/crusoe/act/act-overseer"
+    name: "/tmp/act-overseer/"
     executable: pip3
     state: forcereinstall
 
@@ -9,40 +56,39 @@
     src: act_overseer.conf
     dest: "/etc/apache2/sites-available/act_overseer.conf"
 
-- name: copy overseer rest api to /var/www/
-  copy:
-    src: "/tmp/act-overseer/act_overseer_rest_api"
-    dest: /var/www/
-    remote_src: yes
+- name: Copy act-overseer directory using command module because remote copy is not working in ansible
+  command:
+    cmd: cp -r /tmp/act-overseer/act_overseer_rest_api /var/www/
+  become: yes # Optional: use if you need root permissions
 
 - name: change group for /var/www/act_overseer_rest_api
   file:
     dest: /var/www/act_overseer_rest_api
     group: www-data
     recurse: yes
-    
+
 - name: replace user name
   replace:
     path: /usr/local/lib/python3.7/dist-packages/act_overseer/data/act_overseer_config
-    regexp: "\"user\","
-    replace: "\"crusoe\","
+    regexp: '"user",'
+    replace: '"crusoe",'
 
 - name: replace password
   replace:
     path: /usr/local/lib/python3.7/dist-packages/act_overseer/data/act_overseer_config
-    regexp: "pass\","
-    replace: "{{ vault_act_overseer_password }}\","
+    regexp: 'pass",'
+    replace: '{{ vault_act_overseer_password }}",'
 
 - name: replace server_url
   replace:
-     path: /usr/local/lib/python3.7/dist-packages/act_overseer/data/act_overseer_config
-     regexp: "\"https://crusoe.csirt.muni.cz\""
-     replace: "\"{{ external_ip }}:{{ portnumber_neo4j_rest }}\""
+    path: /usr/local/lib/python3.7/dist-packages/act_overseer/data/act_overseer_config
+    regexp: '"https://crusoe.csirt.muni.cz"'
+    replace: '"{{ overseer_external_ip }}"'
 
 - name: adjust permission
   file:
     path: /usr/local/lib/python3.7/dist-packages/act_overseer/data/act_overseer_config
-    mode: '0666'
+    mode: "0666"
     state: touch
 
 - name: ensure log dir exists
@@ -54,18 +100,18 @@
   file:
     path: /var/log/crusoe/act_overseer_rest_api.log
     state: touch
-    mode: '0666'
+    mode: "0666"
 
 - name: create log decide log
   file:
     path: /var/log/crusoe/act_decide_to_act.log
     state: touch
-    mode: '0666'
+    mode: "0666"
 
 - name: modify ports configuration
   lineinfile:
     path: /etc/apache2/ports.conf
-    line: "LISTEN {{portnumber}}"
+    line: "LISTEN {{overseer_portnumber}}"
 
 - name: Enable new site
   shell: "/usr/sbin/a2ensite act_overseer.conf"
@@ -75,10 +121,10 @@
 - name: Add proxypass to default apache site
   lineinfile:
     dest: /etc/apache2/sites-available/000-default.conf
-    line:  "{{ item.line }}"
-    insertbefore: '</VirtualHost>'
+    line: "{{ item.line }}"
+    insertbefore: "</VirtualHost>"
   with_items:
-    - { line: 'ProxyPass /act http://127.0.0.1:{{ portnumber }}/act'}
-    - { line: 'ProxyPassReverse /act http://127.0.0.1:{{ portnumber }}/act'}
+    - { line: "\tProxyPass /act http://127.0.0.1:{{ overseer_portnumber }}/act" }
+    - { line: "\tProxyPassReverse /act http://127.0.0.1:{{ overseer_portnumber }}/act" }
   notify:
     - reload apache

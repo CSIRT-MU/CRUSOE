@@ -45,6 +45,58 @@ def clean(line):
         result = result[1:]
     return result[:-3] + '\n'
 
+def import_local_flows(param_prefix='', local_flows_dir='', nfdump_format='', logger=structlog.get_logger()):
+     """
+    Download data from flowmon using ssh. Reads files with prefix 'out_' or 'in_' with suffix '.csv'.
+    After read, the csv file is renamed to contain new suffix 'filename.csv.read'. Picks the first file to match the criteria.
+    :param param_prefix: either prefix 'out_' or 'in_' specifying direction of flows
+    :param local_flows_dir: directory with stored .csv files
+    :param nfdump_format: nfdump format for field matching inside flow data 
+    :param nfdump_path: local nfdump path
+    :param logger: logger instance
+    :return: path to parsed json file, number of rows read
+    """
+    files = os.listdir(local_flows_dir)
+    logger.error(f"{param_prefix} NFDUMP_FORMAT {nfdump_format}") 
+    csv_files = [file for file in files if file.endswith('.csv') and file.startswith(param_prefix)]
+
+    if not csv_files:
+        logger.error("No CSV files found that match the criteria.")
+        return None, 0
+        
+    localpath = os.path.join(local_flows_dir, csv_files[0])
+
+    logger.error("Writing ... \t" + localpath)
+
+    fieldnames = re.findall('(?<=%)[^;]*', nfdump_format)
+    header_len = len(fieldnames)
+
+    with open(localpath, 'r', encoding="ISO-8859-1") as csvfile, open(localpath + '.cleaned', 'w', encoding="ISO-8859-1") as clean_file:
+        for line in csvfile:
+            logger.error(f"{param_prefix} -- line_count: {line.count} header_len: {header_len}") 
+            if line.count(';') == header_len:
+                clean_file.write(clean(line))
+    logger.error("Written clean file")
+    counter = 0
+    with open(localpath + '.cleaned', 'r', encoding="ISO-8859-1") as csvfile, open(localpath + '.json', 'w', encoding="ISO-8859-1") as jsonfile:
+        reader = csv.DictReader(csvfile, fieldnames, delimiter=';')
+        
+        logger.error("Got reader")
+        logger.error(f"-- {param_prefix} fieldnames {fieldnames}") 
+        jsonfile.write('[')
+
+        for row in reader:
+            if is_valid(row):
+                jsonfile.write(f'{dumps(row)},\n')
+                counter += 1
+            else:
+                logger.error(f"invalid flow: {row}")
+        jsonfile.write('{}]')
+        
+    os.rename(localpath, f"{localpath}.read")
+
+    return localpath + '.json', counter
+
 
 def download_ssh(
         user='',

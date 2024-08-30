@@ -1,0 +1,7 @@
+graphqlapi_folder: /home/vagrant/graphqlapi
+neo4j_bolt_url: "bolt://localhost:7687"
+neo4j_username: "neo4j"
+neo4j_password: "password"
+node_version: lts/erbium
+nvm_bin: /home/vagrant/.nvm/versions/node/v12.22.12/bin
+port: 4001

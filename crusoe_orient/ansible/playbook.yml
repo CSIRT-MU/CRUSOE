@@ -1,17 +1,4 @@
 ---
-- hosts: all
-  vars:
-    # Dashboard folder
-    dashboard_folder: /home/vagrant/dashboard
-
-    # Redirect API URL
-    redirectApi: 'https://crusoe.csirt.muni.cz/redirect-api/redirect/'
-    # Act API URL
-    actApi: 'https://crusoe.csirt.muni.cz/act/'
-    # GraphQL API URL
-    graphqlApi: 'https://crusoe.csirt.muni.cz/graphql-api/graphql'
-    # Firewall API URL
-    firewallApi: 'https://crusoe-worker.csirt.muni.cz/firewall'
-  # become: true
+- hosts: crusoe
   roles:
     - dashboard

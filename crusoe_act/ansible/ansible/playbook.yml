@@ -1,4 +1,23 @@
 ---
-# Install/Configure Act tools
-- import_playbook: act.yml
+- hosts: crusoe
+  gather_facts: true
+  become: true
+  roles:
+    - role: 04-act/overseer
+      overseer_portnumber: 8086
+      overseer_portnumber_neo4j_rest: 8088
+      overseer_external_ip: 127.0.0.1
+      overseer_server_name: crusoe.local
+      
 
+    - role: 04-act/pao_wrappers
+      wrapper: firewall_wrapper
+      dst_wrapper: simulated-pao-firewall
+      firewall_ip: 0.0.0.0
+      firewall_portnumber: 8080
+      firewall_server_name: simulated-pao-firewall.local
+      firewall_pao_name: firewall
+      firewall_maxCapacity: "0"
+      firewall_usedCapacity: "0"
+      firewall_freeCapacity: "0"
+      vault_neo4j_password: "password"

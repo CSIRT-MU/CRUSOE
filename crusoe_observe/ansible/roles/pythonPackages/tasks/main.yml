@@ -1,3 +1,12 @@
+- name: Delete Debian deb-src backports repository URL in sources list - bug with apt update
+  lineinfile:
+    path: /etc/apt/sources.list
+    state: absent
+    backrefs: yes
+    regexp: "^(.*https://deb.debian.org/debian buster-backports main.*)$"
+  become: yes
+  register: deb_archive_changed
+
 # Set Python3.7 as default
 - name: Run update-alternatives
   command: "update-alternatives {{ item }}"
@@ -12,7 +21,7 @@
     state: present
     cache_valid_time: 1800
     update_cache: yes
-
+    
 - name: update pip
   pip:
     name: pip

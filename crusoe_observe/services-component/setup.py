@@ -11,5 +11,5 @@ setup(
     package_dir={'services_component': 'src'},
     package_data={'services_component': ['data/*']},
     python_requires='>=3.6',
-    install_requires=['joblib', 'numpy', 'pandas', 'sklearn', 'structlog']
+    install_requires=['joblib', 'numpy', 'pandas', 'scikit-learn', 'structlog']
     )

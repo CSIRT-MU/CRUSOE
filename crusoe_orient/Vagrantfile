@@ -1,5 +1,5 @@
 Vagrant.configure("2") do |config|
-    config.vm.define "dashboard" do |dashboard|
+    config.vm.define "crusoe" do |dashboard|
         # Template for virtualbox to be used
         dashboard.vm.box = "debian/buster64"
         # Check for updates regularly

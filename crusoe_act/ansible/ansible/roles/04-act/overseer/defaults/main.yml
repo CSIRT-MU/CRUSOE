@@ -2,6 +2,6 @@ portnumber:
 server_name:
 
 overseer_required_variables:
-    portnumber: ' {{ portnumber }}'
-    portnumber_neo4j_rest: '{{ portnumber_neo4j_rest }}'
-    server_name: '{{ server_name }}'
+    portnumber: ' {{ overseer_portnumber }}'
+    portnumber_neo4j_rest: '{{ overseer_portnumber_neo4j_rest }}'
+    server_name: '{{ overseer_server_name }}'

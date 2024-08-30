@@ -1,71 +1,23 @@
-# TODO: playbook for installation of all wrappers
 ---
-- hosts: external
-  gather_facts: true
-  become: true
-  roles:
-    - role: 04-act/pao_wrappers
-      wrapper: dnsfw_wrapper
-      dst_wrapper: dnsfw-wrapper
-      ip: 172.18.1.12
-      portnumber: 8080
-      server_name: external.csirt.muni.cz
-      pao_name: dnsfw
-      maxCapacity: "0"
-      usedCapacity: "0"
-      freeCapacity: "0"
-    - role: 04-act/pao_wrappers
-      wrapper: firewall_wrapper
-      dst_wrapper: firewall-wrapper
-      ip: 172.18.1.12
-      portnumber: 8081
-      server_name: external.csirt.muni.cz
-      pao_name: firewall
-      maxCapacity: "0"
-      usedCapacity: "0"
-      freeCapacity: "0"
-
-- hosts: test
-  gather_facts: true
-  become: true
-  roles:
-    - role: 04-act/pao_wrappers
-      wrapper: mailFilter_wrapper
-      dst_wrapper: mailFilter-wrapper
-      ip: 172.18.1.13
-      portnumber: 8082
-      server_name: test.csirt.muni.cz
-      pao_name: mailFilter
-      maxCapacity: "0"
-      usedCapacity: "0"
-      freeCapacity: "0"
-    - role: 04-act/pao_wrappers
-      wrapper: userBlock_wrapper
-      dst_wrapper: userBlock-wrapper
-      ip: 172.18.1.13
-      portnumber: 8083
-      server_name: test.csirt.muni.cz
-      pao_name: userBlock
-      maxCapacity: "0"
-      usedCapacity: "0"
-      freeCapacity: "0"
-
 - hosts: crusoe
   gather_facts: true
   become: true
   roles:
-    - role: 04-act/pao_wrappers
-      wrapper: rtbh_wrapper
-      dst_wrapper: rtbh-wrapper
-      ip: 172.18.1.10
-      portnumber: 8084
-      server_name: crusoe.csirt.muni.cz
-      pao_name: rtbh
-      maxCapacity: "0"
-      usedCapacity: "0"
-      freeCapacity: "0"
-
     - role: 04-act/overseer
-      portnumber: 8086
-      portnumber_neo4j_rest: 8088
-      server_name: crusoe.csirt.muni.cz
+      overseer_portnumber: 8086
+      overseer_portnumber_neo4j_rest: 8088
+      overseer_external_ip: 127.0.0.1
+      overseer_server_name: crusoe.local
+      
+
+    - role: 04-act/pao_wrappers
+      wrapper: firewall_wrapper
+      dst_wrapper: simulated-pao-firewall
+      firewall_ip: 0.0.0.0
+      firewall_portnumber: 8080
+      firewall_server_name: simulated-pao-firewall.local
+      firewall_pao_name: firewall
+      firewall_maxCapacity: "0"
+      firewall_usedCapacity: "0"
+      firewall_freeCapacity: "0"
+      vault_neo4j_password: "password"

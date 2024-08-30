@@ -1,21 +1,30 @@
 ---
-# tasks file for configuration
 - name: create .ssh directory
   file:
     path: /root/.ssh
     state: directory
+
+- name: Delete Debian deb-src backports repository URL in sources list - bug with apt update
+  lineinfile:
+    path: /etc/apt/sources.list
+    state: absent
+    backrefs: yes
+    regexp: "^(.*https://deb.debian.org/debian buster-backports main.*)$"
+  become: yes
+  register: deb_archive_changed
 
 - name: copy private key with access to flowmon
   copy:
     src: "{{ flowmon_key_path }}"
     dest: /root/.ssh/id_rsa_crusoe
     mode: 0600
+  when: 0 > 1
 
 - name: Create directory
   file:
     path: /data/flow/
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Create config directory
   file:

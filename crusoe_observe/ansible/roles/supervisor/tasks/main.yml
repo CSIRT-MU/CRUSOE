@@ -13,9 +13,43 @@
     dest: '/etc/supervisor/conf.d/'
     force: yes
 
+- name: Replace return value in fix of Kombu and Python3.7
+  lineinfile:
+    insertbefore: 'for ep in importlib_metadata.entry_points'
+    path: '/usr/local/lib/python3.7/dist-packages/kombu/utils/compat.py'
+    line: '        for ep in entry_points'
+
+- name: Replace next
+  lineinfile:
+    path: '/usr/local/lib/python3.7/dist-packages/kombu/utils/compat.py'
+    state: absent
+    regexp: '.{8}for ep in importlib_metadata*'
+
+- name: Fix unsupported operation of Kombu and Python3.7
+  blockinfile:
+    dest: /usr/local/lib/python3.7/dist-packages/kombu/utils/compat.py
+    insertafter: '^def entrypoints'
+    block: |
+      """"LINETODELETE"""
+          entry_points = importlib_metadata.entry_points()
+          try:
+              entry_points = entry_points.get(namespace, [])
+          except AttributeError:
+              entry_points = entry_points.select(group=namespace)
+  become: yes
+  tags:
+    - python-fix
+
+- name: Delete indentation line
+  lineinfile:
+    state: absent
+    path: '/usr/local/lib/python3.7/dist-packages/kombu/utils/compat.py'
+    regexp: '""""LINETODELETE"""'
+
 - name: Update & restart supervisor
   shell: supervisorctl "{{ item }}"
   with_items:
     - reread
     - update
+  become: yes
 
