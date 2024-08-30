@@ -21,7 +21,7 @@ export class DecideService {
    * Get list of PAOS
    */
   public getPaos(): Observable<PaoResponse> {
-    return this.http.get<PaoResponse>(environment.apiUrl + 'rest/' + 'act/paos');
+    return this.http.get<PaoResponse>(environment.baseUrl + 'rest/' + 'act/paos');
   }
 
   /**
@@ -29,14 +29,14 @@ export class DecideService {
    * I suggested to modify API endpoint used here - https://gitlab.ics.muni.cz/CRUSOE/neo4j-rest/-/issues/9
    */
   public getMissions(): Observable<Mission[]> {
-    return this.http.get<Mission[]>(environment.apiUrl + 'rest/' + 'missions');
+    return this.http.get<Mission[]>(environment.baseUrl + 'rest/' + 'missions');
   }
 
   /**
    * Get mission configurations
    */
   public getMissionConfigurations(mission: string): Observable<Configuration[]> {
-    return this.http.get<Configuration[]>(environment.apiUrl + 'rest/' + 'mission/' + mission + '/configurations');
+    return this.http.get<Configuration[]>(environment.baseUrl + 'rest/' + 'mission/' + mission + '/configurations');
   }
 
   /**
@@ -45,7 +45,7 @@ export class DecideService {
    * @param id Id of the configuration
    */
   public getMissionConfiguration(mission: string, id: number): Observable<Configuration> {
-    return this.http.get<Configuration[]>(environment.apiUrl + 'rest/' + 'mission/' + mission + '/configurations').pipe(
+    return this.http.get<Configuration[]>(environment.baseUrl + 'rest/' + 'mission/' + mission + '/configurations').pipe(
       map((configs) => {
         const configsFiltered = configs.filter((c) => {
           return c.configuration.config_id === id;
@@ -101,25 +101,25 @@ export class DecideService {
    */
   public getConfigurationHosts(mission: string, id: number): Observable<Host[]> {
     return this.http.get<Host[]>(
-      environment.apiUrl + 'rest/' + 'mission/' + mission + '/configuration/' + id + '/hosts'
+      environment.baseUrl + 'rest/' + 'mission/' + mission + '/configuration/' + id + '/hosts'
     );
   }
 
   /** Get PAO maximum capacity */
   public getPaoMaxCapacity(pao: string): Observable<{ maxCapacity: number }> {
-    return this.http.get<{ maxCapacity: number }>(environment.apiUrl + 'rest/' + 'act/' + pao + '/maxCapacity');
+    return this.http.get<{ maxCapacity: number }>(environment.baseUrl + 'rest/' + 'act/' + pao + '/maxCapacity');
   }
 
   /** Get PAO used capacity */
   public getPaoUsedCapacity(pao: string): Observable<{ usedCapacity: number }> {
-    return this.http.get<{ usedCapacity: number }>(environment.apiUrl + 'rest/' + 'act/' + pao + '/usedCapacity');
+    return this.http.get<{ usedCapacity: number }>(environment.baseUrl + 'rest/' + 'act/' + pao + '/usedCapacity');
   }
 
   /**
    * Get status of the PAO
    */
   public getPaoStatus(pao: string): Observable<PaoStatus> {
-    return this.http.get<PaoStatus>(environment.apiUrl + 'rest/' + 'act/' + pao + '/status');
+    return this.http.get<PaoStatus>(environment.baseUrl + 'rest/' + 'act/' + pao + '/status');
   }
 
   /**
@@ -163,7 +163,7 @@ export class DecideService {
    * @param missionName
    */
   public getMission(missionName: string): Observable<Mission> {
-    return this.http.get<Mission>(environment.apiUrl + 'rest/' + 'missions/' + missionName);
+    return this.http.get<Mission>(environment.baseUrl + 'rest/' + 'missions/' + missionName);
   }
 
   /**
