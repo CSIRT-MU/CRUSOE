@@ -1,0 +1,7 @@
+from recommender.comparators.cve_comparator import CveComparator
+from recommender.comparators.event_comparator import EventComparator
+from recommender.comparators.os_comparator import OsComparator
+from recommender.comparators.antivirus_comparator import AntivirusComparator
+from recommender.comparators.net_services_comparator import \
+    NetServicesComparator
+from recommender.comparators.cms_comparator import CmsComparator
