@@ -165,30 +165,6 @@
     dest: /var/lib/neo4j/plugins
     mode: 0644
 
-- name: Create tmp folder for flow data
-  file:
-    path: "{{ flow_dir }}"
-    state: directory
-    mode: "0755"
-
-- name: Copy Flow Data
-  copy:
-    src: "{{ item }}"
-    dest: "{{ flow_dir }}"
-    mode: 0644
-  loop:
-    - in_muni.csv
-    - out_muni.csv
-  
-- name: Copy Flow to tmp
-  copy:
-    src: "{{ item }}"
-    dest: "/tmp"
-    mode: 0644
-  loop:
-    - in_muni.csv
-    - out_muni.csv
-
 - name: Restart neo4j
   service:
     name: neo4j
