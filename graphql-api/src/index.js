@@ -86,6 +86,20 @@ const port = process.env.GRAPHQL_SERVER_PORT || 4001;
 const path = process.env.GRAPHQL_SERVER_PATH || "/graphql";
 const host = process.env.GRAPHQL_SERVER_HOST || "0.0.0.0";
 
+// Set CORS headers manually
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Allows all domains
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
+    return res.status(200).json({});
+  }
+  next();
+});
+
 /*
  * Optionally, apply Express middleware for authentication, etc
  * This also also allows us to specify a path for the GraphQL endpoint
