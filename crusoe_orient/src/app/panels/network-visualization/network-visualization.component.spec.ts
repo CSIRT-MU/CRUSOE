@@ -11,24 +11,26 @@ describe('NetworkVisualizationComponent', () => {
   const dataServiceMock = jasmine.createSpyObj('DataService', ['getIPNode']);
   dataServiceMock.getIPNode.and.returnValue(throwError('Error'));
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [NetworkVisualizationComponent],
-      providers: [
-        { provide: DataService, useValue: dataServiceMock },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              params: {
-                ip: '8.8.8.8',
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [NetworkVisualizationComponent],
+        providers: [
+          { provide: DataService, useValue: dataServiceMock },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: {
+                params: {
+                  ip: '8.8.8.8',
+                },
               },
             },
           },
-        },
-      ],
-    }).compileComponents();
-  }));
+        ],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(NetworkVisualizationComponent);

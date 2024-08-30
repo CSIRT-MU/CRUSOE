@@ -52,6 +52,7 @@ export class AuthService {
    * @returns returns true if user is authenticated, false otherwise
    */
   public isAuthenticated(): boolean {
+    //return true;
     return true;
   }
 

@@ -9,22 +9,24 @@ describe('PaoComponent', () => {
   let component: PaoComponent;
   let fixture: ComponentFixture<PaoComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      declarations: [PaoComponent],
-      providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: name } } },
-        {
-          provide: DecideService,
-          useValue: {
-            getPaos() {
-              return { subscribe: () => {} };
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        declarations: [PaoComponent],
+        providers: [
+          { provide: ActivatedRoute, useValue: { snapshot: { params: name } } },
+          {
+            provide: DecideService,
+            useValue: {
+              getPaos() {
+                return { subscribe: () => {} };
+              },
             },
           },
-        },
-      ],
-    }).compileComponents();
-  }));
+        ],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(PaoComponent);

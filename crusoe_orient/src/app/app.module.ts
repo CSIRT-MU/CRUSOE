@@ -41,6 +41,12 @@ import { DecideActComponent } from './panels/decide-act/decideact.component';
 // Network Visualization
 import { NetworkVisualizationComponent } from './panels/network-visualization/network-visualization.component';
 
+// Recommender System Visualization
+import { RecommenderSystemVisualizationComponent } from './panels/recommender-system-visualization/recommender-system-visualization.component';
+
+// Spread Projection Visualization
+import { SpreadProjectionVisualizationComponent } from './panels/spread-projection-visualization/spread-projection-visualization.component';
+
 // Vulnerability
 import { VulnerabilityComponent } from './panels/vulnerability/vulnerability.component';
 
@@ -104,6 +110,8 @@ import { MatSelectModule } from '@angular/material/select';
     ConfigurationComponent,
     NetworkVisualizationComponent,
     VulnerabilityComponent,
+    RecommenderSystemVisualizationComponent,
+    SpreadProjectionVisualizationComponent,
   ],
   imports: [
     BrowserModule,
