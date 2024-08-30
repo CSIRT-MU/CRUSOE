@@ -1,4 +1,4 @@
 ---
-- hosts: crusoe
+- hosts: dashboard
   roles:
     - dashboard
