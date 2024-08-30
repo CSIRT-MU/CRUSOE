@@ -1,0 +1,22 @@
+# Configurable params
+flowmon_key_path: /path/to/.ssh/id_rsa # SSH key with access to flowmon
+flowmon_ssh_passphrase: password # password to the flowmon SSH key
+flow_dir: /tmp/flows
+
+warden_ca_path: /path/to/cacert.pem
+warden_cert_path: /path/to/cert.pem
+warden_key_path: /path/to/key.pem
+
+neo4j_password: password # password to neo4j database(your choice)
+flower_password: password # password to flower instance(your choice)
+
+rtir_user: rest_client_user # username of rtir user
+rtir_password: password # password for rtir user
+
+shadowserver_user: password # username of shadowserver account
+shadowserver_password: password # password for shadowserver account
+
+shodan_api_key: password # api key with access to shodan API
+
+neo4jrest_port: 8888
+server_name: neo4j-rest

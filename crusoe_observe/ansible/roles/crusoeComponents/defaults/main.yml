@@ -1,4 +1,4 @@
-crusoe_components: 
+crusoe_components:
   - flowmon-rest-client
   - cms-component
   - criticality-estimator
@@ -8,8 +8,8 @@ crusoe_components:
   - NETlist-connector
   - nmap-topology-scanner
   - OS-parser-component
-  - RTIR-connector
-  - sabu-connector
+  - RTIR-connector #TODO
+  - sabu-connector #TODO
   - services-component
   - vulnerability-component
   - webchecker-component

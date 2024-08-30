@@ -1,0 +1,26 @@
+
+vagrant@crusoe:~$ pip3 freeze | grep kombu
+kombu==5.3.0b3
+vagrant@crusoe:~$ pip3 freeze | grep importlib-metadata
+importlib-metadata==3.6.0
+vagrant@crusoe:~$
+
+sudo vim /usr/local/lib/python3.7/dist-packages/kombu/utils/compat.py
+
+-- lines 93
+
+def entrypoints(namespace):
+    """Return setuptools entrypoints for namespace."""
+    entry_points = importlib_metadata.entry_points()
+    try:
+        entry_points = entry_points.get(namespace, [])
+    except AttributeError:
+        entry_points = entry_points.select(group=namespace)
+    return(
+        (ep, ep.load())
+        for ep in entry_points
+    )
+    #return (
+    #    (ep, ep.load())
+    #    for ep in importlib_metadata.entry_points().get(namespace, [])
+    #)
