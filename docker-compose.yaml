@@ -43,11 +43,11 @@ services:
         # Server name of component
         SERVER_NAME: "simulated-pao-firewall.local"
         # IP/Hostname of host where neo4j db is running
-        EXTERNAL_IP: "172.28.0.3"
+        EXTERNAL_IP: "crusoe_observe"
         # Password to the neo4j database
         VAULT_NEO4J_PASSWORD: "password"
         # This PAOs IP address to be written to neo4j db - the same as the docker container
-        PAO_IP: "172.28.0.2"
+        PAO_IP: "crusoe_act_component"
         # PAO Name to be written into neo4j db
         PAO_NAME: "firewall"
         # Port on which the PAO will accept http requests
@@ -105,9 +105,11 @@ services:
         # Port on which graphql service will be available
         GRAPHQL_SERVER_PORT: "4001"
         # Neo4j database URL
-        NEO4J_URL: "bolt://localhost:7687"
+        NEO4J_URL: "bolt://crusoe_observe:7687"
         NEO4J_USER: "neo4j"
         NEO4J_PASS: "password"
+    environment:
+      GRAPHQL_SERVER_HOST: 0.0.0.0
     depends_on:
       - crusoe_observe
     volumes:

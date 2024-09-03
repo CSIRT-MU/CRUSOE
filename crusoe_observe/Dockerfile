@@ -116,7 +116,7 @@ RUN cp -r /tmp/neo4j-rest/django /var/www/ \
 
 COPY ansible/roles/neo4j/files/apoc-3.5.0.2-all.jar /var/lib/neo4j/plugins/
 
-RUN echo "dbms.security.procedures.unrestricted=apoc.load.json, algo.*, apoc.convert.*" >> /etc/neo4j/neo4j.conf \
+RUN echo "dbms.security.procedures.unrestricted=apoc.load.json, algo.*, apoc.convert.*, apoc.schema.assert" >> /etc/neo4j/neo4j.conf \
   && echo "apoc.import.file.use_neo4j_config=true" >> /etc/neo4j/neo4j.conf \
   && echo "apoc.import.file.enabled=true" >> /etc/neo4j/neo4j.conf \
   && echo "dbms.connector.http.listen_address=0.0.0.0:7474" >> /etc/neo4j/neo4j.conf \

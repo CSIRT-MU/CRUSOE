@@ -14,7 +14,7 @@ ENV NEO4J_USER=${NEO4J_USER}
 ENV NEO4J_PASS=${NEO4J_PASS}
 
 COPY package.json .
-RUN npm install
+RUN npm install --legacy-peer-deps
 COPY . .
 
 RUN cp src/db_config.js.template src/db_config.js
