@@ -81,9 +81,9 @@ WSGI_APPLICATION = "django_project.wsgi.application"
 
 DATABASES = {
     "default": {
-        "URL": "bolt://localhost:7687",
-        "USER": "neo4j",
-        "PASSWORD": "",
+        "URL": os.getenv("NEO4J_URL","bolt://localhost:7687"),
+        "USER": os.getenv("NEO4J_USER", "neo4j"),
+        "PASSWORD": os.getenv("NEO4J_PASS", ""),
     }
 }
 

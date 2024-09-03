@@ -140,12 +140,28 @@ services:
       bridge_crusoe:
         ipv4_address: 172.28.0.5
 
+  recommender:
+    build:
+      context: recommender_system
+    environment:
+      NEO4J_URL: "bolt://localhost:7687"
+      NEO4J_USER: "neo4j"
+      NEO4J_PASS: "password"
+    ports:
+      - "86:8000"
+    volumes:
+      - vol_recommender:/app
+    networks:
+      bridge_crusoe:
+        ipv4_address: 172.28.0.6
+
 volumes:
   vol_act_overseer:
   vol_act_component:
   vol_observe:
   vol_orient:
   vol_graphql:
+  vol_recommender:
 
 networks:
   bridge_crusoe:

@@ -16,6 +16,7 @@ setup(
     install_requires=[
         'neo4j>=4.3.7',
         'djangorestframework>=3.13.1',
-        'Django>=4.1'
+        'Django>=4.1',
+        'django-cors-headers>=4.0'
     ]
 )
