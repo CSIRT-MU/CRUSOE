@@ -57,7 +57,7 @@ RUN pip3 install neo4j-driver==1.7
 RUN pip3 install pytest
 RUN pip3 install neo4j
 
-COPY ../../crusoe_observe/neo4j-client /tmp/neo4j-client
+COPY ./docker-config/neo4j-client /tmp/neo4j-client
 
 RUN pip3 install --no-cache-dir --force-reinstall /tmp/neo4j-client
 
@@ -127,9 +127,9 @@ RUN cd /opt/mulval && \
   make
 
 # Install and force reinstall of Crusoe decide component (example with a requirements.txt)
-COPY ../../crusoe_decide/requirements.txt /tmp/crusoe_decide/requirements.txt
+COPY ./docker-config/crusoe_decide/requirements.txt /tmp/crusoe_decide/requirements.txt
 RUN pip3 install -r /tmp/crusoe_decide/requirements.txt
-COPY ../../crusoe_decide/ /tmp/crusoe_decide
+COPY ./docker-config/crusoe_decide/ /tmp/crusoe_decide
 RUN pip3 install file:///tmp/crusoe_decide --force-reinstall
 
 # Run apache2 service

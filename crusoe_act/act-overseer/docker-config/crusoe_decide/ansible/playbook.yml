@@ -1,0 +1,5 @@
+---
+- hosts: crusoe
+  become: true
+  roles:
+    - crusoe_decide

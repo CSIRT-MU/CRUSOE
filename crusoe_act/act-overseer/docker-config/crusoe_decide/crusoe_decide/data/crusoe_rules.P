@@ -1,0 +1,334 @@
+/******************************************************/
+/****         Predicates Declaration              *****/
+/******************************************************/
+
+primitive(vulExists(_host, _vulID, _program)).
+primitive(vulProperty(_vulID, _range, _consequence)).
+primitive(hacl(_src, _dst, _prot, _port)).
+primitive(attackerLocated(_host)).
+primitive(networkServiceInfo(_host, _program, _protocol, _port, _username)).
+primitive(hasAccount(_principal, _host, _account)).
+primitive(installed(_h, _program)).
+primitive(vulExists(_machine,_vulID,_program,_range,_consequence)).
+primitive(inSubnet(_host, _subnet)).
+
+% predicates describing loss of C/I/A on a host or in a program
+primitive(appConfLoss(_host, _program)).
+primitive(appIntegLoss(_host, _program)).
+primitive(appAvailLoss(_host, _program)).
+primitive(sysConfLoss(_host)).
+primitive(sysIntegLoss(_host)).
+primitive(sysAvailLoss(_host)).
+
+meta(cvss(_vulID, _ac)).
+
+derived(execCode(_host, _user)).
+derived(netAccess(_machine,_protocol,_port)).
+derived(canAccessHost(_host)).
+derived(principalCompromised(_victim)).
+derived(logInService(_host, _protocol, _port)).
+
+meta(attackGoal(_)).
+meta(advances(_, _)).
+
+/******************************************************/
+/****         Tabling Predicates                  *****/
+/*   All derived predicates should be tabled          */
+/******************************************************/
+
+:- table execCode/2.
+:- table netAccess/3.
+:- table canAccessHost/1.
+:- table principalCompromised/1.
+:- table vulExists/5.
+:- table logInService/3.
+
+/******************************************************/
+/****         Interaction Rules                   *****/
+/******************************************************/
+
+/****** vulExists section ******/
+% RULE 0
+interaction_rule((vulExists(H, ID, Sw, Range, Consequence):-
+	        vulExists(H, ID, Sw),
+		vulProperty(ID, Range, Consequence)),
+             rule_desc('',
+             1.0)).
+
+/****** execCode section ******/
+% RULE 1
+interaction_rule(
+   (execCode(Host, Perm) :-
+	principalCompromised(Victim),
+	hasAccount(Victim, Host, Perm),
+	canAccessHost(Host)),
+   rule_desc('When a principal is compromised any machine he has an account on will also be compromised',
+   0.5)).
+
+% RULE 2
+interaction_rule(
+    (execCode(H, user) :-
+      vulExists(H, _, Software, remoteExploit, gainUserPrivileges),
+      networkServiceInfo(H, Software, Protocol, Port, Perm),
+      netAccess(H, Protocol, Port)),
+    rule_desc('code exec as user by exploiting a vulnerability', 1.0)).
+
+% RULE 3
+interaction_rule(
+    (execCode(H, root) :-
+      execCode(H, _),
+      installed(H, Software),
+      vulExists(H, _, Software, Range, gainRootPrivileges)),
+    rule_desc('privilege escalation from vulnerable application', 1.0)).
+
+% RULE 4
+interaction_rule(
+    (execCode(H, root) :-
+      vulExists(H, _, Software, remoteExploit, gainRootPrivileges),
+      networkServiceInfo(H, Software, Protocol, Port, Perm),
+      netAccess(H, Protocol, Port)),
+    rule_desc('gain root privileges by exploiting vulnerability', 1.0)).
+
+% RULE 5
+interaction_rule(
+    (execCode(H, root) :-
+      execCode(H, user),
+      vulExists(H, _, Software, Range, privEscalationOnSystem)),
+    rule_desc('privileges escalation on system using vulnerability', 1.0)).
+
+/******* netAcess section *******/
+% RULE 6
+interaction_rule(
+  (netAccess(H2, Protocol, Port) :-
+	execCode(H1, _Perm),  /* Any permission level */
+	advances(H1, H2),
+    hacl(H1, H2, Protocol, Port)),
+  rule_desc('multi-hop access',
+  0.5)).
+
+% RULE 7
+interaction_rule(
+  (netAccess(H, Protocol, Port) :-
+	attackerLocated(Zone),
+	hacl(Zone, H, Protocol, Port)),
+  rule_desc('direct network access',
+  1.0)).
+
+% RULE 8
+interaction_rule(
+  (netAccess(H, Protocol, Port) :-
+	attackerLocated(H)),
+  rule_desc('direct on-host access',
+  1.0)).
+
+/****** Section canAccessHost ******/
+% RULE 9
+interaction_rule(
+  (canAccessHost(H) :-
+	execCode(H, _Perm)),
+  rule_desc('Access a host through executing code on the machine',
+  1.0)).
+
+% RULE 10
+interaction_rule(
+  (canAccessHost(H) :-
+	logInService(H, Protocol, Port),
+	netAccess(H, Protocol, Port)),
+  rule_desc('Access a host through a log-in service',
+  1.0)).
+
+/****** Section principalCompromised ******/
+% RULE 11
+interaction_rule(
+  (principalCompromised(Victim) :-
+	hasAccount(Victim, H, _Perm),
+	execCode(H, root)),
+  rule_desc('password sniffing',
+  0.8)).
+
+% RULE 12
+interaction_rule(
+  (principalCompromised(Victim) :-
+	hasAccount(Victim, H, User),
+	execCode(H, User)),
+  rule_desc('password sniffing',
+  0.8)).
+
+/***************** Section ssh **********************/
+% RULE 13
+interaction_rule(
+  (logInService(H, Protocol, Port) :-
+	networkServiceInfo(H, sshd, Protocol, Port, _)),
+  rule_desc('',
+  1)).
+
+% RULE 14
+interaction_rule(
+  (logInService(H, Protocol, Port) :-
+	networkServiceInfo(H, vpnService, Protocol, Port, _)),
+  rule_desc('',
+  1)).
+
+/****** Section hacl ******/
+% RULE 15
+interaction_rule(
+    (hacl(H1, H2, _, _) :-
+      inSubnet(H1, S),
+      inSubnet(H2, S)),
+    rule_desc('access hosts from the same subnet on open ports', 1.0)).
+
+/****** added rules ****************************************************/
+
+% RULE 16 - 18: if attacker gains privileges on application it implies application C/I/A loss
+
+% RULE 16
+interaction_rule(
+    (appConfLoss(H, Software) :-
+      vulExists(H, _, Software, remoteExploit, gainPrivOnApp),
+      networkServiceInfo(H, Software, Protocol, Port, _),
+      netAccess(H, Protocol, Port)),
+    rule_desc('application confidentiality loss', 1.0)).
+
+% RULE 17
+interaction_rule(
+    (appIntegLoss(H, Software) :-
+      vulExists(H, _, Software, remoteExploit, gainPrivOnApp),
+      networkServiceInfo(H, Software, Protocol, Port, _),
+      netAccess(H, Protocol, Port)),
+    rule_desc('application integrity loss', 1.0)).
+
+% RULE 18
+interaction_rule(
+    (appAvailLoss(H, Software) :-
+      vulExists(H, _, Software, remoteExploit, gainPrivOnApp),
+      networkServiceInfo(H, Software, Protocol, Port, _),
+      netAccess(H, Protocol, Port)),
+    rule_desc('application availability loss', 1.0)).
+
+% RULE 19 - 21: direct application C/I/A loss from vulnerability
+
+% RULE 19
+% appConfLoss is name of predicate and appConfidentialityLoss is vulnerability impact
+interaction_rule(
+    (appConfLoss(H, Software) :-
+      vulExists(H, _, Software, remoteExploit, appConfidentialityLoss),
+      networkServiceInfo(H, Software, Protocol, Port, _),
+      netAccess(H, Protocol, Port)),
+    rule_desc('application confidentiality loss', 1.0)).
+
+% RULE 20
+% appIntegLoss is name of predicate and appIntegrityLoss is vulnerability impact
+interaction_rule(
+    (appIntegLoss(H, Software) :-
+      vulExists(H, _, Software, remoteExploit, appIntegrityLoss),
+      networkServiceInfo(H, Software, Protocol, Port, _),
+      netAccess(H, Protocol, Port)),
+    rule_desc('application integrity loss', 1.0)).
+
+% RULE 21
+% appAvailLoss is name of predicate and appAvailabilityLoss is vulnerability impact
+interaction_rule(
+    (appAvailLoss(H, Software) :-
+      vulExists(H, _, Software, remoteExploit, appAvailabilityLoss),
+      networkServiceInfo(H, Software, Protocol, Port, _),
+      netAccess(H, Protocol, Port)),
+    rule_desc('application availability loss', 1.0)).
+
+% RULE 22 - 24: execCode with root privileges implies C/I/A loss of all applications
+
+% RULE 22
+interaction_rule(
+    (appConfLoss(H, Software) :-
+      execCode(H, root),
+      installed(H, Software)),
+    rule_desc('application confidentiality loss', 1.0)).
+
+% RULE 23
+interaction_rule(
+    (appIntegLoss(H, Software) :-
+      execCode(H, root),
+      installed(H, Software)),
+    rule_desc('application integrity loss', 1.0)).
+
+% RULE 24
+interaction_rule(
+    (appAvailLoss(H, Software) :-
+      execCode(H, root),
+      installed(H, Software)),
+    rule_desc('application availability loss', 1.0)).
+
+% RULE 25 - 27: if host contains component with system C/I/A loss then all components lose their C/I/A
+
+% RULE 25
+interaction_rule(
+    (appConfLoss(H, Software2) :-
+      vulExists(H, _, Software1, remoteExploit, systemConfidentialityLoss),
+      networkServiceInfo(H, Software1, Protocol, Port, _),
+      netAccess(H, Protocol, Port),
+      installed(H, Software2)),
+    rule_desc('system conf loss implies app conf loss', 1.0)).
+
+% RULE 26
+interaction_rule(
+    (appIntegLoss(H, Software2) :-
+      vulExists(H, _, Software1, remoteExploit, systemIntegrityLoss),
+      networkServiceInfo(H, Software1, Protocol, Port, _),
+      netAccess(H, Protocol, Port),
+      installed(H, Software2)),
+    rule_desc('system integ loss implies app integ loss', 1.0)).
+
+% RULE 27
+interaction_rule(
+    (appAvailLoss(H, Software2) :-
+      vulExists(H, _, Software1, remoteExploit, systemAvailabilityLoss),
+      networkServiceInfo(H, Software1, Protocol, Port, _),
+      netAccess(H, Protocol, Port),
+      installed(H, Software2)),
+    rule_desc('system avail loss implies app avail loss', 1.0)).
+
+% RULE 28 - 30: execCode with root privileges implies system C/I/A loss
+
+% RULE 28
+interaction_rule(
+    (sysConfLoss(H) :-
+      execCode(H, root)),
+      rule_desc('execCode implies system confidentiality loss', 1.0)).
+
+% RULE 29
+interaction_rule(
+    (sysIntegLoss(H) :-
+      execCode(H, root)),
+      rule_desc('execCode implies system integrity loss', 1.0)).
+
+% RULE 30
+interaction_rule(
+    (sysAvailLoss(H) :-
+      execCode(H, root)),
+      rule_desc('execCode implies system availability loss', 1.0)).
+
+% RULE 31 - 33: direct system C/I/A loss from vulnerability
+
+% RULE 31
+interaction_rule(
+    (sysConfLoss(H) :-
+      vulExists(H, _, Software, remoteExploit, systemConfidentialityLoss),
+      networkServiceInfo(H, Software, Protocol, Port, _),
+      netAccess(H, Protocol, Port)),
+    rule_desc('system confidentiality loss', 1.0)).
+
+% RULE 32
+interaction_rule(
+    (sysIntegLoss(H) :-
+      vulExists(H, _, Software, remoteExploit, systemIntegrityLoss),
+      networkServiceInfo(H, Software, Protocol, Port, _),
+      netAccess(H, Protocol, Port)),
+    rule_desc('system integrity loss', 1.0)).
+
+% RULE 33
+interaction_rule(
+    (sysAvailLoss(H) :-
+      vulExists(H, _, Software, remoteExploit, systemAvailabilityLoss),
+      networkServiceInfo(H, Software, Protocol, Port, _),
+      netAccess(H, Protocol, Port)),
+    rule_desc('system availability loss', 1.0)).
+

@@ -1,0 +1,122 @@
+# Set Python3.7 as default
+- name: Run update-alternatives
+  command: "update-alternatives {{ item }}"
+  with_items:
+    - "--install /usr/bin/python python /usr/bin/python3.7 2"
+    - "--install /usr/bin/python python /usr/bin/python2 1"
+
+- name: Install python dependencies
+  apt:
+    name: python3-pip
+    state: present
+    cache_valid_time: 1800
+    update_cache: yes
+
+- name: update pip
+  pip:
+    name: pip
+    state: latest
+    executable: pip3
+
+# https://github.com/geerlingguy/ansible-role-java/issues/64
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=863199#23
+- name: Create some arbitrary dir for install
+  file:
+    path: /usr/share/man/man1
+    state: directory
+    mode: "0755"
+
+- name: Purge ca-certificates-java befor jdk install - weird bug
+  apt:
+    name: ca-certificates-java
+    purge: yes
+  become: yes
+
+- name: Fix broken apt packages
+  command:
+    cmd: apt install -f
+  become: yes
+
+- name: Install java
+  apt:
+    name: default-jdk
+    state: present
+    cache_valid_time: 1800
+    update_cache: yes
+
+- name: Install necessary system packages
+  apt:
+    name:
+      - build-essential
+      - bison
+      - flex
+    state: present
+
+- name: Download MULVAL
+  get_url:
+    url: https://people.cs.ksu.edu/~xou/argus/software/mulval/mulval_1_1.tar.gz
+    dest: /opt/mulval_1_1.tar.gz
+
+- name: Extract MULVAL
+  unarchive:
+    src: /opt/mulval_1_1.tar.gz
+    dest: /opt/
+    remote_src: yes
+
+- name: Download XSB
+  get_url:
+    url: http://xsb.sourceforge.net/downloads/XSB.tar.gz
+    dest: /opt/XSB.tar.gz
+
+- name: Extract XSB
+  unarchive:
+    src: /opt/XSB.tar.gz
+    dest: /opt/
+    remote_src: yes
+
+- name: Set environment variables
+  lineinfile:
+    path: /etc/environment
+    line: "{{ item }}"
+    state: present
+  loop:
+    - "MULVALROOT=/opt/mulval"
+    - "XSBROOT=/opt/XSB"
+    - 'PATH="$PATH:$MULVALROOT/bin:$MULVALROOT/utils:$XSBROOT/bin:$XSBROOT/build"'
+
+- name: Compile XSB
+  shell: |
+    cd /opt/XSB/build
+    ./configure
+    ./makexsb
+  become: yes
+
+- name: Hardcode mulval classpath jars
+  lineinfile:
+    path: /opt/mulval/src/adapter/Makefile
+    line: "LIBS=/opt/mulval/lib/dom4j-1.6.1.jar:/opt/mulval/lib/jaxen-1.1.1.jar:/opt/mulval/lib/mysql-connector-java-5.1.8-bin.jar
+"
+    regexp: "^(LIBS=.*)$"
+    backrefs: yes
+    state: present
+
+- name: Compile MULVAL
+  shell: |
+    cd /opt/mulval
+    make
+
+- name: Copy crusoe_decide component
+  copy:
+    src: "../../../../"
+    dest: /tmp/crusoe_decide
+
+- name: install requirements.txt
+  pip:
+    requirements: "/tmp/crusoe_decide/requirements.txt"
+    executable: pip3
+
+- name: Install Crusoe decide component
+  pip:
+    name: "file:///tmp/crusoe_decide"
+    executable: pip3
+    state: forcereinstall

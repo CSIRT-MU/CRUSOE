@@ -1,0 +1,65 @@
+{
+  "nodes": {
+    "missions": [
+      {
+        "id": 1,
+        "name": "Web mission",
+        "criticality": 7,
+        "description": "Mission is responsible for proper functionality of a web server supported by a database server."
+      }
+    ],
+    "services": [
+      {
+        "id": 11,
+        "name": "Webserver service"
+      },
+      {
+        "id": 12,
+        "name": "DB Server service"
+      }
+    ],
+    "aggregations": {
+      "or": [ 3 ],
+      "and": [ 2 ]
+    },
+    "hosts": [
+      {
+        "id": 20,
+        "hostname": "host2.domain.cz",
+        "ip": "128.228.250.67"
+      },
+      {
+        "id": 21,
+        "hostname": "host1.domain.cz",
+        "ip": "128.228.251.133"
+      },
+      {
+        "id": 22,
+        "hostname": "host3.domain.cz",
+        "ip": "128.228.123.47"
+      }
+    ]
+  },
+  "relationships": {
+    "one_way": [
+      { "from": 1, "to": 2 },
+      { "from": 2, "to": 11 },
+      { "from": 2, "to": 12 },
+      { "from": 11, "to": 20 },
+      { "from": 12, "to": 3 },
+      { "from": 3, "to": 21 },
+      { "from": 3, "to": 22 }
+    ],
+    "two_way": [
+    ],
+    "supports": [
+      {"from": "Web mission", "to": "Webserver service"},
+      {"from": "Web mission", "to": "DB Server service"}
+    ],
+    "has_identity": [
+      {"from": "Webserver service", "to": "host2.domain.cz"},
+      {"from": "DB Server service", "to": "host1.domain.cz"},
+      {"from": "DB Server service", "to": "host3.domain.cz"}
+    ]
+  }
+}

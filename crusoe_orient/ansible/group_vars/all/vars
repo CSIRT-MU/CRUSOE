@@ -14,3 +14,5 @@ actApi: 'http://localhost/act/'
 graphqlApi: 'http://localhost/graphql'
 # Firewall API URL
 firewallApi: 'http://localhost/firewall'
+# Recommender API URL
+recommenderApi: 'http://localhost/recommender'
