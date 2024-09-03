@@ -21,3 +21,4 @@
       firewall_usedCapacity: "0"
       firewall_freeCapacity: "0"
       vault_neo4j_password: "password"
+      overseer_external_ip: 127.0.0.1
