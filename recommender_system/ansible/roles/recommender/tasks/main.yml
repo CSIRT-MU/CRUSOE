@@ -1,0 +1,44 @@
+- name: Install packages
+  ansible.builtin.apt:
+    update_cache: yes
+    pkg:
+      - python3
+      - python3-pip
+      - python3-venv
+      - screen
+
+- name: Create dashboard folder
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: 'directory'
+    mode: '0755'
+
+- name: Copy dashboard source files to VM
+  ansible.builtin.copy:
+    src: "../../../{{ item }}"
+    dest: "{{ app_dir }}"
+  loop:
+    - diagrams
+    - src
+    - tests
+    - traversal
+    - requirements.txt
+    - setup.py
+
+- name: Create venv
+  ansible.builtin.pip:
+    requirements: "{{ app_dir }}/requirements.txt"
+    virtualenv: "venv"
+    chdir: "{{ app_dir }}"
+    virtualenv_command: python3 -m venv
+
+- name: Install packages to venv
+  ansible.builtin.command:
+    chdir: "{{ app_dir }}"
+    cmd: ./venv/bin/python -m pip install -e .
+
+- name: Run application
+  ansible.builtin.shell:
+    chdir: "{{ app_dir }}"
+    cmd: "nohup ./venv/bin/python src/backend/manage.py runserver {{ app_host }}:{{ app_port }} &"
+

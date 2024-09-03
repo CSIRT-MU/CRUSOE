@@ -22,8 +22,14 @@
 # Copy source files to the VM
 - name: Copy graphqlapi source files to Vagrant VM
   copy:
-    src: "../../../"
+    src: "../../../{{ item }}"
     dest: "{{ graphqlapi_folder }}"
+  loop:
+    - src
+    - babel.config.js
+    - package.json
+    - package-lock.json
+    - README.md
 
 - name: Check if node12 is installed
   stat:
