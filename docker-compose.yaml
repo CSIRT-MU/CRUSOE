@@ -129,9 +129,12 @@ services:
         # # URL Where act-overseer is available
         ACT_API_URL: "http://172.28.0.6/act"
         # # URL Where graphql is available
-        GRAPHQL_URL: "http://192.168.194.5:4001/graphql"
+        GRAPHQL_URL: "http://172.28.0.4:4001/graphql"
         # # URL Where the simulated firewall is available
-        FIREWALL_PAO_URL: "http://192.168.194.5:8086/firewall"
+        FIREWALL_PAO_URL: "http://172.28.0.2:8086/firewall"
+        # # RECOMMENDER
+        RECOMMENDER_API: "http://172.28.0.8:16005/recommender"
+
     ports:
       - "80:80"
     volumes:
@@ -144,16 +147,16 @@ services:
     build:
       context: recommender_system
     environment:
-      NEO4J_URL: "bolt://localhost:7687"
+      NEO4J_URL: "bolt://crusoe_observe:7687"
       NEO4J_USER: "neo4j"
       NEO4J_PASS: "password"
     ports:
-      - "86:8000"
+      - "16005:8000"
     volumes:
       - vol_recommender:/app
     networks:
       bridge_crusoe:
-        ipv4_address: 172.28.0.6
+        ipv4_address: 172.28.0.8
 
 volumes:
   vol_act_overseer:
@@ -169,4 +172,4 @@ networks:
     ipam:
       config:
         # We do not need more than 5 IPs so small /29 subnet is sufficient
-        - subnet: 172.28.0.0/29
+        - subnet: 172.28.0.0/28
