@@ -113,8 +113,9 @@
 
 # Install Dashboard dependencies
 - name: Install Dashboard dependencies
-  npm:
-    path: '{{ dashboard_folder }}'
+  ansible.builtin.shell:
+    cmd: npm install
+    chdir: '{{ dashboard_folder }}'
 
 # Build application using Angular-CLI
 - name: Build application
