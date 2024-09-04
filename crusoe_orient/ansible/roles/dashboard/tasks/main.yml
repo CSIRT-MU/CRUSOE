@@ -132,7 +132,9 @@
 
 # Create folder for Dashboard files in /var/www/
 - name: Create dashboard folder in /var/www/
-  command: 'mkdir /var/www/dashboard'
+  ansible.builtin.file:
+    path: '/var/www/dashboard'
+    state: directory
   become: yes
 
 # Copy Dashboard files

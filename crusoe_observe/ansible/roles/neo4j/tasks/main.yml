@@ -185,4 +185,18 @@
     body_format: json
     body:
       password: "{{ neo4j_password }}"
+    status_code: [
+      200,
+      401  # we probably already changed the password
+    ]
+
+- name: Check new password works
+  ansible.builtin.uri:
+    url: http://localhost:7474/db/data/
+    method: GET
+    user: neo4j
+    password: "{{ neo4j_password }}"
+    headers:
+      Content-Type: application/json
+    body_format: json
   # when: 0 > 1

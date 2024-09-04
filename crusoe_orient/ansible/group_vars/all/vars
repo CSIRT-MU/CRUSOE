@@ -15,4 +15,4 @@ graphqlApi: 'http://localhost/graphql'
 # Firewall API URL
 firewallApi: 'http://localhost/firewall'
 # Recommender API URL
-recommenderApi: 'http://localhost/recommender'
+recommenderApi: 'http://localhost/16005'

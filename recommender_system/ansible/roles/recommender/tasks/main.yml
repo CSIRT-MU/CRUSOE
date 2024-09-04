@@ -1,3 +1,16 @@
+- name: Delete Debian deb-src backports repository URL in sources list - bug with apt update
+  ansible.builtin.lineinfile:
+    path: /etc/apt/sources.list
+    state: absent
+    backrefs: yes
+    regexp: "^(.*https://deb.debian.org/debian buster-backports main.*)$"
+  become: yes
+  register: deb_archive_changed
+
+# Install python 3.10
+
+## Install required packages
+
 - name: Install packages
   ansible.builtin.apt:
     update_cache: yes
@@ -5,15 +18,40 @@
       - python3
       - python3-pip
       - python3-venv
-      - screen
+      - build-essential
+      - zlib1g-dev
+      - libncurses5-dev
+      - libgdbm-dev
+      - libnss3-dev
+      - libssl-dev
+      - libreadline-dev
+      - libffi-dev
+      - libsqlite3-dev
+      - libbz2-dev
 
-- name: Create dashboard folder
+- name: Download Python3.10
+  ansible.builtin.get_url:
+    url: https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz
+    dest: /tmp/python310.tgz
+
+- name: Unarchive python
+  ansible.builtin.unarchive:
+    src: /tmp/python310.tgz
+    remote_src: yes
+    dest: /tmp
+
+- name: Install python310
+  ansible.builtin.shell:
+    cmd: ./configure --prefix=/usr/local --enable-optimizations --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib" && make -j 2 && make altinstall
+    chdir: /tmp/Python-3.10.13
+
+- name: Create recommender folder
   ansible.builtin.file:
     path: "{{ app_dir }}"
     state: 'directory'
     mode: '0755'
 
-- name: Copy dashboard source files to VM
+- name: Copy recommender source files to VM
   ansible.builtin.copy:
     src: "../../../{{ item }}"
     dest: "{{ app_dir }}"
@@ -25,12 +63,17 @@
     - requirements.txt
     - setup.py
 
+- name: Template settings.py
+  ansible.builtin.template:
+    src: settings.py
+    dest: "{{ app_dir }}/src/backend/django_project/settings.py"
+
 - name: Create venv
   ansible.builtin.pip:
     requirements: "{{ app_dir }}/requirements.txt"
     virtualenv: "venv"
     chdir: "{{ app_dir }}"
-    virtualenv_command: python3 -m venv
+    virtualenv_command: python3.10 -m venv
 
 - name: Install packages to venv
   ansible.builtin.command:

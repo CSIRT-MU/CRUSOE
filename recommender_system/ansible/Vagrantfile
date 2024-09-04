@@ -4,7 +4,7 @@
 Vagrant.configure("2") do |config|
   # the main virtual machine
   config.vm.define "crusoe", primary: true do |alpha|
-    alpha.vm.box = "debian/bookworm64"
+    alpha.vm.box = "debian/buster64"
     alpha.vm.box_check_update = true
     alpha.vm.provider "virtualbox" do |v|
       v.memory = 4096 # When you are not able to alocate more than 16GB of RAM you probably should skip mlData roles such they need a lot of memory to initialize models
@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
     end
     alpha.vm.hostname = "crusoe"
     alpha.vm.network "private_network", ip: "172.18.1.8"
-    alpha.vm.network "forwarded_port", guest: 8000, host: 8000
+    alpha.vm.network "forwarded_port", guest: 16005, host: 16005
     alpha.vm.boot_timeout = 400
 
     alpha.vm.provision "ansible" do |ansible|

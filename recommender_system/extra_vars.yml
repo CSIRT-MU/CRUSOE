@@ -1,3 +1,7 @@
 app_dir: /opt/app
 app_host: 0.0.0.0
-app_port: 8000
+app_port: 16005
+
+neo4j_bolt_url: "bolt://localhost:7687"
+neo4j_username: "neo4j"
+neo4j_password: "password"
