@@ -29,15 +29,20 @@ Lukáš Matta and Martin Husák (Orient tool)
 Lukáš Sadlek, Michal Javorník, and Martin Husák (Decide tool)  
 Stanislav Špaček and Milan Žiaran (Act tool)
 
-Special thanks goes to Jana Komárková for designing the data model and Daniel Tovarňák for consulting the design of the toolset.
+Special thanks goes to Jana Komárková for designing the data model, Daniel Tovarňák for consulting the design of the toolset, Vít Šebela for automating the toolset deployment, Vladimír Bouček for implementing the recommender system, Martin Hesko for implementing the visualization for the recommender system, and Michal Čech for integrating it all together.
 
 ### References
 
-The developments of the CRUSOE framework resulted in numerous publications. The project summary was published in Computers & Security journal:
+The developments of the CRUSOE framework resulted in numerous publications. The project summary (corresponsing to release 1.0) was published in Computers & Security journal:
 https://www.sciencedirect.com/science/article/pii/S0167404822000086
 
-Their list of other publications can be found at: https://www.muni.cz/en/research/projects/35444
+Release 1.1 with new features and buxfixes was described in the demo paper presented at CNSM 2024 conference:
+https://opendl.ifip-tc6.org/db/conf/cnsm/cnsm2024/1571059474.pdf
+
+The list of other related publications can be found at: https://www.muni.cz/en/research/projects/35444
 
 ### Acknowledgement
 
 The research and development were supported by the Security Research Programme of the Czech Republic 2015 - 2020 (BV III / 1 VS) granted by the Ministry of the Interior of the Czech Republic under No. VI20172020070 Research of Tools for Cyber Situational Awareness and Decision Support of CSIRT Teams in Protection of Critical Infrastructure.
+
+Further development of the CRUSOE toolset was enabled by the project MSCAfellow5_MUNI (No. CZ.02.01.01/00/22 010/0003229) funded by OP JAK.
