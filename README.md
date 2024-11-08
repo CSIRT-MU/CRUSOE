@@ -20,6 +20,14 @@ Act: https://www.muni.cz/en/research/publications/1728677
 
 The software is modular and can be installed either in parts, or as a whole using Ansible. For installation instructions of each separate tool or component, see readme.md files in the corresponding subfolders.
 
+### Datasets
+
+In the "Dataset" directory, you can find a sample dataset to work with if you do not your own data or just want to try CRUSOE. At the moment, there is a dump of Neo4j database filled with data from the Cyber Czech excercise in KYPO cyber range. Raw data can be found on Zenodo: https://zenodo.org/records/3746129
+
+To use the data, turn your Neo4j instance off and overwrite the content of your database with the dump using the command: neo4j-admin load --from .dump --database=neo4j --force
+
+Thanks goes to Lukáš Sadlek for preparing the dataset.
+
 ### Authors
 
 The authors of the CRUSOE toolset are:
