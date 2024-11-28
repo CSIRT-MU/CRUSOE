@@ -29,7 +29,7 @@ import { AuthGuardNegative } from './authentication/services/auth-guard-negative
 import { MissionPanelComponent } from './panels/mission-panel/mission-panel.component';
 
 // PANELS
-export const panelGroups = [{ name: 'Lists' }];
+export const panelGroups = [{ name: 'Observe'}, { name: 'Orient'}, {name: 'Decide'}, {name: 'Act'}];
 
 // Add all new panels here
 export const panels = [
@@ -40,39 +40,39 @@ export const panels = [
     canActivate: [AuthGuard],
   },
   {
-    data: { name: 'Decide/Act', panelGroup: panelGroups[0] },
-    path: 'decide',
-    component: DecideActComponent,
-    canActivate: [AuthGuard],
-  },
-  {
-    data: { name: 'Network Visualization', panelGroup: panelGroups[0] },
+    data: { name: 'Network Nodes', panelGroup: panelGroups[1] },
     path: 'network-visualization',
     component: NetworkVisualizationComponent,
     canActivate: [AuthGuard],
   },
   {
-    data: { name: 'Missions', panelGroup: panelGroups[0] },
+    data: { name: 'Vulnerabilities', panelGroup: panelGroups[1] },
+    path: 'vulnerability',
+    component: VulnerabilityComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    data: { name: 'Missions', panelGroup: panelGroups[1] },
     path: 'mission-panel',
     component: MissionPanelComponent,
     canActivate: [AuthGuard],
   },
   {
-    data: { name: 'Recommender Visualization', panelGroup: panelGroups[0] },
+    data: { name: 'Recommender System', panelGroup: panelGroups[2] },
     path: 'recommender-system-visualization',
     component: RecommenderSystemVisualizationComponent,
     canActivate: [AuthGuard],
   },
   {
-    data: { name: 'Spread Projection Visualization', panelGroup: panelGroups[0] },
+    data: { name: 'Attack Spread Projection', panelGroup: panelGroups[2] },
     path: 'spread-projection-visualization',
     component: SpreadProjectionVisualizationComponent,
     canActivate: [AuthGuard],
   },
   {
-    data: { name: 'Vulnerability', panelGroup: panelGroups[0] },
-    path: 'vulnerability',
-    component: VulnerabilityComponent,
+    data: { name: 'Decide & Act', panelGroup: panelGroups[3] },
+    path: 'decide',
+    component: DecideActComponent,
     canActivate: [AuthGuard],
   },
 ];

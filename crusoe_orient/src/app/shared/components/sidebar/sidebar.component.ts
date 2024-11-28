@@ -13,7 +13,6 @@ import { AuthService } from 'src/app/authentication/services/auth.service';
 export class SidebarComponent implements OnInit, AfterViewInit {
   panels: Panel[];
   panelGroups: PanelGroup[];
-  appVersion = environment.version;
   appName = environment.applicationName;
 
   constructor(private auth: AuthService) {
