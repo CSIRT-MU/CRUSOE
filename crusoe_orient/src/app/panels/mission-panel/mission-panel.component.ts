@@ -4,6 +4,7 @@ import { Mission } from '../decide-act/models/mission.model';
 import { MissionStructure } from '../decide-act/models/mission-structure.model';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { Node } from '@swimlane/ngx-graph';
 
 @Component({
   selector: 'mission-panel',
@@ -13,7 +14,11 @@ import { Observable } from 'rxjs';
 export class MissionPanelComponent implements OnInit {
   errorMessage = '';
   missionNames: string[] = [];
-  selectedMission = "";
+  selectedMissionName = "";
+  selectedNode: Node = null;
+  setSelectedNode = (node: Node) => {
+    this.selectedNode = node
+  }
   missions: Mission[] = [];
   missionsStructure: MissionStructure;
 
@@ -45,7 +50,7 @@ export class MissionPanelComponent implements OnInit {
    * Returns an observable of missions
    */
   private getMissions(): Observable<Mission[]> {
-    return this.dataService.getMission(this.selectedMission).pipe(
+    return this.dataService.getMission(this.selectedMissionName).pipe(
       tap((missions: Mission[]) => {
         if (!this.missionsStructure) {
           this.missionsStructure = this.dataService.makeMissionsStructure(missions);

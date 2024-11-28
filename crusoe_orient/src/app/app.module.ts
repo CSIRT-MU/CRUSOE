@@ -35,16 +35,13 @@ import { TaskManagerComponent } from './panels/task-manager/task-manager.compone
 import { WorkerComponent } from './panels/task-manager/worker/worker.component';
 import { TaskComponent } from './panels/task-manager/task/task.component';
 
-// Missions
-import { MissionsPanelComponent } from './panels/missions-panel/missions-panel.component';
-
 // Decide-Act
 import { DecideActComponent } from './panels/decide-act/decideact.component';
 
 // Network Visualization
 import { NetworkVisualizationComponent } from './panels/network-visualization/network-visualization.component';
 
-// Custom panel
+// Missions
 import { MissionPanelComponent } from './panels/mission-panel/mission-panel.component';
 
 // Recommender System Visualization

@@ -40,7 +40,7 @@
       [tooltipPlacement]="'top'"
       [tooltipType]="'tooltip'"
       [tooltipTitle]="node.data.ip"
-      [style.cursor]="node.data.type === 'mission' ? 'pointer' : 'default'"
+      [style.cursor]="(node.data.type === 'mission' || node.data.type === 'host') ? 'pointer' : 'default'"
     >
       <svg:rect
         [attr.width]="node.dimension.width"

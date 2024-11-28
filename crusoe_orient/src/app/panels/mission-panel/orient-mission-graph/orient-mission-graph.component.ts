@@ -21,6 +21,7 @@ export class OrientMissionGraphComponent implements OnInit, OnChanges {
   customLayout: Layout = new CustomLayout();
   center$ = new Subject<any>();
   @Input() structure: MissionStructure;
+  @Input() setSelectedNode: (node: Node) => null;
   @Input() hosts: string[];
   @Input() ips: string[];
   disabledNodes: number[] = [];
@@ -64,7 +65,13 @@ export class OrientMissionGraphComponent implements OnInit, OnChanges {
         newNode = {
           id: n.id.toString(),
           label: n.name,
-          data: { type: 'mission', customColor: '#0f3057', textColor: '#fff' },
+          data: { 
+            type: 'mission',
+            customColor: '#0f3057',
+            textColor: '#fff',
+            criticality: n.criticality,
+            description: n.description
+          },
         };
         nodes.push(newNode);
       });
@@ -160,8 +167,8 @@ export class OrientMissionGraphComponent implements OnInit, OnChanges {
   }
 
   selectNode(node: Node) {
-    if (node.data.type === 'mission') {
-      this.router.navigateByUrl('/auth/panel/decide/mission/' + node.label);
+    if (node.data.type === 'mission' || node.data.type === 'host') {
+      this.setSelectedNode(node)
     }
   }
 }

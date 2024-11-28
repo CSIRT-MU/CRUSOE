@@ -26,16 +26,58 @@
   margin-bottom: 16px;
 }
 
-.missions-graph {
-  width: 100%;
+.content-container {
+  background-color: #fff;
   height: 500px;
-  background: #fff;
   border: 1px solid #cbc4d5;
-  overflow: hidden;
-
+  display: flex;
+  .missions-graph {
+    width: 70%;
+    overflow: hidden;
+  }
+  .node-wrapper {
+    display: flex;
+    width: 30%;
+    border-left: 1px solid #cbc4d5;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  
+    .vertical-center {
+      margin: auto;
+    }
+  }
   .empty {
     text-align: center;
     margin-top: 50px;
+  }
+}
+
+.node-card {
+  background-color: #fff;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 25px;
+
+  h2 {
+    margin-bottom: 0;
+    word-wrap: break-word;
+  }
+
+  .type-name {
+    font-size: 14px;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .heading {
+    font-size: 16xp;
+    font-weight: bold;
+    margin-bottom: 0;
+  }
+
+  ul {
+    list-style: none;
   }
 }
 
