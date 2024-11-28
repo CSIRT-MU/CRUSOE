@@ -13,6 +13,8 @@ import { VulnerabilityData } from '../../panels/vulnerability/vulnerability.comp
 import { Subnet } from 'src/app/shared/models/subnet.model';
 import { DocumentNode } from 'graphql';
 import { ComparatorService } from './comparator.service';
+import { Mission } from 'src/app/panels/decide-act/models/mission.model';
+import { MissionStructure } from 'src/app/panels/decide-act/models/mission-structure.model';
 
 @Injectable({
   providedIn: 'root',
@@ -538,4 +540,92 @@ export class DataService {
         })
       );
   }
+
+  /**
+   * Gets names of all available missions
+   */
+  public getMissionNames(): Observable<string[]> {
+    return this.apollo // Assuming 'this' has an Apollo instance
+      .query<any>({
+        query: gql`
+          {
+            Mission {
+              name
+            }
+          }
+        `,
+      })
+      .pipe(
+        map((data) => {
+          const missions = data.data.Mission.map((mission: any) => mission.name);
+          return missions;
+        })
+      );
+  }
+
+  /**
+   * Gets mission object by its name
+   * @param name name of the mission
+   */
+  public getMission(name: String): Observable<Mission[]> {
+    return this.apollo // Assuming 'this' has an Apollo instance
+    .query<any>({
+      query: gql`
+        {
+          Mission(name: "${name}") {
+            name,
+            criticality,
+            description,
+            structure,
+          }
+        }
+      `,
+    })
+    .pipe(
+      map((response) => {
+        const missions: Mission[] = response.data.Mission
+        return missions;
+      })
+    );
+  }
+
+  /**
+   * Gets structure parameter from each mission and merges them into one structure
+   * @param missions list of missions
+   *
+   */
+  public makeMissionsStructure(missions: Mission[]): MissionStructure {
+    let result: MissionStructure;
+    let structure: MissionStructure;
+
+    result = missions.reduce(
+      (acc, mission) => {
+        structure = JSON.parse(mission.structure);
+        return {
+          nodes: {
+            missions: [...acc.nodes.missions, ...structure.nodes.missions],
+            hosts: [...acc.nodes.hosts, ...structure.nodes.hosts],
+            services: [...acc.nodes.services, ...structure.nodes.services],
+            aggregations: {
+              or: [...acc.nodes.aggregations.or, ...structure.nodes.aggregations.or],
+              and: [...acc.nodes.aggregations.and, ...structure.nodes.aggregations.and],
+            },
+          },
+          relationships: {
+            two_way: [...acc.relationships.two_way, ...structure.relationships.two_way],
+            one_way: [...acc.relationships.one_way, ...structure.relationships.one_way],
+            supports: [...acc.relationships.supports, ...structure.relationships.supports],
+            has_identity: [...acc.relationships.has_identity, ...structure.relationships.has_identity],
+          },
+        };
+      },
+      {
+        nodes: { missions: [], hosts: [], aggregations: { and: [], or: [] }, services: [] },
+        relationships: { two_way: [], one_way: [], supports: [], has_identity: [] },
+      }
+    );
+
+    return result;
+  }
 }
+

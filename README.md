@@ -41,7 +41,7 @@ Lukáš Matta and Martin Husák (Orient tool)
 Lukáš Sadlek, Michal Javorník, and Martin Husák (Decide tool)  
 Stanislav Špaček and Milan Žiaran (Act tool)
 
-Special thanks goes to Jana Komárková for designing the data model, Daniel Tovarňák for consulting the design of the toolset, Vít Šebela for automating the toolset deployment, Vladimír Bouček for implementing the recommender system, Martin Hesko for implementing the visualization for the recommender system, and Michal Čech for integrating it all together.
+Special thanks goes to Jana Komárková for designing the data model, Daniel Tovarňák for consulting the design of the toolset, Vít Šebela for automating the toolset deployment, Vladimír Bouček for implementing the recommender system, Martin Hesko and Samuel Vadovič for implementing the visualizations, and Michal Čech for integrating it all together.
 
 ### References
 

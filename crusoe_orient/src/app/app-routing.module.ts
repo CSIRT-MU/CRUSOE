@@ -26,6 +26,7 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { AuthGuard } from 'src/app/authentication/services/auth-guard.service';
 import { AuthGuardNegative } from './authentication/services/auth-guard-negative.service';
+import { MissionPanelComponent } from './panels/mission-panel/mission-panel.component';
 
 // PANELS
 export const panelGroups = [{ name: 'Lists' }];
@@ -48,6 +49,12 @@ export const panels = [
     data: { name: 'Network Visualization', panelGroup: panelGroups[0] },
     path: 'network-visualization',
     component: NetworkVisualizationComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    data: { name: 'Missions', panelGroup: panelGroups[0] },
+    path: 'mission-panel',
+    component: MissionPanelComponent,
     canActivate: [AuthGuard],
   },
   {

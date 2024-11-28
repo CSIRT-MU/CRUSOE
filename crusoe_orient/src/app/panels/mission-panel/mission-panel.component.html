@@ -1,0 +1,28 @@
+<div class="search-filter">
+  <ng-container *ngIf="missionNames && missionNames.length > 0">
+    <mat-form-field appearance="outline">
+      <mat-label>Mission</mat-label>
+      <mat-select [(ngModel)]="selectedMission">
+        <mat-option></mat-option>
+        <mat-option *ngFor="let mission of missionNames" [value]="mission">
+          {{ mission }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </ng-container>
+  <button [disabled]="!selectedMission" mat-raised-button color="primary" (click)="getGraphData()">
+    <mat-icon>search</mat-icon>
+    Search
+  </button>
+</div>
+
+<ng-container>
+  <h3 class="header"><strong>Mission</strong></h3>
+  <div class="missions-graph">
+    <app-mission-graph
+    *ngIf="missions.length > 0 && missionsStructure"
+    [structure]="missionsStructure"
+    ></app-mission-graph>
+    <p class="empty" *ngIf="missions.length === 0">No missions available.</p>
+  </div>
+</ng-container>
