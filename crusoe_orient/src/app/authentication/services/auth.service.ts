@@ -52,8 +52,7 @@ export class AuthService {
    * @returns returns true if user is authenticated, false otherwise
    */
   public isAuthenticated(): boolean {
-    //return true;
-    return true;
+    return true; //this.oAuthService.hasValidAccessToken(); // uncomment this to enable authentication
   }
 
   /**
